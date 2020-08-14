@@ -5,13 +5,14 @@ import 'package:provider/provider.dart';
 class Filters extends StatefulWidget {
   const Filters({Key key, this.onApplyClick}) : super(key: key);
 
-  final Function(bool, bool, bool, bool, bool, bool, bool) onApplyClick;
+  final Function(bool, List, bool, bool) onApplyClick;
 
   @override
   _FiltersState createState() => _FiltersState();
 }
 
 class _FiltersState extends State<Filters> {
+  List<String> filters = ["offline", "online", "free", "paid"];
   double distValue = 50.0;
   bool mycollege = true;
   bool allcolleges = false;
@@ -20,22 +21,17 @@ class _FiltersState extends State<Filters> {
   bool offline = true;
   bool paid = true;
   bool free = true;
+  String all1 = "";
+  String online1 = "";
+  String offline1 = "";
+  String paid1 = "";
+  String free1 = "";
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          leading: InkWell(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: Icon(
-              Icons.close,
-              color: Theme.of(context).textTheme.caption.color,
-              size: 27,
-            ),
-          ),
           elevation: 4,
           title: Text(
             "Filters",
@@ -165,10 +161,17 @@ class _FiltersState extends State<Filters> {
                                             onTap: () {
                                               offline
                                                   ? setState(() {
+                                                      this.setState(() =>
+                                                          filters.remove(
+                                                              "offline"));
+
                                                       offline = false;
                                                       all = false;
                                                     })
                                                   : setState(() {
+                                                      this.setState(() =>
+                                                          filters
+                                                              .add("offline"));
                                                       offline = true;
                                                     });
                                               online && offline && free && paid
@@ -226,10 +229,16 @@ class _FiltersState extends State<Filters> {
                                             onTap: () {
                                               online
                                                   ? setState(() {
+                                                      this.setState(() =>
+                                                          filters.remove(
+                                                              "online"));
                                                       online = false;
                                                       all = false;
                                                     })
                                                   : setState(() {
+                                                      this.setState(() =>
+                                                          filters
+                                                              .add("online"));
                                                       online = true;
                                                     });
                                               online && offline && free && paid
@@ -294,10 +303,15 @@ class _FiltersState extends State<Filters> {
                                             onTap: () {
                                               free
                                                   ? setState(() {
+                                                      this.setState(() =>
+                                                          filters
+                                                              .remove("free"));
                                                       free = false;
                                                       all = false;
                                                     })
                                                   : setState(() {
+                                                      this.setState(() =>
+                                                          filters.add("free"));
                                                       free = true;
                                                     });
                                               online && offline && free && paid
@@ -355,10 +369,15 @@ class _FiltersState extends State<Filters> {
                                             onTap: () {
                                               paid
                                                   ? setState(() {
+                                                      this.setState(() =>
+                                                          filters
+                                                              .remove("paid"));
                                                       paid = false;
                                                       all = false;
                                                     })
                                                   : setState(() {
+                                                      this.setState(() =>
+                                                          filters.add("paid"));
                                                       paid = true;
                                                     });
                                               online && offline && free && paid
@@ -563,10 +582,12 @@ class _FiltersState extends State<Filters> {
                     highlightColor: Colors.transparent,
                     onTap: () {
                       try {
-                        widget.onApplyClick(all, offline, online, free, paid,
-                            mycollege, allcolleges);
-                        Navigator.pop(context);
-                      } catch (_) {}
+                        widget.onApplyClick(
+                            all, filters, mycollege, allcolleges);
+                        Navigator.of(context).pop(true);
+                      } catch (_) {
+                        print("error");
+                      }
                     },
                     child: Center(
                       child: Text(

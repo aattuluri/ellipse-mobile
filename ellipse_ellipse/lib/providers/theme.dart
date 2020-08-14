@@ -8,6 +8,7 @@ const Themes _defaultTheme = Themes.dark;
 
 final Map<Themes, ThemeData> _themeData = {
   Themes.light: ThemeData(
+    visualDensity: VisualDensity.adaptivePlatformDensity,
     brightness: Brightness.light,
     primaryColor: lightPrimaryColor,
     accentColor: lightAccentColor,
@@ -18,6 +19,7 @@ final Map<Themes, ThemeData> _themeData = {
     ),
   ),
   Themes.dark: ThemeData(
+    //visualDensity: VisualDensity.adaptivePlatformDensity,
     brightness: Brightness.dark,
     primaryColor: darkPrimaryColor,
     accentColor: darkAccentColor,
@@ -34,6 +36,7 @@ final Map<Themes, ThemeData> _themeData = {
     ),
   ),
   Themes.black: ThemeData(
+    visualDensity: VisualDensity.adaptivePlatformDensity,
     brightness: Brightness.dark,
     primaryColor: blackPrimaryColor,
     accentColor: blackAccentColor,

@@ -1,8 +1,11 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+import '../menu_drawer/drawer.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../tabs/notifications.dart';
-import '../tabs/more.dart';
+import '../tabs/settings.dart';
 import 'dart:convert';
 import 'dart:async';
 import '../screens/index.dart';
@@ -15,11 +18,14 @@ import '../../util/constants.dart' as Constants;
 import 'dart:io';
 
 class StartScreen extends StatefulWidget {
+  final int current_tab;
+  StartScreen(this.current_tab);
   @override
   State<StatefulWidget> createState() => _StartScreenState();
 }
 
 class _StartScreenState extends State<StartScreen> {
+  final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
   String token = "", id = "", email = "";
   bool ischecking = false;
   Future loggedin() async {
@@ -33,96 +39,163 @@ class _StartScreenState extends State<StartScreen> {
   }
 
   getPref() async {
-    setState(() {
-      ischecking = true;
-    });
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
       token = preferences.getString("token");
       id = preferences.getString("id");
       email = preferences.getString("email");
     });
-    http.Response response = await http.post(
-      '${Url.URL}/api/users/check',
-      headers: <String, String>{
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token'
-      },
-      body: jsonEncode(<String, String>{'id': '$id'}),
-    );
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
-    if (response.statusCode == 401) {
-      http.Response response1 = await http.post(
-        '${Url.URL}/api/users/emailverify',
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
-        },
-        body: jsonEncode(<String, String>{'email': '$email'}),
-      );
-      print('Response status: ${response1.statusCode}');
-      print('Response body: ${response1.body}');
-      if (response1.statusCode == 200) {
-        print("sent check request");
-        var route = new MaterialPageRoute(
-          builder: (BuildContext context) => OtpPageEmailVerify(),
-        );
-        Navigator.of(context).push(route);
-        //print(jsonResponse['otp']);
-      } else {
-        print(response1.body);
-      }
-    } else if (response.statusCode == 402) {
-      var route = new MaterialPageRoute(
-        builder: (BuildContext context) => Check(),
-      );
-      Navigator.of(context).push(route);
-    } else if (response.statusCode == 403) {
-      setState(() {
-        ischecking = false;
-      });
-      print("All details checked");
-    } else {
-      Navigator.pushNamed(context, Routes.signin);
-    }
   }
 
-  int currentTab = 0;
   HomeTab homeTab;
   ExploreTab exploreTab;
-  EventTab eventTab;
+  DashboardTab eventTab;
   NotificationsTab notificationsTab;
-  MoreTab moreTab;
+  SettingsTab settingsTab;
   List<Widget> pages;
   Widget currentPage;
+  int currentTab;
   @override
   void initState() {
-    loggedin();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    currentTab = widget.current_tab;
     homeTab = HomeTab();
     exploreTab = ExploreTab();
-    eventTab = EventTab();
+    eventTab = DashboardTab();
     notificationsTab = NotificationsTab();
-    moreTab = MoreTab();
-    pages = [homeTab, exploreTab, eventTab, notificationsTab, moreTab];
-
-    currentPage = homeTab;
+    settingsTab = SettingsTab();
+    pages = [homeTab, exploreTab, eventTab, notificationsTab, settingsTab];
+    switch (currentTab) {
+      case 0:
+        currentPage = homeTab;
+        break;
+      case 1:
+        currentPage = exploreTab;
+        break;
+      case 2:
+        currentPage = eventTab;
+        break;
+      case 3:
+        currentPage = notificationsTab;
+        break;
+      case 4:
+        currentPage = settingsTab;
+        break;
+    }
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return ischecking
-        ? Center(child: const CircularProgressIndicator())
+        ? SafeArea(
+            child: Scaffold(
+                body: Align(
+            alignment: Alignment.center,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(
+                  height: 40,
+                ),
+                Text(
+                  "Loading",
+                  style: TextStyle(
+                      color: Theme.of(context).textTheme.caption.color,
+                      fontSize: 40.0,
+                      fontWeight: FontWeight.bold),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  "Please Wait....",
+                  style: TextStyle(
+                      color: Theme.of(context).textTheme.caption.color,
+                      fontSize: 30.0,
+                      fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          )))
         : Consumer<EventsRepository>(
             builder: (context, model, child) => SafeArea(
               child:
-                  //model.isLoading || model.loadingFailed
-                  // ? Center(child: const CircularProgressIndicator())
-                  //  :
+                  /*model.isLoading || model.loadingFailed
+                  ? Scaffold(
+                      body: Align(
+                      alignment: Alignment.center,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(
+                            height: 40,
+                          ),
+                          Text(
+                            "Fetching Data",
+                            style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
+                                fontSize: 40.0,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Text(
+                            "Please Wait....",
+                            style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
+                                fontSize: 30.0,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ))
+                  : */
                   Scaffold(
-                body: currentPage,
+                /*
+                appBar: AppBar(
+                  automaticallyImplyLeading: false,
+                  title: Center(
+                    child: Text(currentTab == 0
+                        ? "Home"
+                        : currentTab == 2
+                            ? "Dashboard"
+                            : currentTab == 3 ? "Notifications" : "Settings"),
+                  ),
+
+                  leading: InkWell(
+                    onTap: () => scaffoldKey.currentState.openDrawer(),
+                    child: new Icon(
+                      Icons.menu,
+                      color: Theme.of(context).textTheme.caption.color,
+                      size: 30,
+                    ),
+                  ),
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                ),
+                drawer: SizedBox(
+                  width: UIUtil.drawerWidth(context),
+                  child: AppDrawer(
+                    child: MenuDrawer(),
+                  ),
+                ),
+                */
+
+                key: scaffoldKey,
+                body: Consumer<UserDetailsRepository>(
+                    builder: (context, model2, child) => currentPage),
                 bottomNavigationBar: BottomNavigationBar(
+                  //backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                   selectedLabelStyle: TextStyle(fontFamily: 'ProductSans'),
                   unselectedLabelStyle: TextStyle(fontFamily: 'ProductSans'),
                   type: BottomNavigationBarType.fixed,
@@ -151,8 +224,8 @@ class _StartScreenState extends State<StartScreen> {
                       icon: Icon(Icons.notifications),
                     ),
                     BottomNavigationBarItem(
-                      title: Text("More"),
-                      icon: Icon(Icons.menu),
+                      title: Text("Settings"),
+                      icon: Icon(Icons.settings),
                     ),
                   ],
                 ),

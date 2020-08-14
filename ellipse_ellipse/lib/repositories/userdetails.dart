@@ -7,9 +7,10 @@ import 'base.dart';
 import 'package:flutter/material.dart';
 
 /// Repository that holds a list of launches.
-class EventsRepository extends BaseRepository {
-  List<Events> allEvents;
+class UserDetailsRepository extends BaseRepository {
+  List<UserDetails> allUserDetails;
   String token = "", id = "", email = "";
+
   @override
   Future<void> loadData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -18,20 +19,24 @@ class EventsRepository extends BaseRepository {
     id = prefs.getString("id");
     email = prefs.getString("email");
     try {
+      print("Started Loading userdetails");
       // Receives the data and parse it
-      final Response<List> response = await Dio().get("${Url.URL}/api/events",
+      final Response<List> response = await Dio().get("${Url.URL}/api/users/me",
           options: Options(
             headers: {"Authorization": "Bearer $token"},
           ));
-
-      allEvents = [for (final item in response.data) Events.fromJson(item)];
+      print(response.data);
+      allUserDetails = [
+        for (final item in response.data) UserDetails.fromJson(item)
+      ];
 
       finishLoading();
-      print("Events loaded");
+      print("UserDetails loaded");
     } catch (_) {
       receivedError();
+      print("error");
     }
   }
 
-  Events getEvents(int index) => allEvents[index];
+  UserDetails getUserDetails(int index) => allUserDetails[index];
 }

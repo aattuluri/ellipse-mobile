@@ -1,5 +1,6 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
-
+import 'package:mime/mime.dart';
 import '../../util/routes.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,6 +11,9 @@ import 'auth_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../util/index.dart';
+import '../screens/index.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:http_parser/http_parser.dart';
 
 class OtpPageEmailVerify extends StatefulWidget {
   @override
@@ -52,12 +56,16 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token'
       },
-      body: jsonEncode(<String, String>{'email': '$email', 'otp': '$otp'}),
+      body: jsonEncode(<dynamic, dynamic>{'email': '$email', 'otp': '$otp'}),
     );
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
     if (response.statusCode == 300) {
-      Navigator.pushNamed(context, Routes.start);
+      Navigator.pushNamed(
+        context,
+        Routes.start,
+        arguments: {'currebt_tab': 1},
+      );
     } else {
       print(response.body);
     }
@@ -235,7 +243,11 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
         leading: new IconButton(
           icon: new Icon(Icons.arrow_back_ios),
           onPressed: () {
-            Navigator.pushNamed(context, Routes.start);
+            Navigator.pushNamed(
+              context,
+              Routes.start,
+              arguments: {'currebt_tab': 1},
+            );
           },
         ),
       ),
@@ -572,27 +584,77 @@ class _CheckState extends State<Check> {
   bool female = false;
   final List<String> _designations = ["Student", "Club"];
   getPref() async {
+    setState(() {
+      isLoading = true;
+    });
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
       token = preferences.getString("token");
       id = preferences.getString("id");
       email = preferences.getString("email");
     });
-    String base64Image = base64Encode(_imageFile.readAsBytesSync());
     http.Response response = await http.post(
-      '${Url.URL}/api/users/check_fill',
+      '${Url.URL}/api/users/userdetails',
       headers: <String, String>{
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token'
       },
-      body: jsonEncode(<String, String>{
+      body: jsonEncode(<dynamic, dynamic>{
         'id': "$id",
-        "college": "$_college",
-        'image_url': "$base64Image"
+        "college_id": "$_college",
+        'bio': "$bio",
+        'designation': "$designation",
+        'gender': "Male"
       }),
     );
     if (response.statusCode == 200) {
-      Navigator.pushNamed(context, Routes.start);
+      Map<String, String> headers = {
+        HttpHeaders.authorizationHeader: "Bearer $token",
+        HttpHeaders.contentTypeHeader: "application/json"
+      };
+      final mimeTypeData =
+          lookupMimeType(_imageFile.path, headerBytes: [0xFF, 0xD8]).split('/');
+
+      // Intilize the multipart request
+      final imageUploadRequest = http.MultipartRequest(
+          'POST', Uri.parse('${Url.URL}/api/users/uploadimage?id=$id'));
+      imageUploadRequest.headers.addAll(headers);
+      // Attach the file in the request
+      final file = await http.MultipartFile.fromPath('image', _imageFile.path,
+          contentType: MediaType(mimeTypeData[0], mimeTypeData[1]));
+      // Explicitly pass the extension of the image with request body
+      // Since image_picker has some bugs due which it mixes up
+      // image extension with file name like this filenamejpge
+      // Which creates some problem at the server side to manage
+      // or verify the file extension
+      imageUploadRequest.files.add(file);
+
+      try {
+        final streamedResponse = await imageUploadRequest.send();
+        final response1 = await http.Response.fromStream(streamedResponse);
+        if (response1.statusCode == 200) {
+          Navigator.pushNamed(
+            context,
+            Routes.start,
+            arguments: {'currebt_tab': 2},
+          );
+          setState(() {
+            _isUploading = false;
+          });
+          print("Image Uploaded");
+        }
+      } catch (e) {
+        print(e);
+        return null;
+      }
+      setState(() {
+        isLoading = false;
+      });
+      Navigator.pushNamed(
+        context,
+        Routes.start,
+        arguments: {'currebt_tab': 1},
+      );
     } else {
       print(response.body);
     }
@@ -678,482 +740,545 @@ class _CheckState extends State<Check> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: SingleChildScrollView(
-          child: Stack(
-            children: <Widget>[
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      SizedBox(height: 10),
-                      Container(
-                        margin: EdgeInsets.symmetric(vertical: 10),
+    return isLoading
+        ? SafeArea(
+            child: Scaffold(
+                body: Align(
+            alignment: Alignment.center,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Center(child: CircularProgressIndicator()),
+                Text(
+                  "Saving your profile....",
+                  style: TextStyle(
+                      color: Theme.of(context).textTheme.caption.color,
+                      fontSize: 30.0,
+                      fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          )))
+        : SafeArea(
+            child: Scaffold(
+              body: SingleChildScrollView(
+                child: Stack(
+                  children: <Widget>[
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: SingleChildScrollView(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
-                            Padding(
-                              padding: const EdgeInsets.only(left: 20.0),
-                              child: Text(
-                                "Profile Picture",
-                                style: TextStyle(
-                                    color: Colors.grey, fontSize: 16.0),
-                              ),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                _imageFile == null
-                                    ? Container(
-                                        height: 150.0,
-                                        width: 150.0,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(80.0),
-                                          boxShadow: [
-                                            BoxShadow(
-                                                blurRadius: 3.0,
-                                                offset: Offset(0, 4.0),
-                                                color: Colors.black38),
-                                          ],
-                                          image: DecorationImage(
-                                            image: AssetImage(
-                                              "assets/g.png",
+                            SizedBox(height: 10),
+                            Container(
+                              margin: EdgeInsets.symmetric(vertical: 10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 20.0),
+                                    child: Text(
+                                      "Profile Picture",
+                                      style: TextStyle(
+                                          color: Colors.grey, fontSize: 16.0),
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      _imageFile == null
+                                          ? Container(
+                                              height: 150.0,
+                                              width: 150.0,
+                                              child: Icon(
+                                                Icons.add_a_photo,
+                                                size: 65,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(80.0),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                      blurRadius: 3.0,
+                                                      offset: Offset(0, 4.0),
+                                                      color: Colors.black38),
+                                                ],
+                                              ),
+                                            )
+                                          : Container(
+                                              height: 120.0,
+                                              width: 120.0,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(80.0),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                      blurRadius: 3.0,
+                                                      offset: Offset(0, 4.0),
+                                                      color: Colors.black38),
+                                                ],
+                                                image: DecorationImage(
+                                                  image: FileImage(
+                                                    _imageFile,
+                                                  ),
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
                                             ),
-                                            fit: BoxFit.cover,
+                                      Padding(
+                                        padding: EdgeInsets.only(top: 60.0),
+                                        child: IconButton(
+                                          icon: Icon(
+                                            Icons.add_a_photo,
+                                            size: 30.0,
                                           ),
-                                        ),
-                                      )
-                                    : Container(
-                                        height: 120.0,
-                                        width: 120.0,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(80.0),
-                                          boxShadow: [
-                                            BoxShadow(
-                                                blurRadius: 3.0,
-                                                offset: Offset(0, 4.0),
-                                                color: Colors.black38),
-                                          ],
-                                          image: DecorationImage(
-                                            image: FileImage(
-                                              _imageFile,
-                                            ),
-                                            fit: BoxFit.cover,
-                                          ),
+                                          onPressed: () {
+                                            _openImagePickerModal(context);
+                                          },
                                         ),
                                       ),
-                                Padding(
-                                  padding: EdgeInsets.only(top: 60.0),
-                                  child: IconButton(
-                                    icon: Icon(
-                                      Icons.add_a_photo,
-                                      size: 30.0,
-                                    ),
-                                    onPressed: () {
-                                      _openImagePickerModal(context);
-                                    },
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 20.0,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 20.0),
-                              child: Text(
-                                "Gender",
-                                style: TextStyle(
-                                    color: Colors.grey, fontSize: 16.0),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 20, bottom: 10, top: 10),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Expanded(
+                                  SizedBox(
+                                    height: 20.0,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 20.0),
+                                    child: Text(
+                                      "Gender",
+                                      style: TextStyle(
+                                          color: Colors.grey, fontSize: 16.0),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 20, bottom: 10, top: 10),
                                     child: Row(
-                                      children: <Widget>[
-                                        Material(
-                                          color: Colors.transparent,
-                                          child: InkWell(
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(4.0)),
-                                            onTap: () {
-                                              setState(() {
-                                                male = true;
-                                                female = false;
-                                              });
-                                            },
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: Row(
-                                                children: <Widget>[
-                                                  Icon(
-                                                    male
-                                                        ? Icons.check_box
-                                                        : Icons
-                                                            .check_box_outline_blank,
-                                                    color: male
-                                                        ? Theme.of(context)
-                                                            .textTheme
-                                                            .caption
-                                                            .color
-                                                        : Colors.grey
-                                                            .withOpacity(0.6),
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 4,
-                                                  ),
-                                                  Text(
-                                                    "Male",
-                                                    style: TextStyle(
-                                                        color: Theme.of(context)
-                                                            .textTheme
-                                                            .caption
-                                                            .color),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Row(
-                                      children: <Widget>[
-                                        Material(
-                                          color: Colors.transparent,
-                                          child: InkWell(
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(4.0)),
-                                            onTap: () {
-                                              setState(() {
-                                                female = true;
-                                                male = false;
-                                              });
-                                            },
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: Row(
-                                                children: <Widget>[
-                                                  Icon(
-                                                    female
-                                                        ? Icons.check_box
-                                                        : Icons
-                                                            .check_box_outline_blank,
-                                                    color: female
-                                                        ? Theme.of(context)
-                                                            .textTheme
-                                                            .caption
-                                                            .color
-                                                        : Colors.grey
-                                                            .withOpacity(0.6),
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 4,
-                                                  ),
-                                                  Text(
-                                                    "Female",
-                                                    style: TextStyle(
-                                                        color: Theme.of(context)
-                                                            .textTheme
-                                                            .caption
-                                                            .color),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 20.0),
-                              child: Text(
-                                "College",
-                                style: TextStyle(
-                                    color: Colors.grey, fontSize: 16.0),
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  width: 1.0,
-                                ),
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 5.0),
-                              child: Row(
-                                children: <Widget>[
-                                  new Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        vertical: 10.0, horizontal: 15.0),
-                                    child: Icon(
-                                      Icons.account_balance,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  Container(
-                                    height: 30.0,
-                                    width: 1.0,
-                                    color: Colors.grey.withOpacity(0.5),
-                                    margin: const EdgeInsets.only(
-                                        left: 00.0, right: 10.0),
-                                  ),
-                                  new Expanded(
-                                    child: FormField(
-                                      builder: (FormFieldState state) {
-                                        return InputDecorator(
-                                          decoration: InputDecoration(
-                                            hintText: "Select College",
-                                            border: InputBorder.none,
-                                            hintStyle:
-                                                TextStyle(color: Colors.grey),
-                                          ),
-                                          child:
-                                              new DropdownButtonHideUnderline(
-                                            child: Expanded(
-                                              child: new DropdownButton(
-                                                hint: Text("Select College"),
-                                                isExpanded: true,
-                                                value: _college,
-                                                isDense: true,
-                                                items: data.map((item) {
-                                                  return new DropdownMenuItem(
-                                                    child: new Text(
-                                                      item['name'],
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Expanded(
+                                          child: Row(
+                                            children: <Widget>[
+                                              Material(
+                                                color: Colors.transparent,
+                                                child: InkWell(
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                          Radius.circular(4.0)),
+                                                  onTap: () {
+                                                    setState(() {
+                                                      male = true;
+                                                      female = false;
+                                                    });
+                                                  },
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Row(
+                                                      children: <Widget>[
+                                                        Icon(
+                                                          male
+                                                              ? Icons.check_box
+                                                              : Icons
+                                                                  .check_box_outline_blank,
+                                                          color: male
+                                                              ? Theme.of(
+                                                                      context)
+                                                                  .textTheme
+                                                                  .caption
+                                                                  .color
+                                                              : Colors.grey
+                                                                  .withOpacity(
+                                                                      0.6),
+                                                        ),
+                                                        const SizedBox(
+                                                          width: 4,
+                                                        ),
+                                                        Text(
+                                                          "Male",
+                                                          style: TextStyle(
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .textTheme
+                                                                  .caption
+                                                                  .color),
+                                                        ),
+                                                      ],
                                                     ),
-                                                    value:
-                                                        item['_id'].toString(),
-                                                  );
-                                                }).toList(),
-                                                onChanged: (newValue) {
-                                                  setState(() {
-                                                    _college = newValue;
-                                                    state.didChange(newValue);
-                                                  });
-                                                },
+                                                  ),
+                                                ),
                                               ),
-                                            ),
+                                            ],
                                           ),
-                                        );
-                                      },
+                                        ),
+                                        Expanded(
+                                          child: Row(
+                                            children: <Widget>[
+                                              Material(
+                                                color: Colors.transparent,
+                                                child: InkWell(
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                          Radius.circular(4.0)),
+                                                  onTap: () {
+                                                    setState(() {
+                                                      female = true;
+                                                      male = false;
+                                                    });
+                                                  },
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Row(
+                                                      children: <Widget>[
+                                                        Icon(
+                                                          female
+                                                              ? Icons.check_box
+                                                              : Icons
+                                                                  .check_box_outline_blank,
+                                                          color: female
+                                                              ? Theme.of(
+                                                                      context)
+                                                                  .textTheme
+                                                                  .caption
+                                                                  .color
+                                                              : Colors.grey
+                                                                  .withOpacity(
+                                                                      0.6),
+                                                        ),
+                                                        const SizedBox(
+                                                          width: 4,
+                                                        ),
+                                                        Text(
+                                                          "Female",
+                                                          style: TextStyle(
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .textTheme
+                                                                  .caption
+                                                                  .color),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 20.0),
-                              child: Text(
-                                "Designation",
-                                style: TextStyle(
-                                    color: Colors.grey, fontSize: 16.0),
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  width: 1.0,
-                                ),
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 5.0),
-                              child: Row(
-                                children: <Widget>[
-                                  new Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        vertical: 10.0, horizontal: 15.0),
-                                    child: Icon(
-                                      Icons.accessibility_new,
-                                      color: Colors.grey,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 20.0),
+                                    child: Text(
+                                      "College",
+                                      style: TextStyle(
+                                          color: Colors.grey, fontSize: 16.0),
                                     ),
                                   ),
                                   Container(
-                                    height: 30.0,
-                                    width: 1.0,
-                                    color: Colors.grey.withOpacity(0.5),
-                                    margin: const EdgeInsets.only(
-                                        left: 00.0, right: 10.0),
-                                  ),
-                                  new Expanded(
-                                    child: FormField(
-                                      builder: (FormFieldState state) {
-                                        return InputDecorator(
-                                          decoration: InputDecoration(
-                                            hintText: "Select Designation",
-                                            border: InputBorder.none,
-                                            hintStyle:
-                                                TextStyle(color: Colors.grey),
-                                          ),
-                                          child:
-                                              new DropdownButtonHideUnderline(
-                                            child: Expanded(
-                                              child: new DropdownButton(
-                                                hint: Text("Select Event Type"),
-                                                isExpanded: true,
-                                                value: designation,
-                                                isDense: true,
-                                                items: _designations
-                                                    .map((value) =>
-                                                        DropdownMenuItem(
-                                                          child: Text(value),
-                                                          value: value,
-                                                        ))
-                                                    .toList(),
-                                                onChanged: (newValue) {
-                                                  setState(() {
-                                                    designation = newValue;
-                                                    state.didChange(newValue);
-                                                  });
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 20.0),
-                              child: Text(
-                                "Bio",
-                                style: TextStyle(
-                                    color: Colors.grey, fontSize: 16.0),
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  width: 1.0,
-                                ),
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 5.0),
-                              child: Row(
-                                children: <Widget>[
-                                  new Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        vertical: 10.0, horizontal: 15.0),
-                                    child: Icon(
-                                      Icons.account_circle,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  Container(
-                                    height: 30.0,
-                                    width: 1.0,
-                                    color: Colors.grey.withOpacity(0.5),
-                                    margin: const EdgeInsets.only(
-                                        left: 00.0, right: 10.0),
-                                  ),
-                                  new Expanded(
-                                    child: TextFormField(
-                                      maxLines: 5,
-                                      onChanged: (value) {
-                                        bio = value;
-                                      },
-                                      keyboardType: TextInputType.emailAddress,
-                                      obscureText: false,
-                                      decoration: InputDecoration(
-                                        border: InputBorder.none,
-                                        hintText: 'Enter your bio',
-                                        hintStyle:
-                                            TextStyle(color: Colors.grey),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        width: 1.0,
                                       ),
+                                      borderRadius: BorderRadius.circular(20.0),
                                     ),
-                                  )
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 10.0, horizontal: 5.0),
+                                    child: Row(
+                                      children: <Widget>[
+                                        new Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 10.0, horizontal: 15.0),
+                                          child: Icon(
+                                            Icons.account_balance,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        Container(
+                                          height: 30.0,
+                                          width: 1.0,
+                                          color: Colors.grey.withOpacity(0.5),
+                                          margin: const EdgeInsets.only(
+                                              left: 00.0, right: 10.0),
+                                        ),
+                                        new Expanded(
+                                          child: FormField(
+                                            builder: (FormFieldState state) {
+                                              return InputDecorator(
+                                                decoration: InputDecoration(
+                                                  hintText: "Select College",
+                                                  border: InputBorder.none,
+                                                  hintStyle: TextStyle(
+                                                      color: Colors.grey),
+                                                ),
+                                                child:
+                                                    new DropdownButtonHideUnderline(
+                                                  child: Expanded(
+                                                    child: new DropdownButton(
+                                                      hint: Text(
+                                                          "Select College"),
+                                                      isExpanded: true,
+                                                      value: _college,
+                                                      isDense: true,
+                                                      items: data.map((item) {
+                                                        return new DropdownMenuItem(
+                                                          child: new Text(
+                                                            item['name'],
+                                                          ),
+                                                          value: item['_id']
+                                                              .toString(),
+                                                        );
+                                                      }).toList(),
+                                                      onChanged: (newValue) {
+                                                        setState(() {
+                                                          _college = newValue;
+                                                          state.didChange(
+                                                              newValue);
+                                                        });
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 20.0),
+                                    child: Text(
+                                      "Designation",
+                                      style: TextStyle(
+                                          color: Colors.grey, fontSize: 16.0),
+                                    ),
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        width: 1.0,
+                                      ),
+                                      borderRadius: BorderRadius.circular(20.0),
+                                    ),
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 10.0, horizontal: 5.0),
+                                    child: Row(
+                                      children: <Widget>[
+                                        new Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 10.0, horizontal: 15.0),
+                                          child: Icon(
+                                            Icons.accessibility_new,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        Container(
+                                          height: 30.0,
+                                          width: 1.0,
+                                          color: Colors.grey.withOpacity(0.5),
+                                          margin: const EdgeInsets.only(
+                                              left: 00.0, right: 10.0),
+                                        ),
+                                        new Expanded(
+                                          child: FormField(
+                                            builder: (FormFieldState state) {
+                                              return InputDecorator(
+                                                decoration: InputDecoration(
+                                                  hintText:
+                                                      "Select Designation",
+                                                  border: InputBorder.none,
+                                                  hintStyle: TextStyle(
+                                                      color: Colors.grey),
+                                                ),
+                                                child:
+                                                    new DropdownButtonHideUnderline(
+                                                  child: Expanded(
+                                                    child: new DropdownButton(
+                                                      hint: Text(
+                                                          "Select Designation"),
+                                                      isExpanded: true,
+                                                      value: designation,
+                                                      isDense: true,
+                                                      items: _designations
+                                                          .map((value) =>
+                                                              DropdownMenuItem(
+                                                                child:
+                                                                    Text(value),
+                                                                value: value,
+                                                              ))
+                                                          .toList(),
+                                                      onChanged: (newValue) {
+                                                        setState(() {
+                                                          designation =
+                                                              newValue;
+                                                          state.didChange(
+                                                              newValue);
+                                                        });
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 20.0),
+                                    child: Text(
+                                      "Bio",
+                                      style: TextStyle(
+                                          color: Colors.grey, fontSize: 16.0),
+                                    ),
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        width: 1.0,
+                                      ),
+                                      borderRadius: BorderRadius.circular(20.0),
+                                    ),
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 10.0, horizontal: 5.0),
+                                    child: Row(
+                                      children: <Widget>[
+                                        new Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 10.0, horizontal: 15.0),
+                                          child: Icon(
+                                            Icons.account_circle,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        Container(
+                                          height: 30.0,
+                                          width: 1.0,
+                                          color: Colors.grey.withOpacity(0.5),
+                                          margin: const EdgeInsets.only(
+                                              left: 00.0, right: 10.0),
+                                        ),
+                                        new Expanded(
+                                          child: TextFormField(
+                                            maxLines: 5,
+                                            onChanged: (value) {
+                                              bio = value;
+                                            },
+                                            keyboardType:
+                                                TextInputType.emailAddress,
+                                            obscureText: false,
+                                            decoration: InputDecoration(
+                                              border: InputBorder.none,
+                                              hintText: 'Enter your bio',
+                                              hintStyle:
+                                                  TextStyle(color: Colors.grey),
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
+                            SizedBox(height: 20),
+                            Container(
+                              margin: const EdgeInsets.only(top: 20.0),
+                              padding: const EdgeInsets.only(
+                                  left: 20.0, right: 20.0),
+                              child: new Row(
+                                children: <Widget>[
+                                  new Expanded(
+                                    child: FlatButton(
+                                      shape: new RoundedRectangleBorder(
+                                          borderRadius:
+                                              new BorderRadius.circular(30.0)),
+                                      splashColor: Theme.of(context)
+                                          .scaffoldBackgroundColor
+                                          .withOpacity(0.6),
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color
+                                          .withOpacity(0.5),
+                                      child: new Row(
+                                        children: <Widget>[
+                                          new Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: 20.0),
+                                            child: Text(
+                                              "Continue",
+                                              style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .scaffoldBackgroundColor),
+                                            ),
+                                          ),
+                                          new Expanded(
+                                            child: Container(),
+                                          ),
+                                          new Transform.translate(
+                                            offset: Offset(15.0, 0.0),
+                                            child: new Container(
+                                              padding:
+                                                  const EdgeInsets.all(5.0),
+                                              child: FlatButton(
+                                                shape:
+                                                    new RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            new BorderRadius
+                                                                    .circular(
+                                                                28.0)),
+                                                splashColor: Colors.white,
+                                                color: Colors.white,
+                                                child: Icon(
+                                                  Icons.arrow_forward,
+                                                  color: Theme.of(context)
+                                                      .scaffoldBackgroundColor,
+                                                ),
+                                                onPressed: () => {},
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                      onPressed: () async {
+                                        getPref();
+                                        //Navigator.pushNamed(
+                                        // context,
+                                        // Routes.start,
+                                        // arguments: {'currebt_tab': 1},
+                                        //);
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 10),
                           ],
                         ),
                       ),
-                      SizedBox(height: 20),
-                      GestureDetector(
-                        onTap: () async {
-                          getPref();
-                          Navigator.pushNamed(context, Routes.start);
-                        },
-                        child: Container(
-                          width: MediaQuery.of(context).size.width,
-                          padding: EdgeInsets.symmetric(vertical: 15),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(5)),
-                              boxShadow: <BoxShadow>[
-                                BoxShadow(
-                                    color: Colors.grey.shade200,
-                                    offset: Offset(2, 4),
-                                    blurRadius: 5,
-                                    spreadRadius: 2)
-                              ],
-                              gradient: LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                  colors: [
-                                    Color(0xfffbb448),
-                                    Color(0xfff7892b)
-                                  ])),
-                          child: Text(
-                            'Continue',
-                            style: TextStyle(fontSize: 20, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              Positioned(
-                child: isLoading
-                    ? Container(
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.black),
-                          ),
-                        ),
-                        color: Colors.white.withOpacity(0.8),
-                      )
-                    : Container(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+            ),
+          );
   }
 }

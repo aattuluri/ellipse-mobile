@@ -81,6 +81,7 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
     });
   }
 
+  List<String> filters_list = [];
   bool mycollege = true;
   bool allcolleges = false;
   bool all = true;
@@ -302,6 +303,7 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
                           body: model.isLoading || model.loadingFailed
                               ? _loadingIndicator
                               : ListView.builder(
+                                  physics: ClampingScrollPhysics(),
                                   padding:
                                       EdgeInsets.symmetric(horizontal: 15.0),
                                   scrollDirection: Axis.vertical,
@@ -312,58 +314,55 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
                                     final Events event = model.allEvents[index];
                                     final sdate =
                                         DateTime.parse(event.start_time);
+                                    print(all);
                                     return isFilter
-                                        ? mycollege
-                                            ? event.college_id.toString().trim() ==
-                                                    college.toString().trim()
-                                                ? isChecked //////////multiple days
-                                                    ? sdate.isAfter(DateTime(startDate.year, startDate.month, startDate.day - 1)) && sdate.isBefore(DateTime(endDate.year, endDate.month, endDate.day + 1))
-                                                        ? EventTile1(
-                                                            event.name,
-                                                            event.imageUrl,
-                                                            index)
-                                                        : Container()
-                                                    /////////one day
-                                                    : sdate.isAfter(DateTime.now()) && sdate.day == startDate.day && sdate.month == startDate.month && sdate.year == startDate.year
-                                                        ? EventTile1(
-                                                            event.name,
-                                                            event.imageUrl,
-                                                            index)
-                                                        : Container()
-                                                : Container()
-                                            : allcolleges
-                                                ? isChecked //////////multiple days
-                                                    ? sdate.isAfter(DateTime(startDate.year, startDate.month, startDate.day - 1)) && sdate.isBefore(DateTime(endDate.year, endDate.month, endDate.day + 1))
-                                                        ? EventTile1(
-                                                            event.name,
-                                                            event.imageUrl,
-                                                            index)
-                                                        : Container()
-                                                    /////////one day
-                                                    : sdate.isAfter(DateTime.now()) &&
-                                                            sdate.day ==
-                                                                startDate.day &&
-                                                            sdate.month ==
-                                                                startDate
-                                                                    .month &&
-                                                            sdate.year ==
-                                                                startDate.year
-                                                        ? EventTile1(
-                                                            event.name,
-                                                            event.imageUrl,
-                                                            index)
-                                                        : Container()
-                                                : Container()
+                                        ? all
+                                            ? mycollege
+                                                ? event.college_id.toString().trim() ==
+                                                        college
+                                                            .toString()
+                                                            .trim()
+                                                    ? isChecked //////////multiple days
+                                                        ? sdate.isAfter(DateTime(startDate.year, startDate.month, startDate.day - 1)) && sdate.isBefore(DateTime(endDate.year, endDate.month, endDate.day + 1))
+                                                            ? EventTile1(
+                                                                index, "info_page")
+                                                            : Container()
+                                                        /////////one day
+                                                        : sdate.isAfter(DateTime.now()) && sdate.day == startDate.day && sdate.month == startDate.month && sdate.year == startDate.year
+                                                            ? EventTile1(
+                                                                index, "info_page")
+                                                            : Container()
+                                                    : Container()
+                                                : allcolleges
+                                                    ? isChecked //////////multiple days
+                                                        ? sdate.isAfter(DateTime(startDate.year, startDate.month, startDate.day - 1)) && sdate.isBefore(DateTime(endDate.year, endDate.month, endDate.day + 1))
+                                                            ? EventTile1(
+                                                                index, "info_page")
+                                                            : Container()
+                                                        /////////one day
+                                                        : sdate.isAfter(DateTime.now()) &&
+                                                                sdate.day ==
+                                                                    startDate
+                                                                        .day &&
+                                                                sdate.month ==
+                                                                    startDate
+                                                                        .month &&
+                                                                sdate.year ==
+                                                                    startDate
+                                                                        .year
+                                                            ? EventTile1(
+                                                                index, "info_page")
+                                                            : Container()
+                                                    : Container()
+                                            : Container()
                                         //////////////////////////////filter///////////////////////////////////////
                                         /////////no filter
                                         : sdate.isAfter(DateTime.now())
                                             ? isSearching
-                                                ? event.name
-                                                        .toLowerCase()
-                                                        .contains(_searchText.toLowerCase())
-                                                    ? EventTile1(event.name, event.imageUrl, index)
+                                                ? event.name.toLowerCase().contains(_searchText.toLowerCase())
+                                                    ? EventTile1(index, "info_page")
                                                     : Container()
-                                                : EventTile1(event.name, event.imageUrl, index)
+                                                : EventTile1(index, "info_page")
                                             : Container();
                                   },
                                 ),
@@ -513,22 +512,17 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
                         FocusScope.of(context).requestFocus(FocusNode());
                         var route = new MaterialPageRoute(
                           builder: (BuildContext context) => Filters(
-                            onApplyClick: (bool all1,
-                                bool offline1,
-                                bool online1,
-                                bool free1,
-                                bool paid1,
-                                bool mycollege1,
-                                bool allcolleges1) {
+                            onApplyClick: (bool all1, List filters,
+                                bool mycollege1, bool allcolleges1) {
                               setState(() {
                                 all = all1;
-                                online = online1;
-                                offline = offline1;
-                                paid = paid1;
-                                free = free1;
                                 mycollege = mycollege1;
                                 allcolleges = allcolleges1;
                               });
+                              setState(() {
+                                filters_list = filters;
+                              });
+                              print(filters_list);
                             },
                           ),
                         );

@@ -8,6 +8,11 @@ class EventGridTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+        decoration: BoxDecoration(
+            border: Border.all(
+              color: Theme.of(context).textTheme.caption.color,
+            ),
+            borderRadius: BorderRadius.circular(10.0)),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -37,20 +42,6 @@ class EventGridTile extends StatelessWidget {
               ),
             ],
           ),
-        ),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Theme.of(context)
-                .textTheme
-                .caption
-                .color
-                .withOpacity(0.3), //                   <--- border color
-            width: 0.5,
-          ),
-          borderRadius: BorderRadius.all(
-            Radius.circular(5.0),
-          ),
-          color: Theme.of(context).textTheme.caption.color.withOpacity(0.1),
         ),
         margin: EdgeInsets.all(10),
         height: 150.0);

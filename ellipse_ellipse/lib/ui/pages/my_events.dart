@@ -61,64 +61,63 @@ class _MyEventsState extends State<MyEvents> {
   @override
   Widget build(BuildContext context) {
     return Consumer<EventsRepository>(
-      builder: (context, model, child) => RefreshIndicator(
-        onRefresh: () => _onRefresh(context, model),
-        child: SafeArea(
-          child: Scaffold(
-            appBar: AppBar(
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              elevation: 4,
-              leading: Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Icon(
-                    Icons.close,
-                    size: 30,
-                    color: Theme.of(context).textTheme.caption.color,
-                  ),
-                ),
-              ),
-              title: Text(
-                "My Events",
-                style: TextStyle(
-                    color: Theme.of(context).textTheme.caption.color,
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold),
-              ),
-              actions: [
-                IconButton(
-                    icon: Icon(
-                      Icons.refresh,
-                      color: Theme.of(context).textTheme.caption.color,
-                      size: 27,
-                    ),
-                    onPressed: () => _onRefresh(context, model)),
-              ],
-              centerTitle: true,
+      builder: (context, model, child) => SafeArea(
+        child: Scaffold(
+          appBar: AppBar(
+            iconTheme: Theme.of(context).iconTheme,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            elevation: 4,
+            title: Text(
+              "My Events",
+              style: TextStyle(
+                  color: Theme.of(context).textTheme.caption.color,
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold),
             ),
-            body: model.isLoading || model.loadingFailed
-                ? _loadingIndicator
-                : Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: ListView.builder(
-                        padding: EdgeInsets.symmetric(horizontal: 0.0),
-                        scrollDirection: Axis.vertical,
-                        itemCount: model.allEvents?.length,
-                        shrinkWrap: true,
-                        itemBuilder: (BuildContext context, int index) {
-                          final Events event = model.allEvents[index];
-                          final sdate = DateTime.parse(event.start_time);
-                          print(sdate);
-                          return event.user_id.toString().trim() ==
-                                  id.toString().trim()
-                              ? EventTile2(event.name, event.imageUrl, index)
-                              : Container();
-                        }),
+            actions: [
+              IconButton(
+                  icon: Icon(
+                    Icons.refresh,
+                    color: Theme.of(context).textTheme.caption.color,
+                    size: 27,
                   ),
+                  onPressed: () => _onRefresh(context, model)),
+            ],
+            centerTitle: true,
           ),
+          body: model.isLoading || model.loadingFailed
+              ? _loadingIndicator
+              :
+              /* GridView.builder(
+                  shrinkWrap: true,
+                  scrollDirection: Axis.vertical,
+                  itemCount: model.allEvents?.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 1),
+                  itemBuilder: (BuildContext context, int index) {
+                    final Events event = model.allEvents[index];
+                    final sdate = DateTime.parse(event.start_time);
+                    print(sdate);
+                    return event.user_id.toString().trim() ==
+                            id.toString().trim()
+                        ? EventTile2(event.name, event.imageUrl, index)
+                        : Container();
+                  }),*/
+
+              ListView.builder(
+                  padding: EdgeInsets.symmetric(horizontal: 15.0),
+                  scrollDirection: Axis.vertical,
+                  itemCount: model.allEvents?.length,
+                  //shrinkWrap: true,
+                  itemBuilder: (BuildContext context, int index) {
+                    final Events event = model.allEvents[index];
+                    final sdate = DateTime.parse(event.start_time);
+                    print(sdate);
+                    return event.user_id.toString().trim() ==
+                            id.toString().trim()
+                        ? EventTile1(index, "myevents_info_page")
+                        : Container();
+                  }),
         ),
       ),
     );

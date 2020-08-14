@@ -97,8 +97,10 @@ class _CalendarViewState extends State<CalendarView> {
         child: SafeArea(
           child: Scaffold(
             appBar: AppBar(
+              iconTheme: Theme.of(context).iconTheme,
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               elevation: 4,
+              /*
               leading: Padding(
                 padding: const EdgeInsets.only(left: 20),
                 child: InkWell(
@@ -112,6 +114,7 @@ class _CalendarViewState extends State<CalendarView> {
                   ),
                 ),
               ),
+              */
               title: Text(
                 "Calendar View",
                 style: TextStyle(
@@ -388,8 +391,7 @@ class _CalendarViewState extends State<CalendarView> {
                                               sdate.month ==
                                                   selectedday.month &&
                                               sdate.year == selectedday.year
-                                          ? EventTile1(
-                                              event.name, event.imageUrl, index)
+                                          ? EventTile1(index, "info_page")
                                           : Container();
                                     })),
                       ],
@@ -608,8 +610,7 @@ class _CalendarViewState extends State<CalendarView> {
                                                       selectedmonth.month &&
                                                   sdate.year ==
                                                       selectedmonth.year
-                                              ? EventTile1(event.name,
-                                                  event.imageUrl, index)
+                                              ? EventTile1(index, "info_page")
                                               : Container();
                                         })),
                           ],
@@ -766,6 +767,7 @@ class _CalendarViewState extends State<CalendarView> {
                                 child: model.isLoading || model.loadingFailed
                                     ? _loadingIndicator
                                     : ListView.builder(
+                                        physics: ClampingScrollPhysics(),
                                         padding: EdgeInsets.symmetric(
                                             horizontal: 0.0),
                                         scrollDirection: Axis.vertical,
@@ -780,8 +782,7 @@ class _CalendarViewState extends State<CalendarView> {
                                           return sdate.isAfter(
                                                       DateTime.now()) &&
                                                   sdate.year == currentYear.year
-                                              ? EventTile1(event.name,
-                                                  event.imageUrl, index)
+                                              ? EventTile1(index, "info_page")
                                               : Container();
                                         })),
                           ],

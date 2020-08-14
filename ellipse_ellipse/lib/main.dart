@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+
 import 'ui/screens/auth_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'util/constants.dart' as Constants;
@@ -8,7 +10,14 @@ import 'package:provider/provider.dart';
 import 'providers/index.dart';
 import 'repositories/index.dart';
 
-void main() => runApp(App());
+void main() async {
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    statusBarColor: Color(0xFF000000),
+  ));
+  SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  runApp(App());
+}
 
 /// Builds the neccesary providers, as well as the home page.
 class App extends StatelessWidget {
@@ -20,6 +29,7 @@ class App extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ImageQualityProvider()),
         ChangeNotifierProvider(create: (_) => NotificationsProvider()),
         ChangeNotifierProvider(create: (_) => EventsRepository()),
+        ChangeNotifierProvider(create: (_) => UserDetailsRepository()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, theme, child) => MaterialApp(
@@ -30,43 +40,6 @@ class App extends StatelessWidget {
           onGenerateRoute: Routes.generateRoute,
           onUnknownRoute: Routes.errorRoute,
         ),
-      ),
-    );
-  }
-}
-
-class Isloggedin extends StatefulWidget {
-  @override
-  State createState() {
-    return IsloggedinState();
-  }
-}
-
-class IsloggedinState extends State<Isloggedin> {
-  Future loggedin() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool loggedin = (prefs.getBool(Constants.LOGGED_IN) ?? false);
-    if (loggedin) {
-      Navigator.pushNamed(context, Routes.start);
-    } else {
-      var route = new MaterialPageRoute(
-        builder: (BuildContext context) => new AuthScreen(),
-      );
-      Navigator.of(context).push(route);
-    }
-  }
-
-  @override
-  void initState() {
-    loggedin();
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
       ),
     );
   }

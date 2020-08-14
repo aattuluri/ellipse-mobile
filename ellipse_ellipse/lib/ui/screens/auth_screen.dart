@@ -117,18 +117,20 @@ class _AuthScreenState extends State<AuthScreen> {
           padding: EdgeInsets.symmetric(horizontal: 20),
           height: MediaQuery.of(context).size.height,
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(5)),
-              boxShadow: <BoxShadow>[
-                BoxShadow(
-                    color: Colors.grey.shade200,
-                    offset: Offset(2, 4),
-                    blurRadius: 5,
-                    spreadRadius: 2)
-              ],
-              gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xfffbb448), Color(0xffe46b10)])),
+            //color: ,
+            borderRadius: BorderRadius.all(Radius.circular(5)),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                  color: Colors.grey.shade200,
+                  offset: Offset(2, 4),
+                  blurRadius: 5,
+                  spreadRadius: 2)
+            ],
+            gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xfffbb448), Color(0xffe46b10)]),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -180,10 +182,10 @@ class _SigninState extends State<Signin> {
   signIn(String email, pass) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     Map data = {'email': email, 'password': pass};
-    var jsonResponse;
-    var response = await http.post("${Url.URL}/api/users/login", body: data);
+    http.Response response =
+        await http.post("${Url.URL}/api/users/login", body: data);
     if (response.statusCode == 200) {
-      jsonResponse = json.decode(response.body);
+      var jsonResponse = json.decode(response.body);
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
       if (jsonResponse != null) {
@@ -191,12 +193,16 @@ class _SigninState extends State<Signin> {
           sharedPreferences.setString("email", jsonResponse['useremail']);
           sharedPreferences.setString("token", jsonResponse['token']);
           sharedPreferences.setString("id", jsonResponse['userid']);
-          isLoading = false;
         });
         setState(() {
           sharedPreferences.setBool(Constants.LOGGED_IN, true);
+          isLoading = false;
         });
-        Navigator.pushNamed(context, Routes.start);
+        Navigator.pushNamed(
+          context,
+          Routes.start,
+          arguments: {'currebt_tab': 1},
+        );
       }
     } else {
       setState(() {
@@ -433,42 +439,38 @@ class _SigninState extends State<Signin> {
                                     .caption
                                     .color
                                     .withOpacity(0.5),
-                                child: new Row(
-                                  children: <Widget>[
-                                    new Padding(
-                                      padding:
-                                          const EdgeInsets.only(left: 20.0),
-                                      child: Text(
-                                        "LOGIN",
-                                        style: TextStyle(
-                                            color: Theme.of(context)
-                                                .scaffoldBackgroundColor),
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 15),
+                                  child: new Row(
+                                    children: <Widget>[
+                                      new Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 20.0),
+                                        child: Text(
+                                          "LOGIN",
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .scaffoldBackgroundColor),
+                                        ),
                                       ),
-                                    ),
-                                    new Expanded(
-                                      child: Container(),
-                                    ),
-                                    new Transform.translate(
-                                      offset: Offset(15.0, 0.0),
-                                      child: new Container(
-                                        padding: const EdgeInsets.all(5.0),
-                                        child: FlatButton(
-                                          shape: new RoundedRectangleBorder(
-                                              borderRadius:
-                                                  new BorderRadius.circular(
-                                                      28.0)),
-                                          splashColor: Colors.white,
-                                          color: Colors.white,
+                                      new Expanded(
+                                        child: Container(),
+                                      ),
+                                      new Transform.translate(
+                                        offset: Offset(15.0, 0.0),
+                                        child: new Container(
+                                          padding:
+                                              const EdgeInsets.only(right: 15),
                                           child: Icon(
                                             Icons.arrow_forward,
                                             color: Theme.of(context)
                                                 .scaffoldBackgroundColor,
                                           ),
-                                          onPressed: () => {},
                                         ),
-                                      ),
-                                    )
-                                  ],
+                                      )
+                                    ],
+                                  ),
                                 ),
                                 onPressed: email == "" || password == ""
                                     ? () {}
@@ -585,11 +587,10 @@ class _SignupState extends State<Signup> {
       'email': email,
       'password': pass
     };
-    var jsonResponse;
-
-    var response = await http.post("${Url.URL}/api/users/signup", body: data);
+    http.Response response =
+        await http.post("${Url.URL}/api/users/signup", body: data);
     if (response.statusCode == 200) {
-      jsonResponse = json.decode(response.body);
+      var jsonResponse = json.decode(response.body);
       if (jsonResponse != null) {
         setState(() {
           isLoading = false;
@@ -600,7 +601,11 @@ class _SignupState extends State<Signup> {
         setState(() {
           sharedPreferences.setBool(Constants.LOGGED_IN, true);
         });
-        Navigator.pushNamed(context, Routes.start);
+        Navigator.pushNamed(
+          context,
+          Routes.start,
+          arguments: {'currebt_tab': 1},
+        );
       }
     } else {
       setState(() {
@@ -987,77 +992,77 @@ class _SignupState extends State<Signup> {
                     ),
                     Container(
                       margin: const EdgeInsets.only(top: 20.0),
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                      child: new Row(
-                        children: <Widget>[
-                          new Expanded(
-                            child: FlatButton(
-                              shape: new RoundedRectangleBorder(
-                                  borderRadius:
-                                      new BorderRadius.circular(30.0)),
-                              splashColor: Theme.of(context)
-                                  .scaffoldBackgroundColor
-                                  .withOpacity(0.6),
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .caption
-                                  .color
-                                  .withOpacity(0.5),
-                              child: new Row(
-                                children: <Widget>[
-                                  new Padding(
-                                    padding: const EdgeInsets.only(left: 20.0),
-                                    child: Text(
-                                      "REGISTER NOW",
-                                      style: TextStyle(
-                                          color: Theme.of(context)
-                                              .scaffoldBackgroundColor),
-                                    ),
-                                  ),
-                                  new Expanded(
-                                    child: Container(),
-                                  ),
-                                  new Transform.translate(
-                                    offset: Offset(15.0, 0.0),
-                                    child: new Container(
-                                      padding: const EdgeInsets.all(5.0),
-                                      child: FlatButton(
-                                        shape: new RoundedRectangleBorder(
-                                            borderRadius:
-                                                new BorderRadius.circular(
-                                                    28.0)),
-                                        splashColor: Colors.white,
-                                        color: Colors.white,
-                                        child: Icon(
-                                          Icons.arrow_forward,
-                                          color: Theme.of(context)
-                                              .scaffoldBackgroundColor,
+                      //padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: new Row(
+                          children: <Widget>[
+                            new Expanded(
+                              child: FlatButton(
+                                shape: new RoundedRectangleBorder(
+                                    borderRadius:
+                                        new BorderRadius.circular(30.0)),
+                                splashColor: Theme.of(context)
+                                    .scaffoldBackgroundColor
+                                    .withOpacity(0.6),
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .caption
+                                    .color
+                                    .withOpacity(0.5),
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 15),
+                                  child: new Row(
+                                    children: <Widget>[
+                                      new Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 20.0),
+                                        child: Text(
+                                          "REGISTER NOW",
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .scaffoldBackgroundColor),
                                         ),
-                                        onPressed: () => {},
                                       ),
-                                    ),
-                                  )
-                                ],
+                                      new Expanded(
+                                        child: Container(),
+                                      ),
+                                      new Transform.translate(
+                                        offset: Offset(15.0, 0.0),
+                                        child: new Container(
+                                          padding:
+                                              const EdgeInsets.only(right: 15),
+                                          child: Icon(
+                                            Icons.arrow_forward,
+                                            color: Theme.of(context)
+                                                .scaffoldBackgroundColor,
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                                onPressed:
+                                    name == "" || email == "" || password == ""
+                                        ? null
+                                        : () async {
+                                            if (cpassword == password) {
+                                              setState(() {
+                                                isLoading = true;
+                                              });
+                                              signUp(
+                                                name.trim(),
+                                                username.trim(),
+                                                email.trim(),
+                                                password.trim(),
+                                              );
+                                            } else {}
+                                          },
                               ),
-                              onPressed:
-                                  name == "" || email == "" || password == ""
-                                      ? null
-                                      : () async {
-                                          if (cpassword == password) {
-                                            setState(() {
-                                              isLoading = true;
-                                            });
-                                            signUp(
-                                              name.trim(),
-                                              username.trim(),
-                                              email.trim(),
-                                              password.trim(),
-                                            );
-                                          } else {}
-                                        },
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     SizedBox(height: 10),

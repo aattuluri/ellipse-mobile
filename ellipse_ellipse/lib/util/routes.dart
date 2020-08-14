@@ -11,7 +11,9 @@ import '../main.dart';
 /// Used by the Flutter routing system
 class Routes {
   // Static route names
-  static const isloggedin = '/';
+  //static const isloggedin = '/';
+  static const splash_screen = '/';
+  static const initialization = '/initialization';
   static const start = '/start';
   static const calendar_view = '/calendar_view';
   static const info_page = '/info_page';
@@ -30,15 +32,21 @@ class Routes {
       final Map<String, dynamic> args = routeSettings.arguments;
 
       switch (routeSettings.name) {
-        case isloggedin:
+        case splash_screen:
           return MaterialPageRoute(
             settings: routeSettings,
-            builder: (_) => Isloggedin(),
+            builder: (_) => SplashScreen(),
+          );
+        case initialization:
+          return MaterialPageRoute(
+            settings: routeSettings,
+            builder: (_) => Initialization(),
           );
         case start:
+          final current_tab = args['currebt_tab'] as int;
           return MaterialPageRoute(
             settings: routeSettings,
-            builder: (_) => StartScreen(),
+            builder: (_) => StartScreen(current_tab),
           );
         case calendar_view:
           return MaterialPageRoute(
@@ -57,11 +65,38 @@ class Routes {
             settings: routeSettings,
             builder: (_) => MyEventsInfoPage(index),
           );
+        /*
+        case post_event:
+          return PageRouteBuilder(
+            settings: routeSettings,
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                PostEvent(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              var begin = Offset(0.0, 1.0);
+              var end = Offset.zero;
+              var curve = Curves.fastOutSlowIn;
+
+              var tween = Tween(begin: begin, end: end);
+              var curvedAnimation = CurvedAnimation(
+                parent: animation,
+                curve: curve,
+              );
+
+              return SlideTransition(
+                position: tween.animate(curvedAnimation),
+                child: child,
+              );
+            },
+          );
+          */
+
         case post_event:
           return MaterialPageRoute(
             settings: routeSettings,
             builder: (_) => PostEvent(),
           );
+
         case signin:
           return MaterialPageRoute(
             settings: routeSettings,
@@ -97,7 +132,7 @@ class Routes {
           return errorRoute(routeSettings);
       }
     } catch (_) {
-      return errorRoute(routeSettings);
+      //return errorRoute(routeSettings);
     }
   }
 

@@ -11,7 +11,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ellipseellipse/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  testWidgets('Ellipse', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(App());
   });
