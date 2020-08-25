@@ -11,6 +11,8 @@ import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
 import '../../util/constants.dart' as Constants;
 import '../../util/index.dart';
+import '../widgets/index.dart';
+import '../screens/index.dart';
 
 class AuthScreen extends StatefulWidget {
   @override
@@ -32,7 +34,7 @@ class _AuthScreenState extends State<AuthScreen> {
             borderRadius: BorderRadius.all(Radius.circular(5)),
             boxShadow: <BoxShadow>[
               BoxShadow(
-                  color: Color(0xffdf8e33).withAlpha(100),
+                  color: Colors.grey.withAlpha(100),
                   offset: Offset(2, 4),
                   blurRadius: 8,
                   spreadRadius: 2)
@@ -40,7 +42,7 @@ class _AuthScreenState extends State<AuthScreen> {
             color: Colors.white),
         child: Text(
           'Login',
-          style: TextStyle(fontSize: 20, color: Color(0xfff7892b)),
+          style: TextStyle(fontSize: 20, color: Colors.black54),
         ),
       ),
     );
@@ -69,27 +71,21 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Widget _title() {
-    return RichText(
-      textAlign: TextAlign.center,
-      text: TextSpan(
-          text: 'Ell',
-          style: GoogleFonts.portLligatSans(
-            textStyle: Theme.of(context).textTheme.display1,
-            fontSize: 70,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-          children: [
-            TextSpan(
-              text: 'i',
-              style:
-                  TextStyle(color: Color.fromRGBO(128, 0, 0, 1), fontSize: 70),
-            ),
-            TextSpan(
-              text: 'pse',
-              style: TextStyle(color: Colors.white, fontSize: 70),
-            ),
-          ]),
+    return Row(
+      children: <Widget>[
+        Text(
+          "ELL",
+          style: TextStyle(
+              color: Colors.white, fontSize: 45, fontWeight: FontWeight.w800),
+        ),
+        Text(
+          "IPSE",
+          style: TextStyle(
+              color: Color(0xffFFA700),
+              fontSize: 45,
+              fontWeight: FontWeight.w800),
+        )
+      ],
     );
   }
 
@@ -112,52 +108,44 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          height: MediaQuery.of(context).size.height,
-          decoration: BoxDecoration(
-            //color: ,
-            borderRadius: BorderRadius.all(Radius.circular(5)),
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                  color: Colors.grey.shade200,
-                  offset: Offset(2, 4),
-                  blurRadius: 5,
-                  spreadRadius: 2)
-            ],
-            gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xfffbb448), Color(0xffe46b10)]),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              _title(),
-              SizedBox(
-                height: 20,
-              ),
-              Text(
-                'Kill time for what matters',
-                style: TextStyle(color: Colors.white, fontSize: 25),
-              ),
-              SizedBox(
-                height: 80,
-              ),
-              _submitButton(),
-              SizedBox(
-                height: 20,
-              ),
-              _signUpButton(),
-              SizedBox(
-                height: 20,
-              ),
-              //_label()
-            ],
-          ),
-        ),
+      body: Stack(
+        //crossAxisAlignment: CrossAxisAlignment.center,
+        //mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Positioned.fill(child: AnimatedBackground()),
+          Positioned.fill(child: Particles(30)),
+          Positioned.fill(
+              child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 50),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                _title(),
+                SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  'Kill time for what matters',
+                  style: TextStyle(color: Colors.white, fontSize: 25),
+                ),
+                SizedBox(
+                  height: 80,
+                ),
+                _submitButton(),
+                SizedBox(
+                  height: 20,
+                ),
+                _signUpButton(),
+                SizedBox(
+                  height: 20,
+                ),
+              ],
+            ),
+          )),
+
+          //_label()
+        ],
       ),
     );
   }
@@ -198,11 +186,7 @@ class _SigninState extends State<Signin> {
           sharedPreferences.setBool(Constants.LOGGED_IN, true);
           isLoading = false;
         });
-        Navigator.pushNamed(
-          context,
-          Routes.start,
-          arguments: {'currebt_tab': 1},
-        );
+        Navigator.pushNamed(context, Routes.initialization);
       }
     } else {
       setState(() {
@@ -224,6 +208,7 @@ class _SigninState extends State<Signin> {
 
   @override
   void initState() {
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
     reset();
     super.initState();
   }
@@ -247,6 +232,10 @@ class _SigninState extends State<Signin> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: <Widget>[
+                      SizedBox(
+                        height: 30,
+                      ),
+                      /*
                       InkWell(
                         onTap: () {
                           var route = new MaterialPageRoute(
@@ -279,6 +268,7 @@ class _SigninState extends State<Signin> {
                           ),
                         ),
                       ),
+                      */
                       SizedBox(height: 10),
                       Center(
                         child: RichText(
@@ -472,14 +462,25 @@ class _SigninState extends State<Signin> {
                                     ],
                                   ),
                                 ),
-                                onPressed: email == "" || password == ""
-                                    ? () {}
-                                    : () async {
-                                        setState(() {
-                                          isLoading = true;
-                                        });
-                                        signIn(email.trim(), password.trim());
-                                      },
+                                onPressed: () async {
+                                  bool emailValid = RegExp(
+                                          r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                                      .hasMatch(email);
+                                  if (!emailValid) {
+                                    Fluttertoast.showToast(
+                                        msg: "Enter Valid Email",
+                                        toastLength: Toast.LENGTH_SHORT,
+                                        gravity: ToastGravity.TOP,
+                                        textColor: Colors.white,
+                                        timeInSecForIosWeb: 2,
+                                        backgroundColor: Colors.black);
+                                  } else {
+                                    setState(() {
+                                      isLoading = true;
+                                    });
+                                    signIn(email.trim(), password.trim());
+                                  }
+                                },
                               ),
                             ),
                           ],
@@ -487,7 +488,12 @@ class _SigninState extends State<Signin> {
                       ),
                       SizedBox(height: 10),
                       FlatButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          var route = new MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  ResetPassword("enter_email"));
+                          Navigator.of(context).push(route);
+                        },
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 10),
                           alignment: Alignment.centerRight,
@@ -601,11 +607,7 @@ class _SignupState extends State<Signup> {
         setState(() {
           sharedPreferences.setBool(Constants.LOGGED_IN, true);
         });
-        Navigator.pushNamed(
-          context,
-          Routes.start,
-          arguments: {'currebt_tab': 1},
-        );
+        Navigator.pushNamed(context, Routes.initialization);
       }
     } else {
       setState(() {
@@ -627,6 +629,7 @@ class _SignupState extends State<Signup> {
 
   @override
   void initState() {
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
     reset();
     super.initState();
   }
@@ -649,6 +652,10 @@ class _SignupState extends State<Signup> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: <Widget>[
+                    SizedBox(
+                      height: 30,
+                    ),
+                    /*
                     InkWell(
                       onTap: () {
                         var route = new MaterialPageRoute(
@@ -681,6 +688,7 @@ class _SignupState extends State<Signup> {
                         ),
                       ),
                     ),
+                    */
                     Center(
                       child: RichText(
                         textAlign: TextAlign.center,
@@ -999,67 +1007,112 @@ class _SignupState extends State<Signup> {
                           children: <Widget>[
                             new Expanded(
                               child: FlatButton(
-                                shape: new RoundedRectangleBorder(
-                                    borderRadius:
-                                        new BorderRadius.circular(30.0)),
-                                splashColor: Theme.of(context)
-                                    .scaffoldBackgroundColor
-                                    .withOpacity(0.6),
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .caption
-                                    .color
-                                    .withOpacity(0.5),
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 15),
-                                  child: new Row(
-                                    children: <Widget>[
-                                      new Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 20.0),
-                                        child: Text(
-                                          "REGISTER NOW",
-                                          style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .scaffoldBackgroundColor),
-                                        ),
-                                      ),
-                                      new Expanded(
-                                        child: Container(),
-                                      ),
-                                      new Transform.translate(
-                                        offset: Offset(15.0, 0.0),
-                                        child: new Container(
+                                  shape: new RoundedRectangleBorder(
+                                      borderRadius:
+                                          new BorderRadius.circular(30.0)),
+                                  splashColor: Theme.of(context)
+                                      .scaffoldBackgroundColor
+                                      .withOpacity(0.6),
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .caption
+                                      .color
+                                      .withOpacity(0.5),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 15),
+                                    child: new Row(
+                                      children: <Widget>[
+                                        new Padding(
                                           padding:
-                                              const EdgeInsets.only(right: 15),
-                                          child: Icon(
-                                            Icons.arrow_forward,
-                                            color: Theme.of(context)
-                                                .scaffoldBackgroundColor,
+                                              const EdgeInsets.only(left: 20.0),
+                                          child: Text(
+                                            "REGISTER NOW",
+                                            style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .scaffoldBackgroundColor),
                                           ),
                                         ),
-                                      )
-                                    ],
+                                        new Expanded(
+                                          child: Container(),
+                                        ),
+                                        new Transform.translate(
+                                          offset: Offset(15.0, 0.0),
+                                          child: new Container(
+                                            padding: const EdgeInsets.only(
+                                                right: 15),
+                                            child: Icon(
+                                              Icons.arrow_forward,
+                                              color: Theme.of(context)
+                                                  .scaffoldBackgroundColor,
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                onPressed:
-                                    name == "" || email == "" || password == ""
-                                        ? null
-                                        : () async {
-                                            if (cpassword == password) {
-                                              setState(() {
-                                                isLoading = true;
-                                              });
-                                              signUp(
-                                                name.trim(),
-                                                username.trim(),
-                                                email.trim(),
-                                                password.trim(),
-                                              );
-                                            } else {}
-                                          },
-                              ),
+                                  onPressed: () async {
+                                    bool emailValid = RegExp(
+                                            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                                        .hasMatch(email);
+                                    bool usernameValid =
+                                        RegExp(r'^[a-zA-Z0-9]+$')
+                                            .hasMatch(username);
+                                    bool nameValid =
+                                        RegExp(r'^[a-zA-Z]+$').hasMatch(name);
+                                    if (!emailValid) {
+                                      Fluttertoast.showToast(
+                                          msg: "Enter Valid Email",
+                                          toastLength: Toast.LENGTH_SHORT,
+                                          gravity: ToastGravity.TOP,
+                                          textColor: Colors.white,
+                                          timeInSecForIosWeb: 2,
+                                          backgroundColor: Colors.black54);
+                                    } else if (!usernameValid) {
+                                      Fluttertoast.showToast(
+                                          msg: "Enter Valid Username",
+                                          toastLength: Toast.LENGTH_SHORT,
+                                          gravity: ToastGravity.TOP,
+                                          textColor: Colors.white,
+                                          timeInSecForIosWeb: 2,
+                                          backgroundColor: Colors.black54);
+                                    } else if (!nameValid) {
+                                      Fluttertoast.showToast(
+                                          msg: "Enter Valid Nmae",
+                                          toastLength: Toast.LENGTH_SHORT,
+                                          gravity: ToastGravity.TOP,
+                                          textColor: Colors.white,
+                                          timeInSecForIosWeb: 2,
+                                          backgroundColor: Colors.black54);
+                                    } else if (cpassword != password) {
+                                      Fluttertoast.showToast(
+                                          msg: "Both passwords should be same",
+                                          toastLength: Toast.LENGTH_SHORT,
+                                          gravity: ToastGravity.TOP,
+                                          textColor: Colors.white,
+                                          timeInSecForIosWeb: 2,
+                                          backgroundColor: Colors.black54);
+                                    } else if (password.trim().length < 6) {
+                                      Fluttertoast.showToast(
+                                          msg:
+                                              "Password length must be greater than 5",
+                                          toastLength: Toast.LENGTH_SHORT,
+                                          gravity: ToastGravity.TOP,
+                                          textColor: Colors.white,
+                                          timeInSecForIosWeb: 2,
+                                          backgroundColor: Colors.black54);
+                                    } else {
+                                      setState(() {
+                                        isLoading = true;
+                                      });
+                                      signUp(
+                                        name.trim(),
+                                        username.trim(),
+                                        email.trim(),
+                                        password.trim(),
+                                      );
+                                    }
+                                  }),
                             ),
                           ],
                         ),

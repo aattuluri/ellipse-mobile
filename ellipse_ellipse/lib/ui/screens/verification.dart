@@ -14,8 +14,11 @@ import '../../util/index.dart';
 import '../screens/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http_parser/http_parser.dart';
+import '../../util/constants.dart' as Constants;
 
 class OtpPageEmailVerify extends StatefulWidget {
+  final String email, type;
+  OtpPageEmailVerify(this.email, this.type);
   @override
   OtpPageEmailVerifyState createState() => OtpPageEmailVerifyState();
 }
@@ -31,8 +34,8 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
 
   TextEditingController currController = new TextEditingController();
 
-  String token = "", id = "", email = "";
-
+  String token = "", id = "", email = "", verification_email = "";
+  bool email_sent = false;
   getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
@@ -42,7 +45,30 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
     });
   }
 
-  void matchOtp() async {
+  void matchOtp_reset_password() async {
+    String otp = controller1.text +
+        controller2.text +
+        controller3.text +
+        controller4.text +
+        controller5.text +
+        controller6.text;
+    print(otp);
+    http.Response response = await http.post(
+      '${Url.URL}/api/users/emailverified_forgot_password?otp=$otp',
+      body: {'email': '${widget.email}', 'otp': '$otp'},
+    );
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+    if (response.statusCode == 200) {
+      var route = new MaterialPageRoute(
+          builder: (BuildContext context) => ResetPassword("enter_password"));
+      Navigator.of(context).push(route);
+    } else {
+      print(response.body);
+    }
+  }
+
+  void matchOtp_email_verify() async {
     String otp = controller1.text +
         controller2.text +
         controller3.text +
@@ -61,20 +87,35 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
     if (response.statusCode == 300) {
-      Navigator.pushNamed(
-        context,
-        Routes.start,
-        arguments: {'currebt_tab': 1},
-      );
+      Navigator.pushNamed(context, Routes.initialization);
     } else {
       print(response.body);
+    }
+  }
+
+  send_otp() async {
+    http.Response response1 = await http.post(
+      '${Url.URL}/api/users/emailverify?email=${widget.email}',
+      body: jsonEncode(<dynamic, dynamic>{
+        "email": "$verification_email",
+      }),
+    );
+    print('Response status: ${response1.statusCode}');
+    print('Response body: ${response1.body}');
+
+    if (response1.statusCode == 200) {
+      print("sent otp to your mail");
+      setState(() {
+        email_sent = true;
+      });
+    } else {
+      print(response1.body);
     }
   }
 
   @override
   void initState() {
     getPref();
-    // TODO: implement initState
     super.initState();
     currController = controller1;
   }
@@ -238,16 +279,20 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
     return new Scaffold(
       resizeToAvoidBottomPadding: false,
       appBar: AppBar(
-        title: Text("Email Verification"),
+        title: Text("OTP Verification"),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         leading: new IconButton(
           icon: new Icon(Icons.arrow_back_ios),
-          onPressed: () {
-            Navigator.pushNamed(
-              context,
-              Routes.start,
-              arguments: {'currebt_tab': 1},
-            );
+          onPressed: () async {
+            SharedPreferences preferences =
+                await SharedPreferences.getInstance();
+            setState(() {
+              preferences.setString("token", "");
+              preferences.setString("id", "");
+              preferences.setString("email", "");
+              preferences.setBool(Constants.LOGGED_IN, false);
+            });
+            Navigator.pushNamed(context, Routes.signin);
           },
         ),
       ),
@@ -259,44 +304,85 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      "Verify with OTP",
-                      style: TextStyle(
-                          fontSize: 18.0, fontWeight: FontWeight.bold),
-                    ),
+                  email_sent
+                      ? Column(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                "Verify your OTP",
+                                style: TextStyle(
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 16.0, top: 4.0, right: 16.0),
+                              child: Text(
+                                "Please type the verification code sent to your mail",
+                                style: TextStyle(
+                                    fontSize: 15.0,
+                                    fontWeight: FontWeight.normal),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 30.0, top: 2.0, right: 30.0),
+                              child: Text(
+                                "gunasekhar158@gmail.com",
+                                style: TextStyle(
+                                  fontSize: 15.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Container(),
+                  SizedBox(
+                    height: 15,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        left: 16.0, top: 4.0, right: 16.0),
-                    child: Text(
-                      "Please type the verification code sent to your mail",
-                      style: TextStyle(
-                          fontSize: 15.0, fontWeight: FontWeight.normal),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        left: 30.0, top: 2.0, right: 30.0),
-                    child: Text(
-                      "gunasekhar158@gmail.com",
-                      style: TextStyle(
-                        fontSize: 15.0,
-                        fontWeight: FontWeight.bold,
+                  InkWell(
+                    onTap: () async {
+                      send_otp();
+                    },
+                    child: Container(
+                      height: 40.0,
+                      width: 250.0,
+                      decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).textTheme.caption.color,
+                          ),
+                          borderRadius: BorderRadius.circular(10.0)),
+                      child: Center(
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Icon(Icons.send, size: 25),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            email_sent
+                                ? Text(
+                                    "Re-send OTP to Email",
+                                    style: TextStyle(fontSize: 19.0),
+                                  )
+                                : Text(
+                                    "Send OTP to Email",
+                                    style: TextStyle(fontSize: 19.0),
+                                  ),
+                          ],
+                        ),
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  ), /*
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    child: Image(
-                      image: AssetImage('Assets/images/otp-icon.png'),
-                      height: 120.0,
-                      width: 120.0,
-                    ),
-                  )*/
+                  ),
                 ],
               ),
               flex: 60,
@@ -479,7 +565,11 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
                           ),
                           MaterialButton(
                             onPressed: () {
-                              matchOtp();
+                              if (widget.type == "email_verification") {
+                                matchOtp_email_verify();
+                              } else if (widget.type == "reset_password") {
+                                matchOtp_reset_password();
+                              }
                             },
                             child: Icon(
                               Icons.check_circle_outline,
@@ -574,7 +664,6 @@ class Check extends StatefulWidget {
 
 class _CheckState extends State<Check> {
   bool isLoading = false;
-  //List data;
   List data = List();
   String _college;
   String image_url;
@@ -593,6 +682,7 @@ class _CheckState extends State<Check> {
       id = preferences.getString("id");
       email = preferences.getString("email");
     });
+    String gender = male ? "Male" : female ? "Female" : null;
     http.Response response = await http.post(
       '${Url.URL}/api/users/userdetails',
       headers: <String, String>{
@@ -604,7 +694,7 @@ class _CheckState extends State<Check> {
         "college_id": "$_college",
         'bio': "$bio",
         'designation': "$designation",
-        'gender': "Male"
+        'gender': gender
       }),
     );
     if (response.statusCode == 200) {
@@ -633,11 +723,7 @@ class _CheckState extends State<Check> {
         final streamedResponse = await imageUploadRequest.send();
         final response1 = await http.Response.fromStream(streamedResponse);
         if (response1.statusCode == 200) {
-          Navigator.pushNamed(
-            context,
-            Routes.start,
-            arguments: {'currebt_tab': 2},
-          );
+          Navigator.pushNamed(context, Routes.initialization);
           setState(() {
             _isUploading = false;
           });
@@ -725,7 +811,7 @@ class _CheckState extends State<Check> {
   }
 
   Future<List> getData() async {
-    final response = await http.get("${Url.URL}/colleges");
+    final response = await http.get("${Url.URL}/api/colleges");
     var resBody = json.decode(response.body.toString());
     setState(() {
       data = resBody;
@@ -1217,45 +1303,31 @@ class _CheckState extends State<Check> {
                                           .caption
                                           .color
                                           .withOpacity(0.5),
-                                      child: new Row(
-                                        children: <Widget>[
-                                          new Padding(
-                                            padding: const EdgeInsets.only(
-                                                left: 20.0),
-                                            child: Text(
-                                              "Continue",
-                                              style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .scaffoldBackgroundColor),
-                                            ),
-                                          ),
-                                          new Expanded(
-                                            child: Container(),
-                                          ),
-                                          new Transform.translate(
-                                            offset: Offset(15.0, 0.0),
-                                            child: new Container(
-                                              padding:
-                                                  const EdgeInsets.all(5.0),
-                                              child: FlatButton(
-                                                shape:
-                                                    new RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            new BorderRadius
-                                                                    .circular(
-                                                                28.0)),
-                                                splashColor: Colors.white,
-                                                color: Colors.white,
-                                                child: Icon(
-                                                  Icons.arrow_forward,
-                                                  color: Theme.of(context)
-                                                      .scaffoldBackgroundColor,
-                                                ),
-                                                onPressed: () => {},
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 15),
+                                        child: new Row(
+                                          children: <Widget>[
+                                            new Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 20.0),
+                                              child: Text(
+                                                "CONTINUE",
+                                                style: TextStyle(
+                                                    color: Theme.of(context)
+                                                        .scaffoldBackgroundColor),
                                               ),
                                             ),
-                                          )
-                                        ],
+                                            new Expanded(
+                                              child: Container(),
+                                            ),
+                                            Icon(
+                                              Icons.arrow_forward,
+                                              color: Theme.of(context)
+                                                  .scaffoldBackgroundColor,
+                                            )
+                                          ],
+                                        ),
                                       ),
                                       onPressed: () async {
                                         getPref();

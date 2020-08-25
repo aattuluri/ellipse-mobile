@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,31 +11,32 @@ import '../widgets/index.dart';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:ui';
-import 'dart:convert';
 import 'dart:async';
 import 'dart:core';
+import 'package:provider/provider.dart';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import '../../util/index.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
+import '../../util/index.dart';
+import '../../models/index.dart';
+import '../../repositories/index.dart';
+import '../../models/index.dart';
 
-enum MessageType {
-  Sender,
-  Receiver,
-}
-
-class ChatTab1 extends StatefulWidget {
-  final String event_id;
-  final channel = IOWebSocketChannel.connect('ws://echo.websocket.org');
-  ChatTab1(this.event_id);
+class ChatPage extends StatefulWidget {
+  final String event_id, sender_type, event_uid;
+  final index;
+  ChatPage(this.event_id, this.sender_type, this.index, this.event_uid);
   @override
-  _ChatTab1State createState() => _ChatTab1State();
+  _ChatPageState createState() => _ChatPageState();
 }
 
-class _ChatTab1State extends State<ChatTab1> {
-  //SocketIO socketIO;
+class _ChatPageState extends State<ChatPage> {
+  WebSocketChannel channel;
+  bool isLoading = false;
   ScrollController scrollController;
   bool message = false;
   String token = "", id = "", email = "", college = "";
@@ -57,50 +59,73 @@ class _ChatTab1State extends State<ChatTab1> {
   }
 
   getPref() async {
+    setState(() {
+      //isLoading = true;
+    });
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
       token = preferences.getString("token");
       id = preferences.getString("id");
       email = preferences.getString("email");
     });
-    print(id);
-  }
 
-  load_messages() async {
-    /*
-    http.Response response = await http.get(
-        "${Url.URL}/api/chat/getMessages?id =${widget.event_id}",
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
-        });
-    var jsonResponse = json.decode(response.body);
-    print("Jsonresponse $jsonResponse");
-    print('Response body: ${response.body}');
-    */
-  }
-
-  @override
-  void initState() {
-    print("Event Id: ${widget.event_id}");
-    getPref();
-    _SearchListState();
-    scrollController = ScrollController();
-    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Bearer $token",
+      HttpHeaders.contentTypeHeader: "application/json"
+    };
+    var response = await http.get(
+        "${Url.URL}/api/chat/load_messages?id=${widget.event_id}",
+        headers: headers);
+    // print(response.body);
+    var data = json.decode(response.body);
+    print(data);
     setState(() {
-      textController.text = "";
+      // isLoading = false;
     });
-    /////////////////////////////////
-    widget.channel.stream.listen((data) {
-      print(data);
-      String message = data;
+    for (final item in data) {
+      String sender_pic = item['user_pic'];
+      String sender_name = item['user_name'];
+      String message = item['message'];
+      String dt = item['date'].toString();
+      String senderid = item['user_id'];
+      String type;
+      DateTime datetime = DateTime.parse(dt).toLocal();
+      int hour = datetime.hour;
+      String minute = datetime.minute.toString();
+      if (minute.length == 1) {
+        minute = "0$minute";
+      } else {
+        minute = "$minute";
+      }
+      if (hour > 12) {
+        hour = hour - 12;
+        type = "pm";
+      } else {
+        type = "am";
+      }
+      String time = "$hour:$minute $type".toString();
+
       this.setState(
         () => chatMessage.add(
           ChatMessage(
+              sender_pic: sender_pic,
+              sender_name: sender_name,
               message: message,
-              type: message.length > 5
-                  ? MessageType.Sender
-                  : MessageType.Receiver),
+              time: time,
+              // time: time,
+              sender_type:
+                  senderid == widget.event_uid ? "admin" : "participant",
+              type: senderid == id
+                  ? MessageType.Me
+                  /* sender_type == "admin"
+                      ? widget.sender_type != "admin"
+                          ? MessageType2.Receiver
+                          : MessageType2.Sender
+                      : widget.sender_type != "participant"
+                          ? MessageType2.Receiver
+                          : MessageType2.Sender
+              */
+                  : MessageType.Other),
         ),
       );
       scrollController.animateTo(
@@ -108,79 +133,97 @@ class _ChatTab1State extends State<ChatTab1> {
         duration: Duration(milliseconds: 1000),
         curve: Curves.easeOut,
       );
-    });
-    //////////////////////////////////
-    /*
-    socketIO = SocketIOManager().createSocketIO(
-      'http://192.168.43.215:4000',
-      '/',
-    );
-    socketIO.init();
+    }
+  }
 
-    socketIO.connect();
-    socketIO.subscribe('receive_message', (jsonData) {
-      //Convert the JSON data received into a Map
-      Map<String, dynamic> data = json.decode(jsonData);
-      this.setState(
-        () => chatMessage.add(
-          ChatMessage(message: data['message'], type: MessageType.Receiver),
-        ),
-      );
-      //this.setState(() => messages.add(data['message']));
-      scrollController.animateTo(
-        scrollController.position.maxScrollExtent + 1000,
-        duration: Duration(milliseconds: 600),
-        curve: Curves.ease,
-      );
+  @override
+  Future<void> initState() {
+    _SearchListState();
+    scrollController = ScrollController();
+
+    getPref();
+
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    setState(() {
+      textController.text = "";
     });
-    */
+    channel = IOWebSocketChannel.connect('${Url.WEBSOCKET_URL}');
+    channel.stream.listen((data) {
+      var response = json.decode(data);
+      String action = response['action'];
+      switch (action) {
+        case "receive_message":
+          print(response);
+          String eventid = response['event_id'];
+          print(eventid);
+          dynamic msg = response['msg'];
+          String sender_pic = msg['user_pic'];
+          String sender_name = msg['user_name'];
+          String message = msg['message'];
+          String dt = msg['date'].toString();
+          String senderid = msg['user_id'];
+          print(msg['message']);
+          String type;
+          DateTime datetime = DateTime.parse(dt).toLocal();
+          int hour = datetime.hour;
+          String minute = datetime.minute.toString();
+          if (minute.length == 1) {
+            minute = "0$minute";
+          } else {
+            minute = "$minute";
+          }
+          if (hour > 12) {
+            hour = hour - 12;
+            type = "pm";
+          } else {
+            type = "am";
+          }
+          String time = "$hour:$minute $type".toString();
+
+          if (widget.event_id == eventid) {
+            this.setState(
+              () => chatMessage.add(
+                ChatMessage(
+                    sender_pic: sender_pic,
+                    sender_name: sender_name,
+                    message: message,
+                    time: time,
+                    // time: time,
+                    sender_type:
+                        senderid == widget.event_uid ? "admin" : "participant",
+                    type: senderid == id
+                        ? MessageType.Me
+                        /* sender_type == "admin"
+                      ? widget.sender_type != "admin"
+                          ? MessageType2.Receiver
+                          : MessageType2.Sender
+                      : widget.sender_type != "participant"
+                          ? MessageType2.Receiver
+                          : MessageType2.Sender
+              */
+                        : MessageType.Other),
+              ),
+            );
+            scrollController.animateTo(
+              scrollController.position.maxScrollExtent + 1000,
+              duration: Duration(milliseconds: 1000),
+              curve: Curves.easeOut,
+            );
+          }
+
+          break;
+      }
+    });
     super.initState();
-    /*
-    scrollController.animateTo(
-      scrollController.position.maxScrollExtent + 1000,
-      duration: Duration(milliseconds: 600),
-      curve: Curves.ease,
-    );
-    */
   }
 
   @override
   void dispose() {
-    widget.channel.sink.close();
+    channel.sink.close(status.goingAway);
     super.dispose();
   }
 
-  List<ChatMessage> chatMessage = [
-    ChatMessage(message: "Hi John", type: MessageType.Receiver),
-    ChatMessage(message: "Hope you are doin good", type: MessageType.Receiver),
-    ChatMessage(
-        message:
-            "Hello Jane, I'm good what about you Hello Jane, I'm good what about you Hello Jane, I'm good what about you",
-        type: MessageType.Sender),
-    ChatMessage(
-        message: "I'm fine, Working from homeI'm fine, Working from home",
-        type: MessageType.Receiver),
-    ChatMessage(message: "Oh! Nice. Same here man", type: MessageType.Sender),
-    ChatMessage(message: "Hope you are doin good", type: MessageType.Receiver),
-    ChatMessage(
-        message:
-            "Hello Jane, I'm good what about you Hello Jane, I'm good what about you Hello Jane, I'm good what about you",
-        type: MessageType.Sender),
-    ChatMessage(
-        message: "I'm fine, Working from home", type: MessageType.Receiver),
-    ChatMessage(message: "Hi John", type: MessageType.Receiver),
-    ChatMessage(message: "Hope you are doin good", type: MessageType.Receiver),
-    ChatMessage(
-        message:
-            "Hello Jane, I'm good what about you Hello Jane, I'm good what about you Hello Jane, I'm good what about you",
-        type: MessageType.Sender),
-    ChatMessage(
-        message:
-            "I'm fine, Working from home I'm fine, Working from home I'm fine, Working from home",
-        type: MessageType.Receiver),
-    ChatMessage(message: "Oh! Nice. Same here man", type: MessageType.Sender),
-    ChatMessage(message: "Hope you are doin good", type: MessageType.Receiver),
-  ];
+  List<ChatMessage> chatMessage = [];
 
   List<SendMenuItems> menuItems = [
     SendMenuItems(
@@ -255,34 +298,64 @@ class _ChatTab1State extends State<ChatTab1> {
 
   @override
   Widget build(BuildContext context) {
+    final UserDetails _userdetails =
+        context.watch<UserDetailsRepository>().getUserDetails(0);
     return SafeArea(
-      child: Scaffold(
-        body: Stack(
-          children: <Widget>[
-            ListView.builder(
-              itemCount: chatMessage.length,
-              controller: scrollController,
-              shrinkWrap: true,
-              padding: EdgeInsets.only(top: 5, bottom: 60),
-              scrollDirection: Axis.vertical,
-              itemBuilder: (context, index) {
-                return ChatBubble(
-                  chatMessage: chatMessage[index],
-                );
-              },
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                height: 65,
-                color: Theme.of(context).scaffoldBackgroundColor,
-                child: Column(
-                  children: [
-                    Divider(
-                      thickness: 2,
+      child: isLoading
+          ? SafeArea(
+              child: Scaffold(
+                body: Align(
+                  alignment: Alignment.center,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Center(child: CircularProgressIndicator()),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Text(
+                        "Loading Messages....",
+                        style: TextStyle(
+                            color: Theme.of(context).textTheme.caption.color,
+                            fontSize: 30.0,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          : Scaffold(
+              body: Stack(
+                children: <Widget>[
+                  Container(
+                    child: ListView.builder(
+                      itemCount: chatMessage.length,
+                      controller: scrollController,
+                      shrinkWrap: true,
+                      padding: EdgeInsets.only(top: 5, bottom: 60),
+                      scrollDirection: Axis.vertical,
+                      itemBuilder: (context, index) {
+                        return ChatBubble(
+                          chatMessage: chatMessage[index],
+                        );
+                      },
                     ),
-                    Row(
-                      children: <Widget>[
+                  ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      height: 65,
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      child: Column(
+                        children: [
+                          Divider(
+                            thickness: 2,
+                          ),
+                          Row(
+                            children: <Widget>[
+                              /*
                         Padding(
                           padding: const EdgeInsets.only(left: 15, right: 10),
                           child: InkWell(
@@ -301,94 +374,74 @@ class _ChatTab1State extends State<ChatTab1> {
                             ),
                           ),
                         ),
-                        Expanded(
-                          child: TextField(
-                            autocorrect: false,
-                            autofocus: false,
-                            cursorColor:
-                                Theme.of(context).textTheme.caption.color,
-                            textInputAction: TextInputAction.unspecified,
-                            keyboardType: TextInputType.multiline,
-                            enabled: true,
-                            controller: textController,
-                            style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.caption.color,
-                                fontSize: 20),
-                            decoration: InputDecoration.collapsed(
-                              hintText: 'Type here.....',
-                            ),
-                            textCapitalization: TextCapitalization.sentences,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: InkWell(
-                            onTap: () {
-                              if (textController.text.isNotEmpty) {
-                                widget.channel.sink.add(textController.text);
-                                scrollController.animateTo(
-                                  scrollController.position.maxScrollExtent +
-                                      1000,
-                                  duration: Duration(milliseconds: 600),
-                                  curve: Curves.ease,
-                                );
-                                setState(() {
-                                  textController.text = "";
-                                });
-                                /*
-                                socketIO.sendMessage(
-                                    'send_message',
-                                    json.encode(
-                                        {'message': textController.text}));
-                                */
-                                /*
-                                this.setState(
-                                  () => chatMessage.add(
-                                    ChatMessage(
-                                        message: textController.text,
-                                        type: textController.text.length > 6
-                                            ? MessageType.Sender
-                                            : MessageType.Receiver),
+                        */
+                              SizedBox(
+                                width: 15,
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  autocorrect: false,
+                                  autofocus: false,
+                                  cursorColor:
+                                      Theme.of(context).textTheme.caption.color,
+                                  textInputAction: TextInputAction.unspecified,
+                                  keyboardType: TextInputType.multiline,
+                                  enabled: true,
+                                  controller: textController,
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color,
+                                      fontSize: 20),
+                                  decoration: InputDecoration.collapsed(
+                                    hintText: 'Type here.....',
                                   ),
-                                );
-                                */
-                                setState(() {
-                                  textController.text = "";
-                                });
-                              } else {}
-                            },
-                            child: Icon(
-                              Icons.send,
-                              size: 35,
-                            ),
+                                  textCapitalization:
+                                      TextCapitalization.sentences,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(right: 10),
+                                child: InkWell(
+                                  onTap: () {
+                                    String datetime =
+                                        DateTime.now().toUtc().toString();
+                                    if (textController.text.isNotEmpty) {
+                                      channel.sink.add(json.encode({
+                                        'action': "send_message",
+                                        'event_id': widget.event_id,
+                                        'msg': {
+                                          'id': id + datetime,
+                                          'user_id': id,
+                                          'user_name': _userdetails.username,
+                                          'user_pic': _userdetails.profile_pic,
+                                          'message': textController.text,
+                                          'date': datetime
+                                        }
+                                      }));
+                                      setState(() {
+                                        textController.text = "";
+                                      });
+                                    } else {}
+                                  },
+                                  child: Icon(
+                                    Icons.send,
+                                    size: 35,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ],
-                ),
+                  )
+                ],
               ),
-            )
-          ],
-        ),
-      ),
+            ),
     );
   }
-}
-
-class ChatMessage {
-  String message;
-  MessageType type;
-  ChatMessage({@required this.message, @required this.type});
-}
-
-class SendMenuItems {
-  String text;
-  IconData icons;
-  MaterialColor color;
-  SendMenuItems(
-      {@required this.text, @required this.icons, @required this.color});
 }
 
 class ChatBubble extends StatefulWidget {
@@ -462,10 +515,10 @@ class _ChatBubbleState extends State<ChatBubble> {
       child: Container(
         padding: EdgeInsets.only(left: 12, right: 12, top: 7, bottom: 7),
         child: Align(
-          alignment: (widget.chatMessage.type == MessageType.Receiver
+          alignment: (widget.chatMessage.type == MessageType.Other
               ? Alignment.topLeft
               : Alignment.topRight),
-          child: widget.chatMessage.type == MessageType.Sender
+          child: widget.chatMessage.type == MessageType.Me
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -513,7 +566,7 @@ class _ChatBubbleState extends State<ChatBubble> {
                               height: 3,
                             ),
                             Text(
-                              "8:00 pm",
+                              widget.chatMessage.time,
                               style: TextStyle(
                                 fontSize: 10,
                                 color: Colors.white,
@@ -532,7 +585,8 @@ class _ChatBubbleState extends State<ChatBubble> {
                     Container(
                       margin: EdgeInsets.only(left: 45),
                       child: Text(
-                        "guna0027",
+                        widget.chatMessage.sender_name +
+                            "(${widget.chatMessage.sender_type})",
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.white,
@@ -544,19 +598,26 @@ class _ChatBubbleState extends State<ChatBubble> {
                       child: Row(
                         children: [
                           Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 2,
-                                  blurRadius: 5,
+                            height: 35,
+                            width: 35,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(540),
+                              child: CachedNetworkImage(
+                                imageUrl:
+                                    "${Url.URL}/api/image?id=${widget.chatMessage.sender_pic}",
+                                placeholder: (context, url) => Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.1,
+                                  height:
+                                      MediaQuery.of(context).size.width * 0.1,
+                                  child: Icon(
+                                    Icons.image,
+                                    size: 80,
+                                  ),
                                 ),
-                              ],
-                            ),
-                            child: CircleAvatar(
-                              radius: 17,
-                              backgroundImage: AssetImage("assets/g.png"),
+                                errorWidget: (context, url, error) =>
+                                    new Icon(Icons.error),
+                              ),
                             ),
                           ),
                           SizedBox(
@@ -585,7 +646,7 @@ class _ChatBubbleState extends State<ChatBubble> {
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 SelectableText(
-                                  widget.chatMessage.message,
+                                  "${widget.chatMessage.message}",
                                   style: TextStyle(
                                     color: Colors.black87,
                                   ),
@@ -594,7 +655,7 @@ class _ChatBubbleState extends State<ChatBubble> {
                                   height: 3,
                                 ),
                                 Text(
-                                  "8:00 pm",
+                                  widget.chatMessage.time,
                                   style: TextStyle(
                                     fontSize: 10,
                                     color: Colors.black87,

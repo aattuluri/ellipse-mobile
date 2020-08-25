@@ -14,12 +14,14 @@ class Routes {
   //static const isloggedin = '/';
   static const splash_screen = '/';
   static const initialization = '/initialization';
+  static const connection_error = '/connection_error';
   static const start = '/start';
   static const calendar_view = '/calendar_view';
   static const info_page = '/info_page';
   static const post_event = '/post_event';
   static const signin = '/signin';
   static const my_events = '/my_events';
+  static const registered_events = '/registered_events';
   static const my_events_info_page = '/my_events_info_page';
   static const edit_event = '/edit_event';
   static const edit_profile = '/edit_profile';
@@ -37,6 +39,11 @@ class Routes {
             settings: routeSettings,
             builder: (_) => SplashScreen(),
           );
+        case connection_error:
+          return MaterialPageRoute(
+            settings: routeSettings,
+            builder: (_) => ConnectionErrorScreen(),
+          );
         case initialization:
           return MaterialPageRoute(
             settings: routeSettings,
@@ -51,7 +58,7 @@ class Routes {
         case calendar_view:
           return MaterialPageRoute(
             settings: routeSettings,
-            builder: (_) => CalendarView(),
+            builder: (_) => CalendarTab(),
           );
         case info_page:
           final index = args['index'] as int;
@@ -101,6 +108,11 @@ class Routes {
           return MaterialPageRoute(
             settings: routeSettings,
             builder: (_) => Signin(),
+          );
+        case registered_events:
+          return MaterialPageRoute(
+            settings: routeSettings,
+            builder: (_) => RegisteredEvents(),
           );
         case my_events:
           return MaterialPageRoute(

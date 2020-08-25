@@ -72,20 +72,6 @@ class _ReportState extends State<Report> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(
-          iconTheme: Theme.of(context).iconTheme,
-          elevation: 4,
-          title: Text(
-            "Report",
-            style: TextStyle(
-                color: Theme.of(context).textTheme.caption.color,
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold),
-          ),
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          actions: [],
-          centerTitle: true,
-        ),
         body: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),

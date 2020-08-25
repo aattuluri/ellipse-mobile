@@ -1,7 +1,6 @@
 import 'package:expand_widget/expand_widget.dart';
 import 'package:flutter/material.dart';
 
-/// Wrapper of the [ExpandText] widget.
 class TextExpand extends StatelessWidget {
   final String text;
   final int lines;

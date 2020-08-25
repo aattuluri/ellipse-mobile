@@ -6,8 +6,6 @@ import 'package:provider/provider.dart';
 import '../../providers/index.dart';
 import 'index.dart';
 
-/// Used as a sliver header, in the [background] parameter.
-/// It allows the user to scroll throug multiple shots.
 class SwiperHeader extends StatelessWidget {
   final List<String> list;
   final IndexedWidgetBuilder builder;

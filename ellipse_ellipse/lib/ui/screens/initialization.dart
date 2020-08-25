@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import '../../util/index.dart';
 import '../../util/constants.dart' as Constants;
 import '../../util/routes.dart';
+import '../../repositories/index.dart';
+import 'package:connectivity/connectivity.dart';
 
 class Initialization extends StatefulWidget {
   @override
@@ -36,7 +38,31 @@ class _InitializationState extends State<Initialization> {
       id = preferences.getString("id");
       email = preferences.getString("email");
     });
-    check();
+    check_connectivity();
+  }
+
+  check_connectivity() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.mobile) {
+      // I am connected to a mobile network.
+      check();
+      print("internet  available");
+      return true;
+    } else if (connectivityResult == ConnectivityResult.wifi) {
+      // I am connected to a wifi network.
+      check();
+      print("internet  available");
+      return true;
+    } else if (connectivityResult == ConnectivityResult.none) {
+      // I am connected to a wifi network.
+      Navigator.pushNamed(context, Routes.connection_error);
+      print("Error in connection");
+      return false;
+    } else {
+      Navigator.pushNamed(context, Routes.connection_error);
+      print("Error in connection");
+      return false;
+    }
   }
 
   check() async {
@@ -62,25 +88,11 @@ class _InitializationState extends State<Initialization> {
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
     if (response.statusCode == 401) {
-      http.Response response1 = await http.post(
-        '${Url.URL}/api/users/emailverify',
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
-        },
-        body: jsonEncode(<dynamic, dynamic>{'email': '$email'}),
+      var route = new MaterialPageRoute(
+        builder: (BuildContext context) =>
+            OtpPageEmailVerify(email, "email_verification"),
       );
-      print('Response status: ${response1.statusCode}');
-      print('Response body: ${response1.body}');
-      if (response1.statusCode == 200) {
-        print("sent check request");
-        var route = new MaterialPageRoute(
-          builder: (BuildContext context) => OtpPageEmailVerify(),
-        );
-        Navigator.of(context).push(route);
-      } else {
-        print(response1.body);
-      }
+      Navigator.of(context).push(route);
     } else if (response.statusCode == 402) {
       var route = new MaterialPageRoute(
         builder: (BuildContext context) => Check(),
@@ -94,7 +106,7 @@ class _InitializationState extends State<Initialization> {
       Navigator.pushNamed(
         context,
         Routes.start,
-        arguments: {'currebt_tab': 1},
+        arguments: {'currebt_tab': 0},
       );
       setState(() {
         ischecking = false;
@@ -119,43 +131,37 @@ class _InitializationState extends State<Initialization> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: ischecking
-          ? SafeArea(
-              child: Scaffold(
-                  body: Align(
-              alignment: Alignment.center,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(
-                    height: 40,
-                  ),
-                  Text(
-                    "Loading",
-                    style: TextStyle(
-                        color: Theme.of(context).textTheme.caption.color,
-                        fontSize: 40.0,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Text(
-                    "Please Wait....",
-                    style: TextStyle(
-                        color: Theme.of(context).textTheme.caption.color,
-                        fontSize: 30.0,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            )))
-          : Center(
-              child: CircularProgressIndicator(),
-            ),
-    );
+    return SafeArea(
+        child: Scaffold(
+            body: Align(
+      alignment: Alignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(
+            height: 40,
+          ),
+          Text(
+            "Loading",
+            style: TextStyle(
+                color: Theme.of(context).textTheme.caption.color,
+                fontSize: 40.0,
+                fontWeight: FontWeight.bold),
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          Text(
+            "Please Wait....",
+            style: TextStyle(
+                color: Theme.of(context).textTheme.caption.color,
+                fontSize: 30.0,
+                fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    )));
   }
 }

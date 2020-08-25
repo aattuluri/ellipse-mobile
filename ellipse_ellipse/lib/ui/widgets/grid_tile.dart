@@ -25,12 +25,14 @@ class EventGridTile extends StatelessWidget {
                       .color
                       .withOpacity(0.8)),
               SizedBox(height: 15),
-              Text(
-                text1,
-                style: TextStyle(
-                    fontSize: 17,
-                    color: Theme.of(context).textTheme.caption.color,
-                    fontWeight: FontWeight.w800),
+              Center(
+                child: Text(
+                  text1,
+                  style: TextStyle(
+                      fontSize: 17,
+                      color: Theme.of(context).textTheme.caption.color,
+                      fontWeight: FontWeight.w800),
+                ),
               ),
               SizedBox(height: 8),
               Text(

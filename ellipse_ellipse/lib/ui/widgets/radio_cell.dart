@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Wrapper widget used in the [SettingsScreen] screen.
-/// Used to add custom styling easily to [RadioListTile] widget.
 class RadioCell<T> extends StatelessWidget {
   final String title;
   final T groupValue, value;

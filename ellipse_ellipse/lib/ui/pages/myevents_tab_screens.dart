@@ -208,7 +208,11 @@ class _AddAnnouncementState extends State<AddAnnouncement>
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
     if (response.statusCode == 200) {
-      Navigator.pop(context);
+      Navigator.pushNamed(
+        context,
+        Routes.my_events_info_page,
+        arguments: {'index': widget.index},
+      );
     } else {
       print(response.body);
     }
@@ -229,7 +233,7 @@ class _AddAnnouncementState extends State<AddAnnouncement>
   @override
   Widget build(BuildContext context) {
     final Events _event =
-        context.watch<EventsRepository>().getEvents(widget.index);
+        context.watch<EventsRepository>().getEventIndex(widget.index);
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(

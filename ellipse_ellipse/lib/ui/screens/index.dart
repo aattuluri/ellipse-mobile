@@ -5,3 +5,6 @@ export 'filters.dart';
 export 'splash_screen.dart';
 export 'test_screen.dart';
 export 'initialization.dart';
+export 'connectivity_error.dart';
+export 'event_search.dart';
+export 'reset_password.dart';

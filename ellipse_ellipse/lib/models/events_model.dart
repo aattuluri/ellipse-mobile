@@ -18,11 +18,10 @@ class Events {
       platform_link,
       reg_mode,
       //o_allowed,
-      reg_link,
-      start_time,
-      finish_time,
-      reg_last_date;
+      reg_link;
+
   final List requirements, tags, reg_fields;
+  final DateTime start_time, finish_time, reg_last_date;
 
   const Events({
     this.id,
@@ -50,6 +49,9 @@ class Events {
   });
 
   factory Events.fromJson(Map<String, dynamic> json) {
+    String s_time = json['start_time'];
+    String f_time = json['finish_time'];
+    String r_l_time = json['registration_end_time'];
     return Events(
         id: json['_id'],
         user_id: json['user_id'],
@@ -62,16 +64,16 @@ class Events {
         event_mode: json['event_mode'],
         reg_mode: json['reg_mode'],
         payment_type: json['fee_type'],
-        venue: json['about'],
+        venue: json['venue'],
         requirements: json['requirements'],
         tags: json['tags'],
         registration_fee: json['fee'].toString(),
-        platform_link: json['about'],
+        platform_link: "",
         //o_allowed: json['o_allowed'],
         reg_fields: json['reg_fields'],
         reg_link: json['reg_link'],
-        start_time: json['start_time'],
-        finish_time: json['finish_time'],
-        reg_last_date: json['registration_end_time']);
+        start_time: DateTime.parse(s_time).toLocal(),
+        finish_time: DateTime.parse(f_time).toLocal(),
+        reg_last_date: DateTime.parse(r_l_time).toLocal());
   }
 }

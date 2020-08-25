@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:row_collection/row_collection.dart';
 
-/// Shows information rendering a small clickable widget.
-/// You can use the [icon] and [text] properties to display the info.
 class ItemSnippet extends StatelessWidget {
   final IconData icon;
   final String text;

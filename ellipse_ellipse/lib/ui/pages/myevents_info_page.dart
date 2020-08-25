@@ -17,7 +17,7 @@ import '../widgets/index.dart';
 import '../../repositories/index.dart';
 import '../../models/index.dart';
 import '../../util/index.dart';
-import 'chat_tab2.dart';
+import 'chat_page.dart';
 import 'edit_event.dart';
 
 class MyEventsInfoPage extends StatefulWidget {
@@ -60,10 +60,8 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
   @override
   Widget build(BuildContext context) {
     final Events _event =
-        context.watch<EventsRepository>().getEvents(widget.index);
-    final sdate = DateTime.parse(_event.start_time);
-    final fdate = DateTime.parse(_event.finish_time);
-    final reg_last_date = DateTime.parse(_event.reg_last_date);
+        context.watch<EventsRepository>().getEventIndex(widget.index);
+    // final sdate = DateTime.parse(_event.start_time);
     SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(statusBarColor: Colors.transparent));
 
@@ -130,7 +128,7 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                     Icons.announcement, "Announcements", "Your Announcements",
                     () {
                   setState(() {
-                    view = Announcements(widget.index, id);
+                    view = Announcements(widget.index, _event.id);
                     default_view = false;
                   });
                   _key.currentState.closeDrawer();
@@ -139,7 +137,7 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                     Icons.add_alert, "Add Announcement", "Add Announcement",
                     () {
                   setState(() {
-                    view = AddAnnouncement(widget.index, id);
+                    view = AddAnnouncement(widget.index, _event.id);
                     default_view = false;
                   });
                   _key.currentState.closeDrawer();
@@ -159,7 +157,8 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                 SizedBox(height: 3),
                 SlideMenuItem1(Icons.chat, "Chat", "Your Chat", () {
                   setState(() {
-                    view = ChatTab2(_event.id, "admin", widget.index);
+                    view = ChatPage(
+                        _event.id, "admin", widget.index, _event.user_id);
                     default_view = false;
                   });
                   _key.currentState.closeDrawer();
@@ -170,7 +169,7 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                     bottom: 10,
                     top: 10,
                   ),
-                  child: Text("Registration",
+                  child: Text("Registrations",
                       style: TextStyle(
                         fontSize: 16.0,
                         fontWeight: FontWeight.w500,
@@ -178,9 +177,18 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                 ),
                 SizedBox(height: 3),
                 SlideMenuItem1(Icons.group_outlined, "Participants",
-                    "Registered Participants", () {}),
+                    "Registered Participants", () {
+                  setState(() {
+                    view = Participants(_event.id);
+                    default_view = false;
+                  });
+                  _key.currentState.closeDrawer();
+                }),
+                /*
                 SlideMenuItem1(Icons.attach_email, "Send Mail",
                     "Send mail to participants", () {}),
+                */
+                /*
                 Container(
                   margin: EdgeInsetsDirectional.only(
                     start: 10.0,
@@ -198,6 +206,7 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                     "moderators for event", () {}),
                 SlideMenuItem1(Icons.group_add, "Add Moderator",
                     "Add new moderator", () {}),
+                */
                 Container(
                   margin: EdgeInsetsDirectional.only(
                     start: 10.0,
@@ -222,8 +231,10 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                   });
                   _key.currentState.closeDrawer();
                 }),
+                /*
                 SlideMenuItem1(
                     Icons.delete, "Delete Event", "Delete Event", () {}),
+                */
               ],
             ),
             sliderMain: Container(
@@ -348,8 +359,9 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                                         icon: Icons.calendar_today,
                                         text: DateFormat(
                                                 'EEE-MMMM dd, yyyy HH:mm')
-                                            .format(sdate),
+                                            .format(_event.start_time),
                                       ),
+                                      /*
                                       _event.event_mode == "Offline"
                                           ? ItemSnippet(
                                               icon: Icons.location_on,
@@ -359,6 +371,7 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                                               icon: Icons.location_on,
                                               text: _event.platform_link,
                                               onTap: () {}),
+                                      */
                                     ],
                                   ),
                                   details: _event.description,
@@ -416,7 +429,7 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                                 CardPage.body(
                                   title: "Time Left",
                                   body: RowLayout(children: <Widget>[
-                                    LaunchCountdown(sdate)
+                                    LaunchCountdown(_event.start_time)
                                   ]),
                                 ),
                                 CardPage.body(
@@ -425,18 +438,18 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                                     RowText(
                                       "Event Start Date",
                                       DateFormat('EEE-MMMM dd, yyyy HH:mm')
-                                          .format(sdate),
+                                          .format(_event.start_time),
                                     ),
                                     RowText(
                                       "Event Finish Date",
                                       DateFormat('EEE-MMMM dd, yyyy HH:mm')
-                                          .format(fdate),
+                                          .format(_event.finish_time),
                                     ),
                                     Separator.divider(),
                                     RowText(
                                       "Registration Last Date",
                                       DateFormat('EEE-MMMM dd, yyyy HH:mm')
-                                          .format(reg_last_date),
+                                          .format(_event.reg_last_date),
                                     )
                                   ]),
                                 ),
@@ -496,7 +509,7 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                                             .color,
                                       ),
                                     ),
-                                    LaunchCountdown(reg_last_date),
+                                    LaunchCountdown(_event.reg_last_date),
                                   ]),
                                 ),
                               ],
@@ -648,10 +661,7 @@ class _Tab1State extends State<Tab1> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final Events _event =
-        context.watch<EventsRepository>().getEvents(widget.index);
-    final sdate = DateTime.parse(_event.start_time);
-    final fdate = DateTime.parse(_event.finish_time);
-    final reg_last_date = DateTime.parse(_event.reg_last_date);
+        context.watch<EventsRepository>().getEventIndex(widget.index);
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -797,7 +807,7 @@ class _Tab1State extends State<Tab1> with TickerProviderStateMixin {
                             ItemSnippet(
                               icon: Icons.calendar_today,
                               text: DateFormat('EEE-MMMM dd, yyyy HH:mm')
-                                  .format(sdate),
+                                  .format(_event.start_time),
                             ),
                             _event.event_mode == "Offline"
                                 ? ItemSnippet(
@@ -864,25 +874,28 @@ class _Tab1State extends State<Tab1> with TickerProviderStateMixin {
                       ),
                       CardPage.body(
                         title: "Time Left",
-                        body: RowLayout(
-                            children: <Widget>[LaunchCountdown(sdate)]),
+                        body: RowLayout(children: <Widget>[
+                          LaunchCountdown(_event.start_time)
+                        ]),
                       ),
                       CardPage.body(
                         title: "Important Dates",
                         body: RowLayout(children: <Widget>[
                           RowText(
                             "Event Start Date",
-                            DateFormat('EEE-MMMM dd, yyyy HH:mm').format(sdate),
+                            DateFormat('EEE-MMMM dd, yyyy HH:mm')
+                                .format(_event.start_time),
                           ),
                           RowText(
                             "Event Finish Date",
-                            DateFormat('EEE-MMMM dd, yyyy HH:mm').format(fdate),
+                            DateFormat('EEE-MMMM dd, yyyy HH:mm')
+                                .format(_event.finish_time),
                           ),
                           Separator.divider(),
                           RowText(
                             "Registration Last Date",
                             DateFormat('EEE-MMMM dd, yyyy HH:mm')
-                                .format(reg_last_date),
+                                .format(_event.reg_last_date),
                           )
                         ]),
                       ),
@@ -939,7 +952,7 @@ class _Tab1State extends State<Tab1> with TickerProviderStateMixin {
                               color: Theme.of(context).textTheme.caption.color,
                             ),
                           ),
-                          LaunchCountdown(reg_last_date),
+                          LaunchCountdown(_event.reg_last_date),
                         ]),
                       ),
                     ],

@@ -14,6 +14,7 @@ import '../widgets/index.dart';
 import 'package:http/http.dart' as http;
 import '../../repositories/index.dart';
 import '../../models/index.dart';
+import '../../util/index.dart';
 
 /// Here lays all available options for the user to configurate.
 class ViewProfile extends StatefulWidget {
@@ -44,323 +45,325 @@ class _ViewProfileState extends State<ViewProfile> {
   Widget build(BuildContext context) {
     final UserDetails _userdetails =
         context.watch<UserDetailsRepository>().getUserDetails(0);
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          iconTheme: Theme.of(context).iconTheme,
-          elevation: 4,
-          title: Text(
-            "Profile",
-            style: TextStyle(
-                color: Theme.of(context).textTheme.caption.color,
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold),
-          ),
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          actions: [],
-          centerTitle: true,
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.only(top: 15, bottom: 5),
-                child: Row(
-                  children: <Widget>[
-                    SizedBox(width: 20.0),
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                            width: 3,
-                            color: Theme.of(context).textTheme.caption.color),
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(540),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.pushNamed(context, Routes.view_profile);
-                          },
-                          child: Container(
-                            height: 90,
-                            width: 90,
-                            child: CachedNetworkImage(
-                              imageUrl:
-                                  "${Url.URL}/api/image?id=${_userdetails.profile_pic}",
-                              placeholder: (context, url) => Container(
-                                width: MediaQuery.of(context).size.width * 0.9,
-                                height: MediaQuery.of(context).size.width * 0.9,
-                                child: Icon(
-                                  Icons.image,
-                                  size: 80,
-                                ),
-                              ),
-                              errorWidget: (context, url, error) =>
-                                  new Icon(Icons.error),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 30.0),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(
-                          _userdetails.name,
-                          style: TextStyle(
-                              fontSize: 18.0, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 5.0),
-                        Text(_userdetails.email),
-                        SizedBox(height: 10.0),
-                        InkWell(
-                          onTap: () {
-                            Navigator.pushNamed(context, Routes.edit_profile);
-                          },
-                          child: Container(
-                            height: 40.0,
-                            width: 170.0,
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                  color:
-                                      Theme.of(context).textTheme.caption.color,
-                                ),
-                                borderRadius: BorderRadius.circular(10.0)),
-                            child: Center(
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  Icon(Icons.edit, size: 25),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  Text(
-                                    "Edit Profile",
-                                    style: TextStyle(fontSize: 19.0),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+    return Consumer<UserDetailsRepository>(
+      builder: (context, model, child) => SafeArea(
+        child: Scaffold(
+          appBar: AppBar(
+            leading: InkWell(
+              onTap: () {
+                context.read<UserDetailsRepository>().refreshData();
+                Navigator.of(context).pop(true);
+              },
+              child: Icon(
+                Icons.arrow_back,
               ),
-              SizedBox(height: 20.0),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(20.0),
-                    ),
-                  ),
-                  elevation: 7.0,
-                  color: Theme.of(context)
-                      .textTheme
-                      .caption
-                      .color
-                      .withOpacity(0.1),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: Column(
-                      children: [
-                        ListTile(
-                          leading: Container(
-                            height: 45,
-                            width: 45,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color:
-                                  Theme.of(context).textTheme.bodyText1.color,
-                              //Theme.of(context).accentColor,
-                            ),
-                            child: Center(
-                              child: Icon(Icons.person_pin_circle_outlined,
-                                  size: 25,
-                                  color: Theme.of(context)
-                                      .scaffoldBackgroundColor),
-                            ),
-                          ),
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                "Username",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: 'ProductSans',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                              Separator.spacer(space: 4),
-                            ],
-                          ),
-                          subtitle: Text(
-                            _userdetails.username,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontFamily: 'ProductSans',
-                              color: Theme.of(context).textTheme.caption.color,
-                            ),
-                          ),
-                          // trailing: trailing,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                          ),
-                          onTap: () {},
+            ),
+            iconTheme: Theme.of(context).iconTheme,
+            elevation: 4,
+            title: Text(
+              "Profile",
+              style: TextStyle(
+                  color: Theme.of(context).textTheme.caption.color,
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            actions: [],
+            centerTitle: true,
+          ),
+          body: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.only(top: 15, bottom: 5),
+                  child: Row(
+                    children: <Widget>[
+                      SizedBox(width: 20.0),
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              width: 3,
+                              color: Theme.of(context).textTheme.caption.color),
+                          borderRadius: BorderRadius.circular(50),
                         ),
-                        ListTile(
-                          leading: Container(
-                            height: 45,
-                            width: 45,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color:
-                                  Theme.of(context).textTheme.bodyText1.color,
-                              //Theme.of(context).accentColor,
-                            ),
-                            child: Center(
-                              child: Icon(Icons.person_outline,
-                                  size: 25,
-                                  color: Theme.of(context)
-                                      .scaffoldBackgroundColor),
-                            ),
-                          ),
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                "Name",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: 'ProductSans',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(540),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.pushNamed(context, Routes.view_profile);
+                            },
+                            child: Container(
+                              height: 90,
+                              width: 90,
+                              child: Image(
+                                image: NetworkImage(
+                                    "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
                               ),
-                              Separator.spacer(space: 4),
-                            ],
+                            ),
                           ),
-                          subtitle: Text(
+                        ),
+                      ),
+                      SizedBox(width: 30.0),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
                             _userdetails.name,
                             style: TextStyle(
-                              fontSize: 18,
-                              fontFamily: 'ProductSans',
-                              color: Theme.of(context).textTheme.caption.color,
-                            ),
+                                fontSize: 18.0, fontWeight: FontWeight.bold),
                           ),
-                          // trailing: trailing,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                          ),
-                          onTap: () {},
-                        ),
-                        ListTile(
-                          leading: Container(
-                            height: 45,
-                            width: 45,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color:
-                                  Theme.of(context).textTheme.bodyText1.color,
-                              //Theme.of(context).accentColor,
-                            ),
-                            child: Center(
-                              child: Icon(Icons.wc,
-                                  size: 25,
-                                  color: Theme.of(context)
-                                      .scaffoldBackgroundColor),
-                            ),
-                          ),
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                "Gender",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: 'ProductSans',
-                                  fontWeight: FontWeight.bold,
+                          SizedBox(height: 5.0),
+                          Text(_userdetails.email),
+                          SizedBox(height: 10.0),
+                          InkWell(
+                            onTap: () {
+                              Navigator.pushNamed(context, Routes.edit_profile);
+                            },
+                            child: Container(
+                              height: 40.0,
+                              width: 170.0,
+                              decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10.0)),
+                              child: Center(
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 10,
+                                    ),
+                                    Icon(Icons.edit, size: 25),
+                                    SizedBox(
+                                      width: 10,
+                                    ),
+                                    Text(
+                                      "Edit Profile",
+                                      style: TextStyle(fontSize: 19.0),
+                                    ),
+                                  ],
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
                               ),
-                              Separator.spacer(space: 4),
-                            ],
-                          ),
-                          subtitle: Text(
-                            _userdetails.gender,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontFamily: 'ProductSans',
-                              color: Theme.of(context).textTheme.caption.color,
                             ),
                           ),
-                          // trailing: trailing,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                          ),
-                          onTap: () {},
-                        ),
-                        ListTile(
-                          leading: Container(
-                            height: 45,
-                            width: 45,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color:
-                                  Theme.of(context).textTheme.bodyText1.color,
-                              //Theme.of(context).accentColor,
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20.0),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(20.0),
+                      ),
+                    ),
+                    elevation: 7.0,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Column(
+                        children: [
+                          ListTile(
+                            leading: Container(
+                              height: 45,
+                              width: 45,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color:
+                                    Theme.of(context).textTheme.bodyText1.color,
+                                //Theme.of(context).accentColor,
+                              ),
+                              child: Center(
+                                child: Icon(Icons.person_pin_circle_outlined,
+                                    size: 25,
+                                    color: Theme.of(context)
+                                        .scaffoldBackgroundColor),
+                              ),
                             ),
-                            child: Center(
-                              child: Icon(Icons.email,
-                                  size: 25,
-                                  color: Theme.of(context)
-                                      .scaffoldBackgroundColor),
-                            ),
-                          ),
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                "Email",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: 'ProductSans',
-                                  fontWeight: FontWeight.bold,
+                            title: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  "Username",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: 'ProductSans',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                              Separator.spacer(space: 4),
-                            ],
-                          ),
-                          subtitle: Text(
-                            _userdetails.email,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontFamily: 'ProductSans',
-                              color: Theme.of(context).textTheme.caption.color,
+                                Separator.spacer(space: 4),
+                              ],
                             ),
+                            subtitle: Text(
+                              _userdetails.username,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontFamily: 'ProductSans',
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
+                              ),
+                            ),
+                            // trailing: trailing,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            onTap: () {},
                           ),
-                          // trailing: trailing,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
+                          ListTile(
+                            leading: Container(
+                              height: 45,
+                              width: 45,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color:
+                                    Theme.of(context).textTheme.bodyText1.color,
+                                //Theme.of(context).accentColor,
+                              ),
+                              child: Center(
+                                child: Icon(Icons.person_outline,
+                                    size: 25,
+                                    color: Theme.of(context)
+                                        .scaffoldBackgroundColor),
+                              ),
+                            ),
+                            title: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  "Name",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: 'ProductSans',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                                Separator.spacer(space: 4),
+                              ],
+                            ),
+                            subtitle: Text(
+                              _userdetails.name,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontFamily: 'ProductSans',
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
+                              ),
+                            ),
+                            // trailing: trailing,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            onTap: () {},
                           ),
-                          onTap: () {},
-                        ),
+                          ListTile(
+                            leading: Container(
+                              height: 45,
+                              width: 45,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color:
+                                    Theme.of(context).textTheme.bodyText1.color,
+                                //Theme.of(context).accentColor,
+                              ),
+                              child: Center(
+                                child: Icon(Icons.wc,
+                                    size: 25,
+                                    color: Theme.of(context)
+                                        .scaffoldBackgroundColor),
+                              ),
+                            ),
+                            title: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  "Gender",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: 'ProductSans',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                                Separator.spacer(space: 4),
+                              ],
+                            ),
+                            subtitle: Text(
+                              _userdetails.gender,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontFamily: 'ProductSans',
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
+                              ),
+                            ),
+                            // trailing: trailing,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            onTap: () {},
+                          ),
+                          ListTile(
+                            leading: Container(
+                              height: 45,
+                              width: 45,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color:
+                                    Theme.of(context).textTheme.bodyText1.color,
+                                //Theme.of(context).accentColor,
+                              ),
+                              child: Center(
+                                child: Icon(Icons.email,
+                                    size: 25,
+                                    color: Theme.of(context)
+                                        .scaffoldBackgroundColor),
+                              ),
+                            ),
+                            title: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  "Email",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: 'ProductSans',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                                Separator.spacer(space: 4),
+                              ],
+                            ),
+                            subtitle: Text(
+                              _userdetails.email,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontFamily: 'ProductSans',
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
+                              ),
+                            ),
+                            // trailing: trailing,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            onTap: () {},
+                          ),
+                          /*
                         ListTile(
                           leading: Container(
                             height: 45,
@@ -408,153 +411,157 @@ class _ViewProfileState extends State<ViewProfile> {
                           ),
                           onTap: () {},
                         ),
-                        ListTile(
-                          leading: Container(
-                            height: 45,
-                            width: 45,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color:
-                                  Theme.of(context).textTheme.bodyText1.color,
-                              //Theme.of(context).accentColor,
-                            ),
-                            child: Center(
-                              child: Icon(Icons.account_balance,
-                                  size: 25,
-                                  color: Theme.of(context)
-                                      .scaffoldBackgroundColor),
-                            ),
-                          ),
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                "Your College",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: 'ProductSans',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
+                        */
+                          ListTile(
+                            leading: Container(
+                              height: 45,
+                              width: 45,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color:
+                                    Theme.of(context).textTheme.bodyText1.color,
+                                //Theme.of(context).accentColor,
                               ),
-                              Separator.spacer(space: 4),
-                            ],
-                          ),
-                          subtitle: Text(
-                            _userdetails.college_name,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontFamily: 'ProductSans',
-                              color: Theme.of(context).textTheme.caption.color,
-                            ),
-                          ),
-                          // trailing: trailing,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                          ),
-                          onTap: () {},
-                        ),
-                        ListTile(
-                          leading: Container(
-                            height: 45,
-                            width: 45,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color:
-                                  Theme.of(context).textTheme.bodyText1.color,
-                              //Theme.of(context).accentColor,
-                            ),
-                            child: Center(
-                              child: Icon(Icons.accessibility,
-                                  size: 25,
-                                  color: Theme.of(context)
-                                      .scaffoldBackgroundColor),
-                            ),
-                          ),
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                "Bio",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: 'ProductSans',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
+                              child: Center(
+                                child: Icon(Icons.account_balance,
+                                    size: 25,
+                                    color: Theme.of(context)
+                                        .scaffoldBackgroundColor),
                               ),
-                              Separator.spacer(space: 4),
-                            ],
-                          ),
-                          subtitle: Text(
-                            _userdetails.bio,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontFamily: 'ProductSans',
-                              color: Theme.of(context).textTheme.caption.color,
                             ),
-                          ),
-                          // trailing: trailing,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                          ),
-                          onTap: () {},
-                        ),
-                        ListTile(
-                          leading: Container(
-                            height: 45,
-                            width: 45,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color:
-                                  Theme.of(context).textTheme.bodyText1.color,
-                              //Theme.of(context).accentColor,
-                            ),
-                            child: Center(
-                              child: Icon(Icons.work,
-                                  size: 25,
-                                  color: Theme.of(context)
-                                      .scaffoldBackgroundColor),
-                            ),
-                          ),
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                "Designation",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: 'ProductSans',
-                                  fontWeight: FontWeight.bold,
+                            title: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  "Your College",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: 'ProductSans',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                              Separator.spacer(space: 4),
-                            ],
-                          ),
-                          subtitle: Text(
-                            _userdetails.designation,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontFamily: 'ProductSans',
-                              color: Theme.of(context).textTheme.caption.color,
+                                Separator.spacer(space: 4),
+                              ],
                             ),
+                            subtitle: Text(
+                              _userdetails.college_name,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontFamily: 'ProductSans',
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
+                              ),
+                            ),
+                            // trailing: trailing,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            onTap: () {},
                           ),
-                          // trailing: trailing,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
+                          ListTile(
+                            leading: Container(
+                              height: 45,
+                              width: 45,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color:
+                                    Theme.of(context).textTheme.bodyText1.color,
+                                //Theme.of(context).accentColor,
+                              ),
+                              child: Center(
+                                child: Icon(Icons.accessibility,
+                                    size: 25,
+                                    color: Theme.of(context)
+                                        .scaffoldBackgroundColor),
+                              ),
+                            ),
+                            title: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  "Bio",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: 'ProductSans',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                                Separator.spacer(space: 4),
+                              ],
+                            ),
+                            subtitle: Text(
+                              _userdetails.bio,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontFamily: 'ProductSans',
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
+                              ),
+                            ),
+                            // trailing: trailing,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            onTap: () {},
                           ),
-                          onTap: () {},
-                        ),
-                      ],
+                          ListTile(
+                            leading: Container(
+                              height: 45,
+                              width: 45,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color:
+                                    Theme.of(context).textTheme.bodyText1.color,
+                                //Theme.of(context).accentColor,
+                              ),
+                              child: Center(
+                                child: Icon(Icons.work,
+                                    size: 25,
+                                    color: Theme.of(context)
+                                        .scaffoldBackgroundColor),
+                              ),
+                            ),
+                            title: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  "Designation",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: 'ProductSans',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                                Separator.spacer(space: 4),
+                              ],
+                            ),
+                            subtitle: Text(
+                              _userdetails.designation,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontFamily: 'ProductSans',
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
+                              ),
+                            ),
+                            // trailing: trailing,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            onTap: () {},
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              /*
+                /*
               SizedBox(height: 20.0),
               _buildTitle("Skills"),
               SizedBox(height: 10.0),
@@ -612,8 +619,9 @@ class _ViewProfileState extends State<ViewProfile> {
               ),
               _buildSocialsRow(),
               */
-              SizedBox(height: 20.0),
-            ],
+                SizedBox(height: 20.0),
+              ],
+            ),
           ),
         ),
       ),

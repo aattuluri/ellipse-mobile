@@ -39,7 +39,7 @@ class MyEvents extends StatefulWidget {
 }
 
 class _MyEventsState extends State<MyEvents> {
-  String token = "", id = "", email = "", college = "";
+  String token = "", id = "", email = "", college_id = "";
 
   getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -48,7 +48,7 @@ class _MyEventsState extends State<MyEvents> {
       token = preferences.getString("token");
       id = preferences.getString("id");
       email = preferences.getString("email");
-      college = preferences.getString("college");
+      college_id = preferences.getString("college_id");
     });
   }
 
@@ -60,8 +60,8 @@ class _MyEventsState extends State<MyEvents> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<EventsRepository>(
-      builder: (context, model, child) => SafeArea(
+    return Consumer<EventsRepository>(builder: (context, model, child) {
+      return SafeArea(
         child: Scaffold(
           appBar: AppBar(
             iconTheme: Theme.of(context).iconTheme,
@@ -87,39 +87,21 @@ class _MyEventsState extends State<MyEvents> {
           ),
           body: model.isLoading || model.loadingFailed
               ? _loadingIndicator
-              :
-              /* GridView.builder(
-                  shrinkWrap: true,
-                  scrollDirection: Axis.vertical,
-                  itemCount: model.allEvents?.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 1),
-                  itemBuilder: (BuildContext context, int index) {
-                    final Events event = model.allEvents[index];
-                    final sdate = DateTime.parse(event.start_time);
-                    print(sdate);
-                    return event.user_id.toString().trim() ==
-                            id.toString().trim()
-                        ? EventTile2(event.name, event.imageUrl, index)
-                        : Container();
-                  }),*/
-
-              ListView.builder(
+              : ListView(
+                  physics: ClampingScrollPhysics(),
                   padding: EdgeInsets.symmetric(horizontal: 15.0),
                   scrollDirection: Axis.vertical,
-                  itemCount: model.allEvents?.length,
-                  //shrinkWrap: true,
-                  itemBuilder: (BuildContext context, int index) {
-                    final Events event = model.allEvents[index];
-                    final sdate = DateTime.parse(event.start_time);
-                    print(sdate);
-                    return event.user_id.toString().trim() ==
-                            id.toString().trim()
-                        ? EventTile1(index, "myevents_info_page")
-                        : Container();
-                  }),
+                  shrinkWrap: true,
+                  children: <Widget>[
+                    for (var i = 0; i < model.allEvents.length; i++)
+                      if (model.allEvents[i].user_id.toString().trim() ==
+                          id.toString().trim()) ...[
+                        EventTile1(true, i, "myevents_info_page")
+                      ],
+                  ],
+                ),
         ),
-      ),
-    );
+      );
+    });
   }
 }

@@ -31,12 +31,12 @@ Future<void> _onRefresh(BuildContext context, BaseRepository repository) {
   return completer.future;
 }
 
-class CalendarView extends StatefulWidget {
+class CalendarTab extends StatefulWidget {
   @override
-  _CalendarViewState createState() => _CalendarViewState();
+  _CalendarTabState createState() => _CalendarTabState();
 }
 
-class _CalendarViewState extends State<CalendarView> {
+class _CalendarTabState extends State<CalendarTab> {
   List<DateTime> daysList = <DateTime>[];
   List<DateTime> monthsList = <DateTime>[];
   List<int> timeList = <int>[];
@@ -97,6 +97,7 @@ class _CalendarViewState extends State<CalendarView> {
         child: SafeArea(
           child: Scaffold(
             appBar: AppBar(
+              automaticallyImplyLeading: false,
               iconTheme: Theme.of(context).iconTheme,
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               elevation: 4,
@@ -115,12 +116,20 @@ class _CalendarViewState extends State<CalendarView> {
                 ),
               ),
               */
-              title: Text(
-                "Calendar View",
-                style: TextStyle(
-                    color: Theme.of(context).textTheme.caption.color,
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold),
+              title: Padding(
+                padding: const EdgeInsets.only(left: 5),
+                child: new Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Calendar',
+                      style: TextStyle(
+                          color: Theme.of(context).textTheme.caption.color,
+                          fontSize: 23.0),
+                    ),
+                  ],
+                ),
               ),
               actions: [
                 IconButton(
@@ -163,9 +172,9 @@ class _CalendarViewState extends State<CalendarView> {
             body: _selectedview == "Day"
                 ? Padding(
                     padding: const EdgeInsets.fromLTRB(
-                      20,
+                      10,
                       3,
-                      20,
+                      10,
                       0,
                     ),
                     child: Column(
@@ -333,31 +342,14 @@ class _CalendarViewState extends State<CalendarView> {
                             color: Colors.grey.withOpacity(0.8),
                           ),
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Events on ",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 17,
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .caption
-                                      .color),
-                            ),
-                            Text(
+                        Text(
+                          "Events on " +
                               DateFormat('EEE-MMMM dd, yyyy')
                                   .format(selectedday),
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 17,
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .caption
-                                      .color),
-                            ),
-                          ],
+                          style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 17,
+                              color: Theme.of(context).textTheme.caption.color),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(
@@ -370,39 +362,40 @@ class _CalendarViewState extends State<CalendarView> {
                           ),
                         ),
                         Expanded(
-                            flex: 1,
-                            child: model.isLoading || model.loadingFailed
-                                ? _loadingIndicator
-                                : ListView.builder(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 0.0),
-                                    scrollDirection: Axis.vertical,
-                                    itemCount: model.allEvents?.length,
-                                    shrinkWrap: true,
-                                    itemBuilder:
-                                        (BuildContext context, int index) {
-                                      final Events event =
-                                          model.allEvents[index];
-                                      final sdate =
-                                          DateTime.parse(event.start_time);
-                                      print(sdate);
-                                      return sdate.isAfter(DateTime.now()) &&
-                                              sdate.day == selectedday.day &&
-                                              sdate.month ==
-                                                  selectedday.month &&
-                                              sdate.year == selectedday.year
-                                          ? EventTile1(index, "info_page")
-                                          : Container();
-                                    })),
+                          flex: 1,
+                          child: model.isLoading || model.loadingFailed
+                              ? _loadingIndicator
+                              : ListView(
+                                  physics: ClampingScrollPhysics(),
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 15.0),
+                                  scrollDirection: Axis.vertical,
+                                  shrinkWrap: true,
+                                  children: <Widget>[
+                                    for (var i = 0;
+                                        i < model.allEvents?.length;
+                                        i++)
+                                      if (model.allEvents[i].start_time
+                                              .isAfter(DateTime.now()) &&
+                                          model.allEvents[i].start_time.day ==
+                                              selectedday.day &&
+                                          model.allEvents[i].start_time.month ==
+                                              selectedday.month &&
+                                          model.allEvents[i].start_time.year ==
+                                              selectedday.year)
+                                        EventTile1(true, i, "info_page")
+                                  ],
+                                ),
+                        ),
                       ],
                     ),
                   )
                 : _selectedview == "Month"
                     ? Padding(
                         padding: const EdgeInsets.fromLTRB(
-                          20,
+                          10,
                           3,
-                          20,
+                          10,
                           0,
                         ),
                         child: Column(
@@ -553,30 +546,16 @@ class _CalendarViewState extends State<CalendarView> {
                                 color: Colors.grey.withOpacity(0.8),
                               ),
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "Events in ",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 17,
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .caption
-                                          .color),
-                                ),
-                                Text(
+                            Text(
+                              "Events in " +
                                   DateFormat('MMMM,yyyy').format(selectedmonth),
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 17,
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .caption
-                                          .color),
-                                ),
-                              ],
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 17,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .caption
+                                      .color),
                             ),
                             Padding(
                               padding: const EdgeInsets.only(
@@ -589,38 +568,39 @@ class _CalendarViewState extends State<CalendarView> {
                               ),
                             ),
                             Expanded(
-                                flex: 1,
-                                child: model.isLoading || model.loadingFailed
-                                    ? _loadingIndicator
-                                    : ListView.builder(
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 0.0),
-                                        scrollDirection: Axis.vertical,
-                                        itemCount: model.allEvents?.length,
-                                        shrinkWrap: true,
-                                        itemBuilder:
-                                            (BuildContext context, int index) {
-                                          final Events event =
-                                              model.allEvents[index];
-                                          final sdate =
-                                              DateTime.parse(event.start_time);
-                                          return sdate.isAfter(
-                                                      DateTime.now()) &&
-                                                  sdate.month ==
-                                                      selectedmonth.month &&
-                                                  sdate.year ==
-                                                      selectedmonth.year
-                                              ? EventTile1(index, "info_page")
-                                              : Container();
-                                        })),
+                              flex: 1,
+                              child: model.isLoading || model.loadingFailed
+                                  ? _loadingIndicator
+                                  : ListView(
+                                      physics: ClampingScrollPhysics(),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 15.0),
+                                      scrollDirection: Axis.vertical,
+                                      shrinkWrap: true,
+                                      children: <Widget>[
+                                        for (var i = 0;
+                                            i < model.allEvents?.length;
+                                            i++)
+                                          if (model.allEvents[i].start_time
+                                                  .isAfter(DateTime.now()) &&
+                                              model.allEvents[i].start_time
+                                                      .month ==
+                                                  selectedmonth.month &&
+                                              model.allEvents[i].start_time
+                                                      .year ==
+                                                  selectedmonth.year)
+                                            EventTile1(true, i, "info_page")
+                                      ],
+                                    ),
+                            ),
                           ],
                         ),
                       )
                     : Padding(
                         padding: const EdgeInsets.fromLTRB(
-                          20,
+                          10,
                           3,
-                          20,
+                          10,
                           0,
                         ),
                         child: Column(
@@ -727,30 +707,16 @@ class _CalendarViewState extends State<CalendarView> {
                                 color: Colors.grey.withOpacity(0.8),
                               ),
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "Events in ",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 17,
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .caption
-                                          .color),
-                                ),
-                                Text(
+                            Text(
+                              "Events in " +
                                   DateFormat('yyyy').format(currentYear),
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 17,
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .caption
-                                          .color),
-                                ),
-                              ],
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 17,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .caption
+                                      .color),
                             ),
                             Padding(
                               padding: const EdgeInsets.only(
@@ -763,28 +729,28 @@ class _CalendarViewState extends State<CalendarView> {
                               ),
                             ),
                             Expanded(
-                                flex: 1,
-                                child: model.isLoading || model.loadingFailed
-                                    ? _loadingIndicator
-                                    : ListView.builder(
-                                        physics: ClampingScrollPhysics(),
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 0.0),
-                                        scrollDirection: Axis.vertical,
-                                        itemCount: model.allEvents?.length,
-                                        shrinkWrap: true,
-                                        itemBuilder:
-                                            (BuildContext context, int index) {
-                                          final Events event =
-                                              model.allEvents[index];
-                                          final sdate =
-                                              DateTime.parse(event.start_time);
-                                          return sdate.isAfter(
-                                                      DateTime.now()) &&
-                                                  sdate.year == currentYear.year
-                                              ? EventTile1(index, "info_page")
-                                              : Container();
-                                        })),
+                              flex: 1,
+                              child: model.isLoading || model.loadingFailed
+                                  ? _loadingIndicator
+                                  : ListView(
+                                      physics: ClampingScrollPhysics(),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 15.0),
+                                      scrollDirection: Axis.vertical,
+                                      shrinkWrap: true,
+                                      children: <Widget>[
+                                        for (var i = 0;
+                                            i < model.allEvents?.length;
+                                            i++)
+                                          if (model.allEvents[i].start_time
+                                                  .isAfter(DateTime.now()) &&
+                                              model.allEvents[i].start_time
+                                                      .year ==
+                                                  currentYear.year)
+                                            EventTile1(true, i, "info_page")
+                                      ],
+                                    ),
+                            ),
                           ],
                         ),
                       ),
@@ -793,78 +759,4 @@ class _CalendarViewState extends State<CalendarView> {
       ),
     );
   }
-
-  Widget _dashedText() {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 15),
-      child: Text(
-        '------------------------------------------',
-        maxLines: 1,
-        style: TextStyle(
-            fontSize: 20.0,
-            color: Theme.of(context).textTheme.caption.color,
-            letterSpacing: 5),
-      ),
-    );
-  }
-}
-
-class TaskContainer extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final Color boxColor;
-
-  TaskContainer({
-    this.title,
-    this.subtitle,
-    this.boxColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 15.0),
-      padding: EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 16.0,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 10.0),
-            child: Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 14.0,
-                color: Colors.black54,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          )
-        ],
-      ),
-      decoration: BoxDecoration(
-          color: boxColor, borderRadius: BorderRadius.circular(30.0)),
-    );
-  }
-}
-
-class LightColors {
-  static const Color kLightYellow = Color(0xFFFFF9EC);
-  static const Color kLightYellow2 = Color(0xFFFFE4C7);
-  static const Color kDarkYellow = Color(0xFFF9BE7C);
-  static const Color kPalePink = Color(0xFFFED4D6);
-
-  static const Color kRed = Color(0xFFE46472);
-  static const Color kLavender = Color(0xFFD5E4FE);
-  static const Color kBlue = Color(0xFF6488E4);
-  static const Color kLightGreen = Color(0xFFD9E6DC);
-  static const Color kGreen = Color(0xFF309397);
-
-  static const Color kDarkBlue = Color(0xFF0D253F);
 }

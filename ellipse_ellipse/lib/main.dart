@@ -12,7 +12,7 @@ import 'repositories/index.dart';
 
 void main() async {
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-    statusBarColor: Color(0xFF000000),
+    statusBarColor: Colors.transparent,
   ));
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
@@ -30,6 +30,7 @@ class App extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => NotificationsProvider()),
         ChangeNotifierProvider(create: (_) => EventsRepository()),
         ChangeNotifierProvider(create: (_) => UserDetailsRepository()),
+        ChangeNotifierProvider(create: (_) => NotificationsRepository()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, theme, child) => MaterialApp(

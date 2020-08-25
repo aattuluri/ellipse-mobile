@@ -1,6 +1,7 @@
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:row_collection/row_collection.dart';
 import '../widgets/index.dart';
@@ -21,7 +22,9 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../util/index.dart';
 
+/*
 class DynamicWidgetItem extends StatefulWidget {
   final String title, field;
   final List<dynamic> options;
@@ -31,263 +34,306 @@ class DynamicWidgetItem extends StatefulWidget {
 }
 
 class DynamicWidgetItemState extends State<DynamicWidgetItem> {
-  TextEditingController controller = new TextEditingController();
-  String _selected_option;
-  @override
-  void initState() {
-    print("${widget.title}");
-    print("${widget.field}");
-    print(widget.options);
-    super.initState();
-  }
+  */
+class DynamicWidgetItem extends StatelessWidget {
+  final String title, field;
+  final List<dynamic> options;
 
+  DynamicWidgetItem(this.title, this.field, this.options);
+
+  TextEditingController controller = new TextEditingController();
+  dynamic filled;
+  List<String> filled_list = [];
+  List<String> filled_list_local = [];
+  String _selected_option;
+  String data;
   @override
   Widget build(BuildContext context) {
-    switch (widget.field) {
-      case "short_answer":
-        return Column(
-          children: [
-            Container(
-              margin: new EdgeInsets.symmetric(vertical: 8),
-              child: new TextField(
-                autofocus: false,
-                enableInteractiveSelection: true,
-                controller: controller,
-                maxLines: 1,
-                decoration: new InputDecoration(
-                    border: OutlineInputBorder(), hintText: widget.title),
-              ),
-            ),
-          ],
+    switch (field) {
+      case "short_text":
+        return Container(
+          margin: new EdgeInsets.symmetric(vertical: 8),
+          child: new TextField(
+            onChanged: (value) {
+              filled = value;
+            },
+            controller: controller,
+            autofocus: false,
+            enableInteractiveSelection: true,
+            maxLines: 1,
+            decoration: new InputDecoration(
+                border: OutlineInputBorder(), hintText: title),
+          ),
         );
         break;
       case "paragraph":
-        return Column(
-          children: [
-            Container(
-              margin: new EdgeInsets.symmetric(vertical: 8),
-              child: new TextField(
-                autofocus: false,
-                enableInteractiveSelection: true,
-                controller: controller,
-                maxLines: 5,
-                decoration: new InputDecoration(
-                    border: OutlineInputBorder(), hintText: widget.title),
-              ),
-            ),
-          ],
+        return Container(
+          margin: new EdgeInsets.symmetric(vertical: 8),
+          child: new TextField(
+            autofocus: false,
+            enableInteractiveSelection: true,
+            onChanged: (value) {
+              filled = value;
+            },
+            controller: controller,
+            maxLines: 5,
+            decoration: new InputDecoration(
+                border: OutlineInputBorder(), hintText: title),
+          ),
         );
         break;
       case "dropdown":
-        return Column(
-          children: [
-            Container(
-              margin: new EdgeInsets.symmetric(vertical: 8),
-              child: new FormField(
-                builder: (FormFieldState state) {
-                  return InputDecorator(
-                    decoration: InputDecoration(
-                        border: OutlineInputBorder(), labelText: "Event Type"),
-                    child: new DropdownButtonHideUnderline(
-                      child: Expanded(
-                        child: new DropdownButton(
-                          hint: Text("${widget.title}"),
-                          isExpanded: true,
-                          value: _selected_option,
-                          isDense: true,
-                          items: widget.options
-                              .map((value) => DropdownMenuItem(
-                                    child: Text(value),
-                                    value: value,
-                                  ))
-                              .toList(),
-                          onChanged: (newValue) {
-                            setState(() {
-                              _selected_option = newValue;
-                              state.didChange(newValue);
-                            });
-                          },
-                        ),
-                      ),
+        return Container(
+          margin: new EdgeInsets.symmetric(vertical: 8),
+          child: new FormField(
+            builder: (FormFieldState state) {
+              return InputDecorator(
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(), labelText: "Event Type"),
+                child: new DropdownButtonHideUnderline(
+                  child: Expanded(
+                    child: new DropdownButton(
+                      hint: Text("${title}"),
+                      isExpanded: true,
+                      value: _selected_option,
+                      isDense: true,
+                      items: options
+                          .map((value) => DropdownMenuItem(
+                                child: Text(value),
+                                value: value,
+                              ))
+                          .toList(),
+                      onChanged: (newValue) {
+                        filled = newValue;
+                        _selected_option = newValue;
+                        state.didChange(newValue);
+                      },
                     ),
-                  );
-                },
-              ),
-            ),
-          ],
+                  ),
+                ),
+              );
+            },
+          ),
         );
         break;
       case "checkboxes":
-        return Column(
-          children: [
-            Container(
-              margin: new EdgeInsets.symmetric(vertical: 8),
-              child: Column(
-                children: [
-                  Text(
-                    widget.title,
-                    textAlign: TextAlign.left,
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.normal),
-                  ),
-                  ListView.builder(
-                    itemCount: widget.options.length,
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      return Container(
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+          return Container(
+            margin: new EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              children: [
+                Text(
+                  title,
+                  textAlign: TextAlign.left,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.normal),
+                ),
+                ListView.builder(
+                  itemCount: options.length,
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    String clicked = options[index].toString();
+                    return InkWell(
+                      onTap: () {
+                        if (filled_list_local.contains("$clicked")) {
+                          filled_list.remove("$clicked");
+                          setState(() => filled_list_local.remove("$clicked"));
+                        } else {
+                          filled_list.add("$clicked");
+                          setState(() => filled_list_local.add("$clicked"));
+                        }
+                        filled = filled_list;
+                        print(filled_list);
+                      },
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.4,
                         padding: EdgeInsets.only(top: 10, bottom: 10),
                         child: Row(
                           children: [
                             SizedBox(
                               width: 10,
                             ),
-                            Icon(
-                              Icons.check_box_outline_blank,
-                              // Icons
-                              //.check_box_outline_blank,
-                              color: Theme.of(context).textTheme.caption.color,
-                              //: Colors.grey
-                              //.withOpacity(0.6),
-                            ),
+                            filled_list_local.contains("$clicked")
+                                ? Icon(
+                                    Icons.check_box,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                  )
+                                : Icon(
+                                    Icons.check_box_outline_blank,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                  ),
                             SizedBox(
                               width: 10,
                             ),
                             Text(
-                              widget.options[index],
+                              options[index],
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.normal),
                             ),
                           ],
                         ),
-                      );
-                    },
-                  )
-                ],
-              ),
+                      ),
+                    );
+                  },
+                )
+              ],
             ),
-          ],
-        );
+          );
+        });
         break;
       case "radiobuttons":
-        return Column(
-          children: [
-            Container(
-              margin: new EdgeInsets.symmetric(vertical: 8),
-              child: Column(
-                children: [
-                  Text(
-                    widget.title,
-                    textAlign: TextAlign.left,
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.normal),
-                  ),
-                  ListView.builder(
-                    itemCount: widget.options.length,
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      return Container(
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+          return Container(
+            margin: new EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              children: [
+                Text(
+                  title,
+                  textAlign: TextAlign.left,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.normal),
+                ),
+                ListView.builder(
+                  itemCount: options.length,
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    String clicked = options[index].toString();
+                    return InkWell(
+                      onTap: () {
+                        if (filled_list_local.contains("$clicked")) {
+                          filled_list.remove("$clicked");
+                          setState(() => filled_list_local.remove("$clicked"));
+                        } else {
+                          if (filled_list_local.length == 1 ||
+                              filled_list.length == 1) {
+                            filled_list.clear();
+                            setState(() => filled_list_local.clear());
+                            filled_list.add("$clicked");
+                            setState(() => filled_list_local.add("$clicked"));
+                          } else {
+                            filled_list.add("$clicked");
+                            setState(() => filled_list_local.add("$clicked"));
+                          }
+                        }
+                        filled = filled_list;
+                        print(filled_list);
+                      },
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.5,
                         padding: EdgeInsets.only(top: 10, bottom: 10),
                         child: Row(
                           children: [
                             SizedBox(
                               width: 10,
                             ),
-                            Icon(
-                              Icons.radio_button_off,
-                              // Icons
-                              //.check_box_outline_blank,
-                              color: Theme.of(context).textTheme.caption.color,
-                              //: Colors.grey
-                              //.withOpacity(0.6),
-                            ),
+                            filled_list_local.contains("$clicked")
+                                ? Icon(
+                                    Icons.radio_button_checked,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                  )
+                                : Icon(
+                                    Icons.radio_button_off,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                  ),
                             SizedBox(
                               width: 10,
                             ),
                             Text(
-                              widget.options[index],
+                              options[index],
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.normal),
                             ),
                           ],
                         ),
-                      );
-                    },
-                  )
-                ],
-              ),
+                      ),
+                    );
+                  },
+                )
+              ],
             ),
-          ],
-        );
+          );
+        });
         break;
       case "date":
-        return Column(
-          children: [
-            Container(
-              margin: new EdgeInsets.symmetric(vertical: 8),
-              child: new DateTimeField(
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.caption.color,
-                ),
-                cursorColor: Theme.of(context).textTheme.caption.color,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: widget.title,
-                  hintStyle: TextStyle(
-                    color: Theme.of(context).textTheme.caption.color,
-                    fontSize: 18.0,
-                  ),
-                ),
-                format: DateFormat("yyyy-MM-dd HH:mm"),
-                onShowPicker: (context, currentValue) async {
-                  final date = await showDatePicker(
-                      context: context,
-                      firstDate: DateTime.now(),
-                      initialDate: currentValue ?? DateTime.now(),
-                      lastDate: DateTime(2100));
-                  if (date != null) {
-                    final time = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.fromDateTime(
-                          currentValue ?? DateTime.now()),
-                    );
-                    return DateTimeField.combine(date, time);
-                  } else {
-                    return currentValue;
-                  }
-                },
+        return Container(
+          margin: new EdgeInsets.symmetric(vertical: 8),
+          child: new DateTimeField(
+            onChanged: (value) {
+              filled = value.toString();
+            },
+            controller: controller,
+            style: TextStyle(
+              color: Theme.of(context).textTheme.caption.color,
+            ),
+            cursorColor: Theme.of(context).textTheme.caption.color,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: title,
+              hintStyle: TextStyle(
+                color: Theme.of(context).textTheme.caption.color,
+                fontSize: 18.0,
               ),
             ),
-          ],
+            format: DateFormat("yyyy-MM-dd HH:mm"),
+            onShowPicker: (context, currentValue) async {
+              final date = await showDatePicker(
+                  context: context,
+                  firstDate: DateTime.now(),
+                  initialDate: currentValue ?? DateTime.now(),
+                  lastDate: DateTime(2100));
+              if (date != null) {
+                final time = await showTimePicker(
+                  context: context,
+                  initialTime:
+                      TimeOfDay.fromDateTime(currentValue ?? DateTime.now()),
+                );
+                return DateTimeField.combine(date, time);
+              } else {
+                return currentValue;
+              }
+            },
+          ),
         );
         break;
       case "link":
-        return Column(
-          children: [
-            Container(
-              margin: new EdgeInsets.symmetric(vertical: 8),
-              child: new TextField(
-                autofocus: false,
-                enableInteractiveSelection: true,
-                controller: controller,
-                maxLines: 2,
-                decoration: new InputDecoration(
-                    suffixIcon: Padding(
-                      padding: const EdgeInsets.only(right: 5),
-                      child: InkWell(
-                        onTap: () {},
-                        child: Icon(
-                          Icons.paste,
-                          size: 25,
-                        ),
-                      ),
+        return Container(
+          margin: new EdgeInsets.symmetric(vertical: 8),
+          child: new TextField(
+            onChanged: (value) {
+              filled = value;
+            },
+            autofocus: false,
+            enableInteractiveSelection: true,
+            controller: controller,
+            maxLines: 2,
+            decoration: new InputDecoration(
+                suffixIcon: Padding(
+                  padding: const EdgeInsets.only(right: 5),
+                  child: InkWell(
+                    onTap: () {},
+                    child: Icon(
+                      Icons.paste,
+                      size: 25,
                     ),
-                    border: OutlineInputBorder(),
-                    hintText: widget.title),
-              ),
-            ),
-          ],
+                  ),
+                ),
+                border: OutlineInputBorder(),
+                hintText: title),
+          ),
         );
         break;
     }
@@ -295,20 +341,55 @@ class DynamicWidgetItemState extends State<DynamicWidgetItem> {
 }
 
 class RegistrationForm extends StatefulWidget {
+  final int index;
   final List data;
-  RegistrationForm(this.data);
+  RegistrationForm(this.index, this.data);
   @override
   _RegistrationFormState createState() => _RegistrationFormState();
 }
 
 class _RegistrationFormState extends State<RegistrationForm>
     with TickerProviderStateMixin {
+  String token = "", id = "", email = "", college_id = "";
+  // List<dynamic> filled_data = [];
   List<Field> form_data = [];
   String title = "", field = "", option = "";
   ScrollController scrollController;
   List<DynamicWidgetItem> listDynamic = [];
+  Map<String, dynamic> data = {};
+
+  register(UserDetails userdetails, Events event) async {
+    data["Name"] = userdetails.name.toString();
+    data["Userame"] = userdetails.username.toString();
+    data["Email"] = userdetails.email.toString();
+    data["College"] = userdetails.college_name.toString();
+    listDynamic.forEach((widget) {
+      print("");
+      print(widget.title);
+      print(widget.filled);
+      data[widget.title.toString()] = widget.filled;
+    });
+    print(data);
+
+    http.Response response = await http.post(
+      '${Url.URL}/api/event/register?id=${event.id}',
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'
+      },
+      body: jsonEncode(<String, Object>{'data': data}),
+    );
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+    if (response.statusCode == 200) {
+      Navigator.pushNamed(context, Routes.info_page,
+          arguments: {'index': widget.index});
+    }
+  }
+
   @override
   void initState() {
+    getPref();
     for (final item in widget.data) {
       this.setState(() => form_data.add(
             Field(
@@ -328,6 +409,16 @@ class _RegistrationFormState extends State<RegistrationForm>
     super.initState();
   }
 
+  getPref() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    setState(() {
+      token = preferences.getString("token");
+      id = preferences.getString("id");
+      email = preferences.getString("email");
+      college_id = preferences.getString("college_id");
+    });
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -335,19 +426,12 @@ class _RegistrationFormState extends State<RegistrationForm>
 
   @override
   Widget build(BuildContext context) {
+    final Events _event =
+        context.watch<EventsRepository>().getEventIndex(widget.index);
+    final UserDetails _userdetails =
+        context.watch<UserDetailsRepository>().getUserDetails(0);
     return SafeArea(
       child: Scaffold(
-        /* appBar: AppBar(
-          // automaticallyImplyLeading: false,
-          title: Text(
-            "Event Registration",
-            style: TextStyle(fontSize: 19.0),
-          ),
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          actions: [],
-          centerTitle: true,
-        ),
-        */
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -362,6 +446,7 @@ class _RegistrationFormState extends State<RegistrationForm>
                         width: double.infinity,
                         child: ListView.builder(
                           physics: NeverScrollableScrollPhysics(),
+                          //physics: ClampingScrollPhysics(),
                           itemCount: listDynamic.length,
                           itemBuilder: (context, index) {
                             return Column(
@@ -374,7 +459,7 @@ class _RegistrationFormState extends State<RegistrationForm>
                             );
                           },
                           shrinkWrap: true,
-                          // scrollDirection: Axis.vertical,
+                          scrollDirection: Axis.vertical,
                         ),
                       ),
                       Center(
@@ -398,7 +483,9 @@ class _RegistrationFormState extends State<RegistrationForm>
                                     fontSize: 22.0,
                                     fontWeight: FontWeight.bold),
                               ),
-                              onPressed: () async {}),
+                              onPressed: () async {
+                                register(_userdetails, _event);
+                              }),
                         ),
                       )
                     ],

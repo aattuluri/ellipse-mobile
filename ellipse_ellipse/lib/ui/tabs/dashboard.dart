@@ -159,7 +159,20 @@ class _DashboardTabState extends State<DashboardTab> {
                               Separator.divider(indent: 72),
                               ListCell.icon(
                                 icon: Icons.event_note,
-                                title: 'Registered Events',
+                                title: 'Particles',
+                                subtitle: 'Particles',
+                                trailing: Icon(Icons.chevron_right),
+                                onTap: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => ParticleApp()));
+                                },
+                              ),
+                              Separator.divider(indent: 72),
+                              ListCell.icon(
+                                icon: Icons.event_note,
+                                title: 'RegisteredEvents',
                                 subtitle: '5 Events',
                                 trailing: Icon(Icons.chevron_right),
                                 onTap: () {},
@@ -193,20 +206,20 @@ class _DashboardTabState extends State<DashboardTab> {
                     onTap: () =>
                         Navigator.pushNamed(context, Routes.post_event),
                     child: EventGridTile(
-                        Icons.add_a_photo, "Post Event", "Post your events"),
+                        Icons.add_a_photo, "Post\nEvent", "Post your events"),
                   ),
                   InkWell(
                     onTap: () => Navigator.pushNamed(context, Routes.my_events),
                     child: EventGridTile(
-                        Icons.event_available, 'My Events', '10 Events'),
+                        Icons.event_available, 'My\nEvents', '10 Events'),
                   ),
                   EventGridTile(
-                      Icons.event_note, 'Registered Events', '5 Events'),
+                      Icons.event_note, 'Registered\nEvents', '5 Events'),
                   EventGridTile(Icons.favorite, 'Favourites', '10 Favourites'),
                   EventGridTile(
                       Icons.announcement, 'Announcements', '5 Announcements'),
-                  EventGridTile(Icons.message, 'My Chats', '10 Chats'),
-                  EventGridTile(Icons.timer, 'Past Events', '50 Events'),
+                  EventGridTile(Icons.message, 'My\nChats', '10 Chats'),
+                  EventGridTile(Icons.timer, 'Past\nEvents', '50 Events'),
                 ],
               ),
             ],

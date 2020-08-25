@@ -6,17 +6,16 @@ import 'package:row_collection/row_collection.dart';
 import '../../util/index.dart';
 import 'index.dart';
 
-/// Widget used in SpaceX's achievement list, under the 'Home Screen'.
-class AchievementCell extends StatelessWidget {
-  final String title, subtitle, body, time;
-  final int index;
-
-  const AchievementCell({
+class NotificationItem extends StatelessWidget {
+  final String title, description, time;
+  final int num;
+  final Function onTap;
+  const NotificationItem({
     @required this.title,
-    @required this.subtitle,
-    @required this.body,
+    @required this.description,
     @required this.time,
-    @required this.index,
+    @required this.num,
+    @required this.onTap,
   });
 
   @override
@@ -24,7 +23,7 @@ class AchievementCell extends StatelessWidget {
     return Column(
       children: [
         InkWell(
-          onTap: () {},
+          onTap: onTap,
           child: Padding(
             padding: EdgeInsets.symmetric(
               vertical: 12,
@@ -56,10 +55,16 @@ class AchievementCell extends StatelessWidget {
                             //Theme.of(context).accentColor,
                           ),
                           child: Center(
-                            child: Icon(Icons.notifications,
-                                size: 23,
+                            child: Text(
+                              "#" + num.toString(),
+                              style: TextStyle(
                                 color:
-                                    Theme.of(context).scaffoldBackgroundColor),
+                                    Theme.of(context).scaffoldBackgroundColor,
+                                fontSize: 16,
+                                fontFamily: 'ProductSans',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
                         Separator.spacer(),
@@ -77,7 +82,7 @@ class AchievementCell extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                subtitle,
+                                description,
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontFamily: 'ProductSans',

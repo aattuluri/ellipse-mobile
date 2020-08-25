@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/index.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
@@ -19,42 +21,59 @@ import '../pages/index.dart';
 import '../widgets/index.dart';
 import '../../util/index.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import '../screens/index.dart';
 
-class EventTypeModel {
-  IconData icon;
-  String eventType;
-}
+class ItemCard extends StatelessWidget {
+  final String text;
+  final IconData icon;
 
-class EventTile extends StatelessWidget {
-  IconData icon;
-  String eventType;
-  EventTile({this.icon, this.eventType});
+  const ItemCard({Key key, @required this.text, @required this.icon})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.center,
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      margin: EdgeInsets.only(right: 16),
-      decoration: BoxDecoration(
-          color: Theme.of(context).textTheme.caption.color.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Icon(
-            icon,
-            size: 40,
-          ),
-          SizedBox(
-            height: 8,
-          ),
-          Text(
-            eventType,
-            style:
-                TextStyle(color: Theme.of(context).textTheme.bodyText1.color),
-          )
-        ],
+    return Material(
+      color: Theme.of(context).cardColor,
+      //margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      elevation: 5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(
+          left: 15.0,
+          top: 15,
+          bottom: 24,
+          right: 15,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            SizedBox(
+              height: 10,
+            ),
+            Align(
+              alignment: Alignment.topCenter,
+              child: Icon(
+                icon,
+                size: 32,
+                color:
+                    Theme.of(context).textTheme.caption.color.withOpacity(0.9),
+              ),
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Center(
+              child: Text(text,
+                  style: TextStyle(
+                    fontSize: 19.0,
+                    fontWeight: FontWeight.w600,
+                  )),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -89,44 +108,30 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
-  List<EventTypeModel> eventsType = new List();
-
-  List<EventTypeModel> getEventTypes() {
-    List<EventTypeModel> events = new List();
-    EventTypeModel eventModel = new EventTypeModel();
-
-    eventModel.icon = Icons.school;
-    eventModel.eventType = "Education";
-    events.add(eventModel);
-
-    eventModel = new EventTypeModel();
-    eventModel.icon = Icons.work;
-    eventModel.eventType = "Company";
-    events.add(eventModel);
-
-    eventModel = new EventTypeModel();
-    eventModel.icon = Icons.mic;
-    eventModel.eventType = "Concert";
-    events.add(eventModel);
-
-    eventModel = new EventTypeModel();
-
-    eventModel.icon = Icons.mic;
-    eventModel.eventType = "Sports";
-    events.add(eventModel);
-
-    eventModel = new EventTypeModel();
-    return events;
+  String token = "", id = "", email = "", college_id = "";
+  final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
+  getPref() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    setState(() {
+      token = preferences.getString("token");
+      id = preferences.getString("id");
+      email = preferences.getString("email");
+      college_id = preferences.getString("college_id");
+    });
   }
 
   @override
   void initState() {
-    eventsType = getEventTypes();
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    getPref();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final logoHeight = screenHeight * 0.4;
     final UserDetails _userdetails =
         context.watch<UserDetailsRepository>().getUserDetails(0);
     return Consumer<EventsRepository>(
@@ -134,424 +139,449 @@ class _HomeTabState extends State<HomeTab> {
         onRefresh: () => _onRefresh(context, model),
         child: SafeArea(
           child: Scaffold(
-            body: SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 15),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.only(left: 5),
-                      child: Row(
-                        children: <Widget>[
-                          Image.asset(
-                            "assets/logo.png",
-                            height: 40,
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          Row(
-                            children: <Widget>[
-                              Text(
-                                "Ell",
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyText1
-                                        .color,
-                                    fontSize: 35,
-                                    fontWeight: FontWeight.w800),
-                              ),
-                              Text(
-                                "ipse",
-                                style: TextStyle(
-                                    color: Color(0xffFCCD00),
-                                    fontSize: 35,
-                                    fontWeight: FontWeight.w800),
-                              )
-                            ],
-                          ),
-                          Spacer(),
-                          InkWell(
-                            onTap: () => Navigator.pushNamed(
-                              context,
-                              Routes.start,
-                              arguments: {'currebt_tab': 3},
-                            ),
-                            child: Icon(
-                              Icons.notifications,
-                              size: 35,
-                            ),
-                          ),
-                          SizedBox(
-                            width: 15,
-                          ),
-                          InkWell(
-                            onTap: () => Navigator.pushNamed(
-                                context, Routes.calendar_view),
-                            child: Icon(
-                              Icons.insert_invitation,
-                              size: 35,
-                            ),
-                          ),
-                        ],
+            key: scaffoldKey,
+            /*
+            drawer: SingleChildScrollView(
+              child: MultiLevelDrawer(
+                backgroundColor: Theme.of(context).cardColor,
+                rippleColor: Colors.blueGrey,
+                subMenuBackgroundColor: Theme.of(context).cardColor,
+                divisionColor: Theme.of(context).dividerColor.withOpacity(0.3),
+                header: Container(
+                  // height: size.height * 0.25,
+                  child: Center(
+                      child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      ListTile(
+                        //leading: Icon(Icons.arrow_back),
+                        trailing: Icon(Icons.arrow_back),
+                        // title: Text("Close"),
+                        onTap: () {
+                          Navigator.of(context).pop(true);
+                        },
                       ),
-                    ),
-                    SizedBox(height: 15.0),
-                    Row(
-                      children: <Widget>[
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      Image.asset(
+                        "assets/logo.png",
+                        height: 50,
+                      ),
+                      SizedBox(
+                        height: 7,
+                      ),
+                      Text("Ellipse")
+                    ],
+                  )),
+                ),
+                children: [
+                  MenuItem(
+                    leading: Icon(Icons.event_note),
+                    content: Text("My Events"),
+                    onClick: () {
+                      Navigator.of(context).pop(true);
+                      Navigator.pushNamed(context, Routes.my_events);
+                    },
+                  ),
+                  MenuItem(
+                    leading: Icon(Icons.event_available),
+                    content: Text("Registered Events"),
+                    onClick: () {},
+                  ),
+                  MenuItem(
+                    leading: Icon(Icons.event_busy),
+                    content: Text("Past Events"),
+                    onClick: () {},
+                  ),
+/*
+                  MenuItem(
+                      leading: Icon(Icons.person),
+                      trailing: Icon(Icons.arrow_right),
+                      content: Text(
+                        "My Profile",
+                      ),
+                      subMenuItems: [
+                        SubMenuItem(
+                            onClick: () {}, submenuContent: Text("Option 1")),
+                        SubMenuItem(
+                            onClick: () {}, submenuContent: Text("Option 2")),
+                        SubMenuItem(
+                            onClick: () {},
+                            submenuContent: Text("Option 3 wywy ryhrw ywy")),
+                      ],
+                      onClick: () {}),
+                  MenuItem(
+                      leading: Icon(Icons.settings),
+                      trailing: Icon(Icons.arrow_right),
+                      content: Text("Settings"),
+                      onClick: () {},
+                      subMenuItems: [
+                        SubMenuItem(
+                            onClick: () {}, submenuContent: Text("Option 1")),
+                        SubMenuItem(
+                            onClick: () {}, submenuContent: Text("Option 2"))
+                      ]),
+                  MenuItem(
+                      leading: Icon(Icons.payment),
+                      trailing: Icon(Icons.arrow_right),
+                      content: Text(
+                        "Payments",
+                      ),
+                      subMenuItems: [
+                        SubMenuItem(
+                            onClick: () {}, submenuContent: Text("Option 1")),
+                        SubMenuItem(
+                            onClick: () {}, submenuContent: Text("Option 2")),
+                        SubMenuItem(
+                            onClick: () {}, submenuContent: Text("Option 3")),
+                        SubMenuItem(
+                            onClick: () {}, submenuContent: Text("Option 4")),
+                      ],
+                      onClick: () {}),
+                  */
+                ],
+              ),
+            ),
+            */
+            body: Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                Positioned.fill(child: Particles(3)),
+                SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: <Widget>[
+                      /*
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 25.0, vertical: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
-                            Container(
-                              width: MediaQuery.of(context).size.width * 0.7,
-                              child: Text(
-                                "Hello," + _userdetails.name,
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyText1
-                                        .color,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 22),
+                            InkWell(
+                              child: Icon(
+                                Icons.menu,
+                                size: 30,
                               ),
+                              onTap: () {
+                                scaffoldKey.currentState.openDrawer();
+                              },
                             ),
-                            SizedBox(
-                              height: 6,
-                            ),
-                            Text(
-                              "Let's explore what’s happening nearby",
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyText1
-                                      .color,
-                                  fontSize: 17),
-                            )
                           ],
                         ),
-                        Spacer(),
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                                width: 3,
-                                color:
-                                    Theme.of(context).textTheme.caption.color),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(30),
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.pushNamed(
-                                    context, Routes.view_profile);
-                              },
-                              child: Container(
-                                height: 50,
-                                width: 50,
-                                child: CachedNetworkImage(
-                                  imageUrl:
-                                      "${Url.URL}/api/image?id=${_userdetails.profile_pic}",
-                                  placeholder: (context, url) => Container(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.9,
-                                    height:
-                                        MediaQuery.of(context).size.width * 0.9,
-                                    child: Icon(
-                                      Icons.image,
-                                      size: 80,
+                      ),
+                      */
+
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Row(
+                          children: <Widget>[
+                            Image.asset(
+                              "assets/logo.png",
+                              height: 50,
+                            ),
+                            SizedBox(
+                              width: 8,
+                            ),
+                            Row(
+                              children: <Widget>[
+                                Text(
+                                  "Ell",
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyText1
+                                          .color,
+                                      fontSize: 35,
+                                      fontWeight: FontWeight.w800),
+                                ),
+                                Text(
+                                  "ipse",
+                                  style: TextStyle(
+                                      color: Color(0xffFCCD00),
+                                      fontSize: 35,
+                                      fontWeight: FontWeight.w800),
+                                )
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 15.0),
+                                  child: RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: 'Hello,' + _userdetails.name,
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w500),
+                                        ),
+                                        /*
+                                        TextSpan(text: '\n'),
+                                        TextSpan(
+                                            text: _userdetails.name,
+                                            style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w500)),
+                                        */
+                                      ],
                                     ),
                                   ),
-                                  errorWidget: (context, url, error) =>
-                                      new Icon(Icons.error),
+                                ),
+                                Spacer(),
+                                Container(
+                                  height: 50,
+                                  width: 50,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(540),
+                                    child: Image(
+                                      image: NetworkImage(
+                                          "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(50),
+                                ),
+                                elevation: 5,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(2.0),
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  EventSearch()));
+                                    },
+                                    child: TextField(
+                                      enabled: false,
+                                      decoration: InputDecoration(
+                                          hintText:
+                                              'Lets explore some events here...',
+                                          hintStyle: TextStyle(fontSize: 17.0),
+                                          border: InputBorder.none,
+                                          prefixIcon: Icon(Icons.search)),
+                                    ),
+                                  ),
+                                )),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(bottom: 15, top: 15),
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    Routes.start,
+                                    arguments: {'currebt_tab': 1},
+                                  );
+                                },
+                                child: Material(
+                                  color: Theme.of(context).cardColor,
+                                  elevation: 4,
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(12)),
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 16.0,
+                                        right: 16.0,
+                                        top: 16.0,
+                                        bottom: 32.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        Row(
+                                          children: <Widget>[
+                                            Text(
+                                              "Events Available",
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(
+                                          height: 4,
+                                        ),
+                                        Text(
+                                          model.allEvents.length.toString() +
+                                              " Events",
+                                          style: TextStyle(
+                                            fontSize: 28,
+                                            color: Theme.of(context)
+                                                .accentColor
+                                                .withOpacity(0.95),
+                                            fontWeight: FontWeight.normal,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        )
-                      ],
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Text(
-                      "Categories",
-                      style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText1.color,
-                          fontSize: 20),
-                    ),
-                    SizedBox(
-                      height: 16,
-                    ),
-                    Container(
-                      height: 95,
-                      child: ListView.builder(
-                          itemCount: eventsType.length,
-                          shrinkWrap: true,
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (context, index) {
-                            return EventTile(
-                              icon: eventsType[index].icon,
-                              eventType: eventsType[index].eventType,
-                            );
-                          }),
-                    ),
-                    SizedBox(
-                      height: 15,
-                    ),
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.7,
-                      child: Text(
-                        'Search For Events',
-                        style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText1.color,
-                            fontSize: 18),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 5.0),
+                              child: Table(
+                                children: [
+                                  TableRow(
+                                    children: [
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 7),
+                                        child: InkWell(
+                                          onTap: () => Navigator.pushNamed(
+                                              context, Routes.my_events),
+                                          child: ItemCard(
+                                              text: "Manage Your Events",
+                                              icon: Icons.event_note),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 7),
+                                        child: InkWell(
+                                          onTap: () => Navigator.pushNamed(
+                                              context,
+                                              Routes.registered_events),
+                                          child: ItemCard(
+                                              text: "Registered Events",
+                                              icon: Icons.event_available),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    "Latest Events",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Spacer(),
+                                  InkWell(
+                                    onTap: () {
+                                      Navigator.pushNamed(
+                                        context,
+                                        Routes.start,
+                                        arguments: {'currebt_tab': 1},
+                                      );
+                                    },
+                                    child: Text(
+                                      'See All',
+                                      style: TextStyle(
+                                        color: Theme.of(context).accentColor,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Padding(
+                                padding: const EdgeInsets.all(2.0),
+                                child: Row(
+                                  children: <Widget>[
+                                    for (var i = 0; i < 6; i++)
+                                      if (model.allEvents[i].start_time
+                                          .isAfter(DateTime.now())) ...[
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 5.0,
+                                            vertical: 5.0,
+                                          ),
+                                          child: Container(
+                                            height: 200,
+                                            child: Card(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.all(
+                                                  Radius.circular(10.0),
+                                                ),
+                                              ),
+                                              elevation: 4.0,
+                                              child: InkWell(
+                                                borderRadius: BorderRadius.all(
+                                                  Radius.circular(10.0),
+                                                ),
+                                                onTap: () =>
+                                                    Navigator.pushNamed(context,
+                                                        Routes.info_page,
+                                                        arguments: {
+                                                      'index': i
+                                                    }),
+                                                child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                    Radius.circular(10.0),
+                                                  ),
+                                                  child: CachedNetworkImage(
+                                                    imageUrl:
+                                                        "${Url.URL}/api/image?id=${model.allEvents[i].imageUrl}",
+                                                    filterQuality:
+                                                        FilterQuality.high,
+                                                    fadeInDuration: Duration(
+                                                        milliseconds: 1000),
+                                                    placeholder:
+                                                        (context, url) =>
+                                                            Container(
+                                                      height: 200,
+                                                      child: Icon(
+                                                        Icons.image,
+                                                        size: 20,
+                                                      ),
+                                                    ),
+                                                    errorWidget:
+                                                        (context, url, error) =>
+                                                            Icon(
+                                                      Icons.error,
+                                                      size: 20,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ]
+                                  ],
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 10.0),
-                    Container(
-                        padding: EdgeInsets.only(left: 5.0),
-                        decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10.0)),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              Routes.start,
-                              arguments: {'currebt_tab': 1},
-                            );
-                          },
-                          child: TextField(
-                            enabled: false,
-                            decoration: InputDecoration(
-                                hintText: 'Lets explore some events here...',
-                                hintStyle: TextStyle(fontSize: 17.0),
-                                border: InputBorder.none,
-                                fillColor: Colors.grey.withOpacity(0.5),
-                                prefixIcon:
-                                    Icon(Icons.search, color: Colors.grey)),
-                          ),
-                        )),
-                    SizedBox(height: 25.0),
-                    _buildSectionHeader1(),
-                    SizedBox(height: 10.0),
-                    model.isLoading || model.loadingFailed
-                        ? _loadingIndicator
-                        : Container(
-                            height: 250.0,
-                            child: Center(
-                              child: ListView.builder(
-                                  physics: ClampingScrollPhysics(),
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: model.allEvents?.length,
-                                  shrinkWrap: true,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    final Events event = model.allEvents[index];
-                                    final sdate =
-                                        DateTime.parse(event.start_time);
-                                    return sdate.isAfter(DateTime.now())
-                                        ? Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 5.0,
-                                              vertical: 10.0,
-                                            ),
-                                            child: Card(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.all(
-                                                  Radius.circular(10.0),
-                                                ),
-                                              ),
-                                              elevation: 4.0,
-                                              child: InkWell(
-                                                borderRadius: BorderRadius.all(
-                                                  Radius.circular(10.0),
-                                                ),
-                                                onTap: () =>
-                                                    Navigator.pushNamed(context,
-                                                        Routes.info_page,
-                                                        arguments: {
-                                                      'index': index
-                                                    }),
-                                                child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.all(
-                                                    Radius.circular(10.0),
-                                                  ),
-                                                  child: CachedNetworkImage(
-                                                    imageUrl:
-                                                        "${Url.URL}/api/image?id=${event.imageUrl}",
-                                                    filterQuality:
-                                                        FilterQuality.high,
-                                                    fadeInDuration: Duration(
-                                                        milliseconds: 1000),
-                                                    placeholder:
-                                                        (context, url) => Icon(
-                                                      Icons.image,
-                                                      size: 80,
-                                                    ),
-                                                    errorWidget:
-                                                        (context, url, error) =>
-                                                            Icon(
-                                                      Icons.error,
-                                                      size: 80,
-                                                    ),
-                                                  ),
-                                                  //Image.memory(_image,
-                                                  //  fit: BoxFit.cover),
-                                                ),
-                                              ),
-                                            ),
-                                          )
-                                        : Container();
-                                  }),
-                            ),
-                          ),
-                    _buildSectionHeader2(),
-                    SizedBox(height: 10.0),
-                    model.isLoading || model.loadingFailed
-                        ? _loadingIndicator
-                        : Container(
-                            height: 250.0,
-                            child: Center(
-                              child: ListView.builder(
-                                  physics: ClampingScrollPhysics(),
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: model.allEvents?.length,
-                                  shrinkWrap: true,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    final Events event = model.allEvents[index];
-                                    final sdate =
-                                        DateTime.parse(event.start_time);
-                                    print(sdate);
-                                    return sdate.isAfter(DateTime.now())
-                                        ? Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 5.0,
-                                              vertical: 10.0,
-                                            ),
-                                            child: Card(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.all(
-                                                  Radius.circular(10.0),
-                                                ),
-                                              ),
-                                              elevation: 4.0,
-                                              child: InkWell(
-                                                borderRadius: BorderRadius.all(
-                                                  Radius.circular(10.0),
-                                                ),
-                                                onTap: () =>
-                                                    Navigator.pushNamed(context,
-                                                        Routes.info_page,
-                                                        arguments: {
-                                                      'index': index
-                                                    }),
-                                                child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.all(
-                                                    Radius.circular(10.0),
-                                                  ),
-                                                  child: CachedNetworkImage(
-                                                    imageUrl:
-                                                        "${Url.URL}/api/image?id=${event.imageUrl}",
-                                                    filterQuality:
-                                                        FilterQuality.high,
-                                                    fadeInDuration: Duration(
-                                                        milliseconds: 1000),
-                                                    placeholder:
-                                                        (context, url) => Icon(
-                                                      Icons.image,
-                                                      size: 80,
-                                                    ),
-                                                    errorWidget:
-                                                        (context, url, error) =>
-                                                            Icon(
-                                                      Icons.error,
-                                                      size: 80,
-                                                    ),
-                                                  ),
-                                                  //Image.memory(
-                                                  // base64Decode(
-                                                  //    event.imageUrl),
-                                                  //fit: BoxFit.cover),
-                                                ),
-                                              ),
-                                            ),
-                                          )
-                                        : Container();
-                                  }),
-                            ),
-                          ),
-                  ],
-                ),
-              ),
+                    ],
+                  ),
+                )
+              ],
             ),
           ),
         ),
       ),
-    );
-  }
-
-  _buildSectionHeader1() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Flexible(
-          child: Text(
-            'Your College Events',
-            style: TextStyle(
-              fontSize: 20.0,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        GestureDetector(
-          onTap: () {},
-          child: Text(
-            'See All',
-            style: TextStyle(
-              color: Theme.of(context).accentColor,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  _buildSectionHeader2() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Flexible(
-          child: Text(
-            'Other Events',
-            style: TextStyle(
-              fontSize: 20.0,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        GestureDetector(
-          onTap: () {},
-          child: Text(
-            'See All',
-            style: TextStyle(
-              color: Theme.of(context).accentColor,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

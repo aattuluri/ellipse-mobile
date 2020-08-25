@@ -23,6 +23,7 @@ class DynamicWidget extends StatefulWidget {
 class DynamicWidgetState extends State<DynamicWidget> {
   TextEditingController controller = new TextEditingController();
   String _selected_option;
+
   @override
   void initState() {
     print("${widget.title}");
@@ -34,7 +35,7 @@ class DynamicWidgetState extends State<DynamicWidget> {
   @override
   Widget build(BuildContext context) {
     switch (widget.field) {
-      case "short_answer":
+      case "short_text":
         return Column(
           children: [
             Container(
@@ -297,6 +298,9 @@ class CreateRegistrationForm extends StatefulWidget {
 class _CreateRegistrationFormState extends State<CreateRegistrationForm>
     with TickerProviderStateMixin {
   String title = "", field = "", option = "";
+  bool s_name = false;
+  bool s_email = false;
+  bool s_college = false;
   ScrollController scrollController;
   List<DynamicWidget> listDynamic = [];
   //List<String> options = [];
@@ -310,7 +314,7 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
         isScrollControlled: true,
         context: context,
         builder: (context) {
-          return field == "short_answer" ||
+          return field == "short_text" ||
                   field == "paragraph" ||
                   field == "dropdown" ||
                   field == "checkboxes" ||
@@ -399,6 +403,32 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
                                                     : ""),
                                   ),
                                   SizedBox(
+                                    height: 20,
+                                  ),
+                                  field == "checkboxes"
+                                      ? Text(
+                                          "(Check Boxes enable User to select multiple options from provided options",
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyText1
+                                                  .color,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w800),
+                                        )
+                                      : field == "radiobuttons"
+                                          ? Text(
+                                              "(Radio Buttons enable user to select single option from provided options",
+                                              style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyText1
+                                                      .color,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.w800),
+                                            )
+                                          : Container(),
+                                  SizedBox(
                                     height: 30,
                                   ),
                                 ],
@@ -458,11 +488,46 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @override
   void initState() {
+    setState(() {
+      //s_name = false;
+      // s_email = false;
+      // s_college = false;
+    });
     print("saved form");
     print(widget.get_form);
-    setState(() {
-      reg_form.clear();
-    });
+    if (widget.get_form.isEmpty) {
+      setState(() {
+        form.add((json.encode(<String, dynamic>{
+          "title": "Email",
+          "field": "short_text",
+          "options": data
+        })).toString());
+        this.setState(() =>
+            listDynamic.add(new DynamicWidget("Email", "short_text", [])));
+        setState(() {
+          data = [];
+        });
+        //s_email = !s_email;
+      });
+      setState(() {
+        form.add((json.encode(<String, dynamic>{
+          "title": "Name",
+          "field": "short_text",
+          "options": data
+        })).toString());
+        this.setState(
+            () => listDynamic.add(new DynamicWidget("Name", "short_text", [])));
+        setState(() {
+          data = [];
+        });
+        //s_name = !s_name;
+      });
+    } else {
+      setState(() {
+        reg_form.clear();
+      });
+    }
+
     for (final item in widget.get_form) {
       this.setState(() => form.add((json.encode(<String, dynamic>{
             "title": item['title'],
@@ -478,6 +543,7 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
             ),
           ));
     }
+    ///////////////////////////////////
     for (final item in reg_form) {
       print(item);
       print(item.title);
@@ -532,7 +598,7 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
                           ),
                           CreateRegFormTile(Icons.short_text, "Short Text", "",
                               () {
-                            bottom_sheet("short_answer");
+                            bottom_sheet("short_text");
                           }),
                           CreateRegFormTile(Icons.subject, "Paragraph", "", () {
                             bottom_sheet("paragraph");
@@ -613,6 +679,83 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
                 padding:
                     const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
                 child: CardPage1.body(
+                  title: "Choose below fields if you need",
+                  body: RowLayout(children: <Widget>[
+                    Wrap(
+                      spacing: 4,
+                      children: [
+                        /*
+                        InputChip(
+                            label: Text('Name'),
+                            selected: s_name,
+                            onPressed: () {
+                              setState(() {
+                                form.add((json.encode(<String, dynamic>{
+                                  "title": "Name",
+                                  "field": "short_text",
+                                  "options": data
+                                })).toString());
+                                this.setState(() => listDynamic.add(
+                                    new DynamicWidget(
+                                        "Name", "short_text", [])));
+                                setState(() {
+                                  data = [];
+                                });
+                                //s_name = !s_name;
+                              });
+                            }),
+                            */
+
+                        InputChip(
+                            label: Text('College'),
+                            selected: s_college,
+                            onPressed: () {
+                              setState(() {
+                                //s_college = !s_college;
+                                form.add((json.encode(<String, dynamic>{
+                                  "title": "College",
+                                  "field": "short_text",
+                                  "options": data
+                                })).toString());
+                                this.setState(() => listDynamic.add(
+                                    new DynamicWidget(
+                                        "College", "short_text", [])));
+                                setState(() {
+                                  data = [];
+                                });
+                              });
+                            }),
+                        InputChip(
+                            label: Text("Year of Study"),
+                            selected: s_email,
+                            onPressed: () {
+                              setState(() {
+                                form.add((json.encode(<String, dynamic>{
+                                  "title": "Year of Study",
+                                  "field": "short_text",
+                                  "options": data
+                                })).toString());
+                                this.setState(() => listDynamic.add(
+                                    new DynamicWidget(
+                                        "Year of Study", "short_text", [])));
+                                setState(() {
+                                  data = [];
+                                });
+                                //s_email = !s_email;
+                              });
+                            }),
+                      ],
+                    ),
+                    Container(
+                      width: double.infinity,
+                    ),
+                  ]),
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                child: CardPage1.body(
                   title: "Form",
                   body: RowLayout(
                     children: <Widget>[
@@ -628,14 +771,17 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
                                 Row(
                                   children: [
                                     Spacer(),
-                                    InkWell(
-                                        onTap: () {
-                                          this.setState(() =>
-                                              listDynamic.removeAt(index));
-                                          this.setState(
-                                              () => form.removeAt(index));
-                                        },
-                                        child: Icon(Icons.delete, size: 25)),
+                                    index == 0 || index == 1
+                                        ? Container()
+                                        : InkWell(
+                                            onTap: () {
+                                              this.setState(() =>
+                                                  listDynamic.removeAt(index));
+                                              this.setState(
+                                                  () => form.removeAt(index));
+                                            },
+                                            child:
+                                                Icon(Icons.delete, size: 25)),
                                     SizedBox(
                                       width: 10,
                                     ),
@@ -662,7 +808,7 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
                                         .color
                                         .withOpacity(0.2),
                                     child: Text(
-                                      'Create',
+                                      'Save Form',
                                       style: TextStyle(
                                           color: Theme.of(context)
                                               .textTheme
@@ -672,6 +818,7 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
                                           fontWeight: FontWeight.bold),
                                     ),
                                     onPressed: () async {
+                                      ////////////////////////////////////////////////////////////////////////////////
                                       widget.form_fields(form);
                                       Navigator.of(context).pop(true);
                                     }),

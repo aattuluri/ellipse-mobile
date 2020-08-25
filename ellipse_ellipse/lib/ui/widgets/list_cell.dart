@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:row_collection/row_collection.dart';
 
-/// Widget used in vehicle & launch lists to display items.
 class ListCell extends StatelessWidget {
   final Widget leading, trailing;
   final String title, subtitle;

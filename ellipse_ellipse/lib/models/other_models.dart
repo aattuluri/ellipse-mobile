@@ -15,27 +15,47 @@ class Field1 {
   Field1({this.title, this.field, this.options});
 }
 
-enum MessageType2 {
-  Sender,
-  Receiver,
+enum MessageType {
+  Me,
+  Other,
 }
 
-class SendMenuItems2 {
+class SendMenuItems {
   String text;
   String time;
   IconData icons;
   MaterialColor color;
-  SendMenuItems2(
+  SendMenuItems(
       {@required this.text, @required this.icons, @required this.color});
 }
 
-class ChatMessage2 {
+class MessageData {
+  String id;
+  String user_id;
+  String user_pic;
+  String user_name;
+  String message;
+  String date;
+  MessageData(
+      {this.id,
+      this.user_id,
+      this.user_name,
+      this.user_pic,
+      this.message,
+      this.date});
+}
+
+class ChatMessage {
+  String sender_pic;
+  String sender_name;
   String message;
   String time;
-  MessageType2 type;
+  MessageType type;
   String sender_type;
-  ChatMessage2(
-      {@required this.message,
+  ChatMessage(
+      {@required this.sender_pic,
+      @required this.sender_name,
+      @required this.message,
       @required this.sender_type,
       @required this.type,
       @required this.time});

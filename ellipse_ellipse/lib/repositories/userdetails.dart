@@ -6,7 +6,6 @@ import '../util/index.dart';
 import 'base.dart';
 import 'package:flutter/material.dart';
 
-/// Repository that holds a list of launches.
 class UserDetailsRepository extends BaseRepository {
   List<UserDetails> allUserDetails;
   String token = "", id = "", email = "";

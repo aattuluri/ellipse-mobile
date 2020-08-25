@@ -42,7 +42,7 @@ final Map<Themes, ThemeData> _themeData = {
     accentColor: blackAccentColor,
     canvasColor: blackBackgroundColor,
     scaffoldBackgroundColor: blackBackgroundColor,
-    cardColor: blackCardColor,
+    cardColor: darkBackgroundColor,
     dividerColor: blackDividerColor,
     dialogBackgroundColor: darkCardColor,
     popupMenuTheme: PopupMenuThemeData(

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:row_collection/row_collection.dart';
 
-/// Stateful widget used to display a countdown to the next launch.
 class LaunchCountdown extends StatefulWidget {
   final DateTime launchDate;
 

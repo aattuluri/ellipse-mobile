@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,6 +20,8 @@ import '../../models/index.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'dart:core';
+import 'package:flutter/cupertino.dart';
+import 'package:http_parser/http_parser.dart';
 
 class EditProfile extends StatefulWidget {
   const EditProfile({Key key}) : super(key: key);
@@ -37,7 +40,6 @@ class _EditProfileState extends State<EditProfile> {
   var _emailController = new TextEditingController();
   var _usernameController = new TextEditingController();
   var _phonenoController = new TextEditingController();
-  var _designationController = new TextEditingController();
   var _bioController = new TextEditingController();
   getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -118,7 +120,10 @@ class _EditProfileState extends State<EditProfile> {
         });
   }
 
-  edit_profile() async {
+  edit_profile(String gender_, String designation_) async {
+    setState(() {
+      _isUploading = true;
+    });
     http.Response response = await http.post(
       '${Url.URL}/api/users/updateprofile',
       headers: <String, String>{
@@ -129,17 +134,64 @@ class _EditProfileState extends State<EditProfile> {
         'name': _nameController.text,
         'username': _usernameController.text,
         'bio': _bioController.text,
-        'gender': 'Male',
-        'designation': designation,
+        'gender': gender_,
+        'designation': designation_,
         'college_id': college_id
       }),
     );
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
     if (response.statusCode == 200) {
-      Navigator.of(context).pop(true);
+      if (_imageFile != null) {
+        Map<String, String> headers = {
+          HttpHeaders.authorizationHeader: "Bearer $token",
+          HttpHeaders.contentTypeHeader: "application/json"
+        };
+        final mimeTypeData =
+            lookupMimeType(_imageFile.path, headerBytes: [0xFF, 0xD8])
+                .split('/');
+
+        // Intilize the multipart request
+        final imageUploadRequest = http.MultipartRequest(
+            'POST', Uri.parse('${Url.URL}/api/users/uploadimage'));
+        imageUploadRequest.headers.addAll(headers);
+        // Attach the file in the request
+        final file = await http.MultipartFile.fromPath('image', _imageFile.path,
+            contentType: MediaType(mimeTypeData[0], mimeTypeData[1]));
+        // Explicitly pass the extension of the image with request body
+        // Since image_picker has some bugs due which it mixes up
+        // image extension with file name like this filenamejpge
+        // Which creates some problem at the server side to manage
+        // or verify the file extension
+        imageUploadRequest.files.add(file);
+
+        try {
+          final streamedResponse = await imageUploadRequest.send();
+          final response1 = await http.Response.fromStream(streamedResponse);
+          if (response1.statusCode == 200) {
+            Navigator.of(context).pop(true);
+            setState(() {
+              _isUploading = false;
+            });
+            print("Image Uploaded");
+          }
+        } catch (e) {
+          print(e);
+          return null;
+        }
+      } else {
+        setState(() {
+          _isUploading = false;
+        });
+        context.read<UserDetailsRepository>().refreshData();
+        Navigator.of(context).pop(true);
+      }
     } else {
-      print(response.body);
+      setState(() {
+        _isUploading = false;
+      });
+      context.read<UserDetailsRepository>().refreshData();
+      Navigator.of(context).pop(true);
     }
   }
 
@@ -158,11 +210,9 @@ class _EditProfileState extends State<EditProfile> {
     _usernameController =
         new TextEditingController(text: _userdetails.username);
     _phonenoController = new TextEditingController(text: _userdetails.bio);
-    _designationController =
-        new TextEditingController(text: _userdetails.designation);
     _bioController = new TextEditingController(text: _userdetails.bio);
 
-    return isloading
+    return _isUploading
         ? SafeArea(
             child: Scaffold(
                 body: Align(
@@ -173,7 +223,7 @@ class _EditProfileState extends State<EditProfile> {
               children: [
                 Center(child: CircularProgressIndicator()),
                 Text(
-                  "Updating password....",
+                  "Updating profile....",
                   style: TextStyle(
                       color: Theme.of(context).textTheme.caption.color,
                       fontSize: 30.0,
@@ -240,27 +290,9 @@ class _EditProfileState extends State<EditProfile> {
                                         child: ClipRRect(
                                           borderRadius:
                                               BorderRadius.circular(50.0),
-                                          child: CachedNetworkImage(
-                                            imageUrl:
-                                                "${Url.URL}/api/image?id=${_userdetails.profile_pic}",
-                                            placeholder: (context, url) =>
-                                                Container(
-                                              width: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.9,
-                                              height: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.9,
-                                              child: Icon(
-                                                Icons.image,
-                                                size: 80,
-                                              ),
-                                            ),
-                                            errorWidget:
-                                                (context, url, error) =>
-                                                    new Icon(Icons.error),
+                                          child: Image(
+                                            image: NetworkImage(
+                                                "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
                                           ),
                                         ),
                                       )),
@@ -326,6 +358,7 @@ class _EditProfileState extends State<EditProfile> {
                           maxLines: 1,
                         ),
                         TextFormField(
+                          enabled: false,
                           controller: _emailController,
                           style: TextStyle(
                             color: Theme.of(context).textTheme.caption.color,
@@ -407,13 +440,10 @@ class _EditProfileState extends State<EditProfile> {
                                 .color
                                 .withOpacity(0.3),
                             onPressed: () {
-                              setState(() {
-                                isloading = true;
-                              });
-                              edit_profile();
-                              setState(() {
-                                isloading = false;
-                              });
+                              String des = designation == null
+                                  ? _userdetails.designation
+                                  : designation;
+                              edit_profile(_userdetails.gender, des);
                             },
                             child: Text(
                               'Save',

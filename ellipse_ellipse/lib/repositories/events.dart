@@ -6,9 +6,9 @@ import '../util/index.dart';
 import 'base.dart';
 import 'package:flutter/material.dart';
 
-/// Repository that holds a list of launches.
 class EventsRepository extends BaseRepository {
   List<Events> allEvents;
+  List<Events> myEvents;
   String token = "", id = "", email = "";
   @override
   Future<void> loadData() async {
@@ -18,6 +18,7 @@ class EventsRepository extends BaseRepository {
     id = prefs.getString("id");
     email = prefs.getString("email");
     try {
+      print("Started Loading events");
       // Receives the data and parse it
       final Response<List> response = await Dio().get("${Url.URL}/api/events",
           options: Options(
@@ -25,7 +26,8 @@ class EventsRepository extends BaseRepository {
           ));
 
       allEvents = [for (final item in response.data) Events.fromJson(item)];
-
+      allEvents = allEvents.reversed.toList();
+      print(allEvents);
       finishLoading();
       print("Events loaded");
     } catch (_) {
@@ -33,5 +35,20 @@ class EventsRepository extends BaseRepository {
     }
   }
 
-  Events getEvents(int index) => allEvents[index];
+  Events getEventIndex(int index) {
+    return allEvents[index];
+  }
+
+  getEventId(String id) {
+    for (var i = 0; i < allEvents.length; i++) {
+      if (allEvents[i].id == id) {
+        return i;
+      }
+    }
+  }
+
+  eventsCount() {
+    String count = allEvents.length.toString();
+    return count;
+  }
 }
