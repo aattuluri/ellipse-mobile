@@ -311,9 +311,11 @@ class _EditProfileState extends State<EditProfile> {
                                         child: ClipRRect(
                                           borderRadius:
                                               BorderRadius.circular(50.0),
-                                          child: Image(
+                                          child: FadeInImage(
                                             image: NetworkImage(
                                                 "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                            placeholder: AssetImage(
+                                                'assets/icons/loading.gif'),
                                           ),
                                         ),
                                       )),
@@ -423,25 +425,23 @@ class _EditProfileState extends State<EditProfile> {
                                   border: OutlineInputBorder(),
                                   labelText: "Designation"),
                               child: new DropdownButtonHideUnderline(
-                                child: Expanded(
-                                  child: new DropdownButton(
-                                    hint: Text(_userdetails.designation),
-                                    isExpanded: true,
-                                    value: designation,
-                                    isDense: true,
-                                    items: _designations
-                                        .map((value) => DropdownMenuItem(
-                                              child: Text(value),
-                                              value: value,
-                                            ))
-                                        .toList(),
-                                    onChanged: (newValue) {
-                                      setState(() {
-                                        designation = newValue;
-                                        state.didChange(newValue);
-                                      });
-                                    },
-                                  ),
+                                child: new DropdownButton(
+                                  hint: Text(_userdetails.designation),
+                                  isExpanded: true,
+                                  value: designation,
+                                  isDense: true,
+                                  items: _designations
+                                      .map((value) => DropdownMenuItem(
+                                            child: Text(value),
+                                            value: value,
+                                          ))
+                                      .toList(),
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      designation = newValue;
+                                      state.didChange(newValue);
+                                    });
+                                  },
                                 ),
                               ),
                             );

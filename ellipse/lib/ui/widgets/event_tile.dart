@@ -1,20 +1,13 @@
-import 'dart:convert';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-import 'dart:async';
-import '../../util/routes.dart';
 import 'package:flutter/material.dart';
-import 'dart:math';
-import 'package:http/http.dart' as http;
-import '../../util/index.dart';
-import '../widgets/index.dart';
-import '../../repositories/index.dart';
-import '../../models/index.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../providers/index.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../models/index.dart';
+import '../../repositories/index.dart';
+import '../../util/index.dart';
+import '../../util/routes.dart';
 
 class EventTileGeneral extends StatefulWidget {
   final bool visible;
@@ -87,12 +80,17 @@ class EventTileGeneralState extends State<EventTileGeneral> {
                   Column(
                     children: [
                       Center(
-                        child:
-                            /*Image(
+                        child: FadeInImage(
+                          image: NetworkImage(
+                              "${Url.URL}/api/image?id=${_event.imageUrl}"),
+                          placeholder: AssetImage('assets/icons/loading.gif'),
+                        ),
+                        /*Image(
                         image: NetworkImage(
                             "${Url.URL}/api/image?id=${_event.imageUrl}"),
                       )*/
-                            CachedNetworkImage(
+
+                        /*CachedNetworkImage(
                           imageUrl:
                               "${Url.URL}/api/image?id=${_event.imageUrl}",
                           filterQuality: FilterQuality.medium,
@@ -114,6 +112,7 @@ class EventTileGeneralState extends State<EventTileGeneral> {
                             ),
                           ),
                         ),
+                        */
                       ),
                       SizedBox(height: 70),
                     ],

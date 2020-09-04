@@ -1,23 +1,22 @@
-import 'dart:convert';
-import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../models/events_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
 import 'package:share/share.dart';
-import 'package:sliver_fab/sliver_fab.dart';
-import '../widgets/index.dart';
-import '../../repositories/index.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../models/events_model.dart';
 import '../../models/index.dart';
+import '../../repositories/index.dart';
 import '../../util/index.dart';
+import '../pages/index.dart';
+import '../widgets/index.dart';
 import 'chat_page.dart';
 import 'edit_event.dart';
-import '../pages/index.dart';
+
 class MyEventsInfoPage extends StatefulWidget {
   final int index;
 
@@ -219,7 +218,7 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                 ),
                 SizedBox(height: 3),
                 SlideMenuItem1(Icons.share, "Share", "Share Event", () {
-                  setState(() {});
+                  Share.share("https://ellipseapp.com/un/event/${_event.id}");
                 }),
                 SlideMenuItem1(Icons.edit_outlined, "Edit Event", "Edit Event",
                     () {
@@ -267,27 +266,11 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                                             mainAxisAlignment:
                                                 MainAxisAlignment.center,
                                             children: [
-                                              CachedNetworkImage(
-                                                imageUrl:
-                                                    "${Url.URL}/api/image?id=${_event.imageUrl}",
-                                                placeholder: (context, url) =>
-                                                    Container(
-                                                  width: MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      0.9,
-                                                  height: MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      0.9,
-                                                  child: Icon(
-                                                    Icons.image,
-                                                    size: 80,
-                                                  ),
-                                                ),
-                                                errorWidget:
-                                                    (context, url, error) =>
-                                                        new Icon(Icons.error),
+                                              FadeInImage(
+                                                image: NetworkImage(
+                                                    "${Url.URL}/api/image?id=${_event.imageUrl}"),
+                                                placeholder: AssetImage(
+                                                    'assets/icons/loading.gif'),
                                               ),
                                               SizedBox(height: 10),
                                               FloatingActionButton(
@@ -308,23 +291,11 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                                     ),
                                   ),
                                   child: Container(
-                                    child: CachedNetworkImage(
-                                      imageUrl:
-                                          "${Url.URL}/api/image?id=${_event.imageUrl}",
-                                      placeholder: (context, url) => Container(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.9,
-                                        height:
-                                            MediaQuery.of(context).size.width *
-                                                0.9,
-                                        child: Icon(
-                                          Icons.image,
-                                          size: 80,
-                                        ),
-                                      ),
-                                      errorWidget: (context, url, error) =>
-                                          new Icon(Icons.error),
+                                    child: FadeInImage(
+                                      image: NetworkImage(
+                                          "${Url.URL}/api/image?id=${_event.imageUrl}"),
+                                      placeholder: AssetImage(
+                                          'assets/icons/loading.gif'),
                                     ),
                                   ),
                                 ),

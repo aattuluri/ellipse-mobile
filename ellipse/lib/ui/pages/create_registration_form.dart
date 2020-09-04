@@ -1,18 +1,16 @@
+import 'dart:convert';
+import 'dart:core';
+import 'dart:ui';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:row_collection/row_collection.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../widgets/index.dart';
-import 'dart:convert';
-import 'dart:math';
-import 'dart:ui';
-import 'dart:async';
-import 'dart:core';
+
 import '../../models/index.dart';
 import '../../util/index.dart';
+import '../widgets/index.dart';
 
 class DynamicWidget extends StatefulWidget {
   final String title, field;
@@ -82,25 +80,23 @@ class DynamicWidgetState extends State<DynamicWidget> {
                     decoration: InputDecoration(
                         border: OutlineInputBorder(), labelText: "Event Type"),
                     child: new DropdownButtonHideUnderline(
-                      child: Expanded(
-                        child: new DropdownButton(
-                          hint: Text("${widget.title}"),
-                          isExpanded: true,
-                          value: _selected_option,
-                          isDense: true,
-                          items: widget.options
-                              .map((value) => DropdownMenuItem(
-                                    child: Text(value),
-                                    value: value,
-                                  ))
-                              .toList(),
-                          onChanged: (newValue) {
-                            setState(() {
-                              _selected_option = newValue;
-                              state.didChange(newValue);
-                            });
-                          },
-                        ),
+                      child: new DropdownButton(
+                        hint: Text("${widget.title}"),
+                        isExpanded: true,
+                        value: _selected_option,
+                        isDense: true,
+                        items: widget.options
+                            .map((value) => DropdownMenuItem(
+                                  child: Text(value),
+                                  value: value,
+                                ))
+                            .toList(),
+                        onChanged: (newValue) {
+                          setState(() {
+                            _selected_option = newValue;
+                            state.didChange(newValue);
+                          });
+                        },
                       ),
                     ),
                   );

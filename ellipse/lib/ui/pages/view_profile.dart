@@ -8,7 +8,6 @@ import '../../models/index.dart';
 import '../../repositories/index.dart';
 import '../../util/index.dart';
 
-/// Here lays all available options for the user to configurate.
 class ViewProfile extends StatefulWidget {
   const ViewProfile({Key key}) : super(key: key);
 
@@ -88,9 +87,11 @@ class _ViewProfileState extends State<ViewProfile> {
                             child: Container(
                               height: 60,
                               width: 60,
-                              child: Image(
+                              child: FadeInImage(
                                 image: NetworkImage(
                                     "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                placeholder:
+                                    AssetImage('assets/icons/loading.gif'),
                               ),
                             ),
                           ),

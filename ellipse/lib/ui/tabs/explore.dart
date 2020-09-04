@@ -1,25 +1,16 @@
 import 'dart:async';
-import 'package:big_tip/big_tip.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../screens/filters.dart';
+
 import 'package:flutter/cupertino.dart';
-import 'package:provider/provider.dart';
-import '../pages/filter_calendar.dart';
-import '../pages/calendar_view.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'dart:convert';
-import 'package:row_collection/row_collection.dart';
-import 'package:search_page/search_page.dart';
-import '../pages/index.dart';
-import '../pages/index.dart';
-import '../widgets/index.dart';
-import '../../util/index.dart';
-import '../../models/index.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../repositories/index.dart';
+import '../../util/index.dart';
+import '../pages/filter_calendar.dart';
+import '../widgets/index.dart';
 
 const TextStyle dropDownTextStyle =
     TextStyle(color: Colors.black, fontSize: 16.0, fontWeight: FontWeight.w400);
@@ -181,7 +172,6 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
         onRefresh: () => _onRefresh(context, model),
         child: Scaffold(
           //drawer: CollapsingNavigationDrawer(),
-
           appBar: new AppBar(
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 /*
@@ -286,7 +276,6 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
               isShadow: false,
               sliderOpen: SliderOpen.RIGHT_TO_LEFT,
               sliderMenuOpenOffset: MediaQuery.of(context).size.width * 0.7,
-              //250,
               sliderMenu: ListView(
                 children: <Widget>[
                   InkWell(
@@ -1000,8 +989,6 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
               ),
             ),
           ),
-          /*
-          */
         ),
       ),
     );

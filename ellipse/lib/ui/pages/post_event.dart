@@ -1,27 +1,26 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:dio/dio.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:mime/mime.dart';
+import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
 import 'package:rxdart/subjects.dart';
-import '../../util/routes.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:io';
-import 'package:flutter/cupertino.dart';
-import 'package:intl/intl.dart';
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
-import '../widgets/index.dart';
-import '../../util/index.dart';
-import 'package:http_parser/http_parser.dart';
-import 'dart:async';
-import '../pages/index.dart';
-import '../../models/index.dart';
+
 import '../../repositories/index.dart';
+import '../../util/index.dart';
+import '../../util/routes.dart';
+import '../pages/index.dart';
+import '../widgets/index.dart';
 
 double ourMap(v, start1, stop1, start2, stop2) {
   return (v - start1) / (stop1 - start1) * (stop2 - start2) + start2;
@@ -666,29 +665,25 @@ class _PostEventState extends State<PostEvent>
                                                   labelText: "Event Type"),
                                               child:
                                                   new DropdownButtonHideUnderline(
-                                                child: Expanded(
-                                                  child: new DropdownButton(
-                                                    hint: Text(
-                                                        "Select Event Type"),
-                                                    isExpanded: true,
-                                                    value: event_type,
-                                                    isDense: true,
-                                                    items: _eventtypes
-                                                        .map((value) =>
-                                                            DropdownMenuItem(
-                                                              child:
-                                                                  Text(value),
-                                                              value: value,
-                                                            ))
-                                                        .toList(),
-                                                    onChanged: (newValue) {
-                                                      setState(() {
-                                                        event_type = newValue;
-                                                        state.didChange(
-                                                            newValue);
-                                                      });
-                                                    },
-                                                  ),
+                                                child: new DropdownButton(
+                                                  hint:
+                                                      Text("Select Event Type"),
+                                                  isExpanded: true,
+                                                  value: event_type,
+                                                  isDense: true,
+                                                  items: _eventtypes
+                                                      .map((value) =>
+                                                          DropdownMenuItem(
+                                                            child: Text(value),
+                                                            value: value,
+                                                          ))
+                                                      .toList(),
+                                                  onChanged: (newValue) {
+                                                    setState(() {
+                                                      event_type = newValue;
+                                                      state.didChange(newValue);
+                                                    });
+                                                  },
                                                 ),
                                               ),
                                             );
@@ -702,30 +697,26 @@ class _PostEventState extends State<PostEvent>
                                                   labelText: "College"),
                                               child:
                                                   new DropdownButtonHideUnderline(
-                                                child: Expanded(
-                                                  child: new DropdownButton(
-                                                    hint:
-                                                        Text("Select College"),
-                                                    isExpanded: true,
-                                                    value: _college,
-                                                    isDense: true,
-                                                    items: colleges.map((item) {
-                                                      return new DropdownMenuItem(
-                                                        child: new Text(
-                                                          item['name'],
-                                                        ),
-                                                        value: item['_id']
-                                                            .toString(),
-                                                      );
-                                                    }).toList(),
-                                                    onChanged: (newValue) {
-                                                      setState(() {
-                                                        _college = newValue;
-                                                        state.didChange(
-                                                            newValue);
-                                                      });
-                                                    },
-                                                  ),
+                                                child: new DropdownButton(
+                                                  hint: Text("Select College"),
+                                                  isExpanded: true,
+                                                  value: _college,
+                                                  isDense: true,
+                                                  items: colleges.map((item) {
+                                                    return new DropdownMenuItem(
+                                                      child: new Text(
+                                                        item['name'],
+                                                      ),
+                                                      value: item['_id']
+                                                          .toString(),
+                                                    );
+                                                  }).toList(),
+                                                  onChanged: (newValue) {
+                                                    setState(() {
+                                                      _college = newValue;
+                                                      state.didChange(newValue);
+                                                    });
+                                                  },
                                                 ),
                                               ),
                                             );

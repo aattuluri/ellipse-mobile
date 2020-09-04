@@ -96,8 +96,7 @@ class _SplashScreenState extends State<SplashScreen> {
           )),
           InkWell(
             onTap: () {
-              //redirect();
-              Navigator.pushNamed(context, Routes.signin);
+              redirect();
             },
             child: Align(
               alignment: Alignment.bottomCenter,

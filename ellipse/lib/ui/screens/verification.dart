@@ -1,20 +1,20 @@
 import 'dart:async';
-import 'package:dio/dio.dart';
-import 'package:mime/mime.dart';
-import '../../util/routes.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'auth_screen.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../../util/index.dart';
-import '../screens/index.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../util/constants.dart' as Constants;
+import '../../util/index.dart';
+import '../../util/routes.dart';
+import '../screens/index.dart';
 
 class OtpPageEmailVerify extends StatefulWidget {
   final String email, type;
@@ -1137,30 +1137,28 @@ class _CheckState extends State<Check> {
                                                 ),
                                                 child:
                                                     new DropdownButtonHideUnderline(
-                                                  child: Expanded(
-                                                    child: new DropdownButton(
-                                                      hint: Text(
-                                                          "Select College"),
-                                                      isExpanded: true,
-                                                      value: _college,
-                                                      isDense: true,
-                                                      items: data.map((item) {
-                                                        return new DropdownMenuItem(
-                                                          child: new Text(
-                                                            item['name'],
-                                                          ),
-                                                          value: item['_id']
-                                                              .toString(),
-                                                        );
-                                                      }).toList(),
-                                                      onChanged: (newValue) {
-                                                        setState(() {
-                                                          _college = newValue;
-                                                          state.didChange(
-                                                              newValue);
-                                                        });
-                                                      },
-                                                    ),
+                                                  child: new DropdownButton(
+                                                    hint:
+                                                        Text("Select College"),
+                                                    isExpanded: true,
+                                                    value: _college,
+                                                    isDense: true,
+                                                    items: data.map((item) {
+                                                      return new DropdownMenuItem(
+                                                        child: new Text(
+                                                          item['name'],
+                                                        ),
+                                                        value: item['_id']
+                                                            .toString(),
+                                                      );
+                                                    }).toList(),
+                                                    onChanged: (newValue) {
+                                                      setState(() {
+                                                        _college = newValue;
+                                                        state.didChange(
+                                                            newValue);
+                                                      });
+                                                    },
                                                   ),
                                                 ),
                                               );
@@ -1218,30 +1216,27 @@ class _CheckState extends State<Check> {
                                                 ),
                                                 child:
                                                     new DropdownButtonHideUnderline(
-                                                  child: Expanded(
-                                                    child: new DropdownButton(
-                                                      hint: Text(
-                                                          "Select Designation"),
-                                                      isExpanded: true,
-                                                      value: designation,
-                                                      isDense: true,
-                                                      items: _designations
-                                                          .map((value) =>
-                                                              DropdownMenuItem(
-                                                                child:
-                                                                    Text(value),
-                                                                value: value,
-                                                              ))
-                                                          .toList(),
-                                                      onChanged: (newValue) {
-                                                        setState(() {
-                                                          designation =
-                                                              newValue;
-                                                          state.didChange(
-                                                              newValue);
-                                                        });
-                                                      },
-                                                    ),
+                                                  child: new DropdownButton(
+                                                    hint: Text(
+                                                        "Select Designation"),
+                                                    isExpanded: true,
+                                                    value: designation,
+                                                    isDense: true,
+                                                    items: _designations
+                                                        .map((value) =>
+                                                            DropdownMenuItem(
+                                                              child:
+                                                                  Text(value),
+                                                              value: value,
+                                                            ))
+                                                        .toList(),
+                                                    onChanged: (newValue) {
+                                                      setState(() {
+                                                        designation = newValue;
+                                                        state.didChange(
+                                                            newValue);
+                                                      });
+                                                    },
                                                   ),
                                                 ),
                                               );

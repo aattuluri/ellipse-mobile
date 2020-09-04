@@ -1,30 +1,24 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:core';
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart';
-import 'package:meta/meta.dart';
-import '../widgets/index.dart';
-//import 'package:flutter_socket_io/flutter_socket_io.dart';
-//import 'package:flutter_socket_io/socket_io_manager.dart';
-import 'dart:convert';
-import 'dart:math';
-import 'dart:ui';
-import 'dart:async';
-import 'dart:core';
-import 'package:provider/provider.dart';
-import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
-import '../../util/index.dart';
+import 'package:meta/meta.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/io.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
-import '../../util/index.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
 import '../../models/index.dart';
 import '../../repositories/index.dart';
-import '../../models/index.dart';
+import '../../util/index.dart';
 
 class ChatPage extends StatefulWidget {
   final String event_id, sender_type, event_uid;
@@ -601,24 +595,13 @@ class _ChatBubbleState extends State<ChatBubble> {
                             height: 35,
                             width: 35,
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(540),
-                              child: CachedNetworkImage(
-                                imageUrl:
-                                    "${Url.URL}/api/image?id=${widget.chatMessage.sender_pic}",
-                                placeholder: (context, url) => Container(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.1,
-                                  height:
-                                      MediaQuery.of(context).size.width * 0.1,
-                                  child: Icon(
-                                    Icons.image,
-                                    size: 80,
-                                  ),
-                                ),
-                                errorWidget: (context, url, error) =>
-                                    new Icon(Icons.error),
-                              ),
-                            ),
+                                borderRadius: BorderRadius.circular(540),
+                                child: FadeInImage(
+                                  image: NetworkImage(
+                                      "${Url.URL}/api/image?id=${widget.chatMessage.sender_pic}"),
+                                  placeholder:
+                                      AssetImage('assets/icons/loading.gif'),
+                                )),
                           ),
                           SizedBox(
                             width: 10,

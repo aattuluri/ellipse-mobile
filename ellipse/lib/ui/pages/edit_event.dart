@@ -1,24 +1,23 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:io';
+
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:mime/mime.dart';
+import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:io';
-import 'package:intl/intl.dart';
-import '../../util/routes.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../widgets/index.dart';
-import '../../repositories/index.dart';
+
 import '../../models/index.dart';
-import 'package:http/http.dart' as http;
+import '../../repositories/index.dart';
 import '../../util/index.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:http_parser/http_parser.dart';
+import '../widgets/index.dart';
 
 class EditEvent extends StatefulWidget {
   final int index;
@@ -340,37 +339,11 @@ class _EditEventState extends State<EditEvent> {
                           children: <Widget>[
                             _imageFile == null
                                 ? Center(
-                                    child: CachedNetworkImage(
-                                      imageUrl:
-                                          "${Url.URL}/api/image?id=${_event.imageUrl}",
-                                      filterQuality: FilterQuality.high,
-                                      fadeInDuration:
-                                          Duration(milliseconds: 1000),
-                                      placeholder: (context, url) => Container(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.9,
-                                        height:
-                                            MediaQuery.of(context).size.width *
-                                                0.9,
-                                        child: Icon(
-                                          Icons.image,
-                                          size: 80,
-                                        ),
-                                      ),
-                                      errorWidget: (context, url, error) =>
-                                          Container(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.9,
-                                        height:
-                                            MediaQuery.of(context).size.width *
-                                                0.9,
-                                        child: Icon(
-                                          Icons.error,
-                                          size: 80,
-                                        ),
-                                      ),
+                                    child: FadeInImage(
+                                      image: NetworkImage(
+                                          "${Url.URL}/api/image?id=${_event.imageUrl}"),
+                                      placeholder: AssetImage(
+                                          'assets/icons/loading.gif'),
                                     ),
                                   )
                                 : Image.file(
@@ -465,25 +438,23 @@ class _EditEventState extends State<EditEvent> {
                                     border: OutlineInputBorder(),
                                     labelText: "Event Type"),
                                 child: new DropdownButtonHideUnderline(
-                                  child: Expanded(
-                                    child: new DropdownButton(
-                                      hint: Text(_event.event_type),
-                                      isExpanded: true,
-                                      value: event_type,
-                                      isDense: true,
-                                      items: _eventtypes
-                                          .map((value) => DropdownMenuItem(
-                                                child: Text(value),
-                                                value: value,
-                                              ))
-                                          .toList(),
-                                      onChanged: (newValue) {
-                                        setState(() {
-                                          event_type = newValue;
-                                          state.didChange(newValue);
-                                        });
-                                      },
-                                    ),
+                                  child: new DropdownButton(
+                                    hint: Text(_event.event_type),
+                                    isExpanded: true,
+                                    value: event_type,
+                                    isDense: true,
+                                    items: _eventtypes
+                                        .map((value) => DropdownMenuItem(
+                                              child: Text(value),
+                                              value: value,
+                                            ))
+                                        .toList(),
+                                    onChanged: (newValue) {
+                                      setState(() {
+                                        event_type = newValue;
+                                        state.didChange(newValue);
+                                      });
+                                    },
                                   ),
                                 ),
                               );
@@ -496,27 +467,25 @@ class _EditEventState extends State<EditEvent> {
                                     border: OutlineInputBorder(),
                                     labelText: "College"),
                                 child: new DropdownButtonHideUnderline(
-                                  child: Expanded(
-                                    child: new DropdownButton(
-                                      hint: Text(_event.college_name),
-                                      isExpanded: true,
-                                      value: _college,
-                                      isDense: true,
-                                      items: colleges.map((item) {
-                                        return new DropdownMenuItem(
-                                          child: new Text(
-                                            item['name'],
-                                          ),
-                                          value: item['_id'].toString(),
-                                        );
-                                      }).toList(),
-                                      onChanged: (newValue) {
-                                        setState(() {
-                                          _college = newValue;
-                                          state.didChange(newValue);
-                                        });
-                                      },
-                                    ),
+                                  child: new DropdownButton(
+                                    hint: Text(_event.college_name),
+                                    isExpanded: true,
+                                    value: _college,
+                                    isDense: true,
+                                    items: colleges.map((item) {
+                                      return new DropdownMenuItem(
+                                        child: new Text(
+                                          item['name'],
+                                        ),
+                                        value: item['_id'].toString(),
+                                      );
+                                    }).toList(),
+                                    onChanged: (newValue) {
+                                      setState(() {
+                                        _college = newValue;
+                                        state.didChange(newValue);
+                                      });
+                                    },
                                   ),
                                 ),
                               );

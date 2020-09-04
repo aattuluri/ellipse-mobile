@@ -1,23 +1,18 @@
-import 'package:connectivity/connectivity.dart';
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../menu_drawer/drawer.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import '../tabs/notifications.dart';
-import '../tabs/settings.dart';
-import 'dart:convert';
-import 'dart:async';
-import '../screens/index.dart';
-import 'package:flutter/material.dart';
-import '../tabs/index.dart';
-import '../widgets/index.dart';
+
 import '../../repositories/index.dart';
-import '../../util/index.dart';
 import '../../util/constants.dart' as Constants;
-import 'dart:io';
+import '../../util/index.dart';
 import '../pages/index.dart';
+import '../tabs/index.dart';
+import '../tabs/more.dart';
+import '../tabs/notifications.dart';
 
 class StartScreen extends StatefulWidget {
   final int current_tab;
@@ -53,7 +48,7 @@ class _StartScreenState extends State<StartScreen> {
   ExploreTab exploreTab;
   CalendarTab calendarTab;
   NotificationsTab notificationsTab;
-  SettingsTab settingsTab;
+  MoreTab moreTab;
   List<Widget> pages;
   Widget currentPage;
   int currentTab;
@@ -71,8 +66,8 @@ class _StartScreenState extends State<StartScreen> {
     exploreTab = ExploreTab();
     calendarTab = CalendarTab();
     notificationsTab = NotificationsTab();
-    settingsTab = SettingsTab();
-    pages = [homeTab, exploreTab, calendarTab, notificationsTab, settingsTab];
+    moreTab = MoreTab();
+    pages = [homeTab, exploreTab, calendarTab, notificationsTab, moreTab];
     switch (currentTab) {
       case 0:
         currentPage = homeTab;
@@ -84,7 +79,7 @@ class _StartScreenState extends State<StartScreen> {
         currentPage = notificationsTab;
         break;
       case 3:
-        currentPage = settingsTab;
+        currentPage = moreTab;
         break;
     }
     super.initState();

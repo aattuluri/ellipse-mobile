@@ -19,15 +19,14 @@ import '../../util/constants.dart' as Constants;
 import '../../util/index.dart';
 import '../widgets/index.dart';
 
-class SettingsTab extends StatefulWidget {
-  const SettingsTab({Key key}) : super(key: key);
+class MoreTab extends StatefulWidget {
+  const MoreTab({Key key}) : super(key: key);
 
   @override
-  _SettingsTabState createState() => _SettingsTabState();
+  _MoreTabState createState() => _MoreTabState();
 }
 
-class _SettingsTabState extends State<SettingsTab>
-    with TickerProviderStateMixin {
+class _MoreTabState extends State<MoreTab> with TickerProviderStateMixin {
   String token = "", id = "", email = "", college_id = "";
   Widget view;
   getPref() async {
@@ -215,9 +214,11 @@ class _SettingsTabState extends State<SettingsTab>
                             child: Container(
                               height: 55,
                               width: 55,
-                              child: Image(
+                              child: FadeInImage(
                                 image: NetworkImage(
                                     "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                placeholder:
+                                    AssetImage('assets/icons/loading.gif'),
                               ),
                             ),
                           ),
@@ -548,11 +549,11 @@ class _SettingsTabState extends State<SettingsTab>
           ListCell.icon(
               icon: Icons.public,
               title: "Our Website",
-              subtitle: 'http://139.59.16.53/',
+              subtitle: 'https://ellipseapp.com/',
               //trailing: Icon(Icons.chevron_right),
               onTap: () {
                 FlutterWebBrowser.openWebPage(
-                  url: 'http://139.59.16.53/',
+                  url: 'https://ellipseapp.com/',
                   androidToolbarColor: Theme.of(context).primaryColor,
                 );
               }),

@@ -150,7 +150,7 @@ class SliderMenuContainerState extends State<SliderMenuContainer>
           height: double.infinity,
           color: Colors.white,
           transform: getTranslationValues(widget.sliderOpen),
-          child: Expanded(child: widget.sliderMain)),
+          child: widget.sliderMain),
     ]));
   }
 

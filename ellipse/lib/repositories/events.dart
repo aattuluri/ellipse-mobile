@@ -1,17 +1,15 @@
-import 'package:flutter/cupertino.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/index.dart';
-import 'index.dart';
-import 'package:dio/dio.dart';
-import '../util/index.dart';
-import 'base.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+
+import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter/services.dart';
-import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/index.dart';
+import '../util/index.dart';
+import 'base.dart';
+import 'index.dart';
 
 class EventsRepository extends BaseRepository {
   List<Events> allEvents;
@@ -20,13 +18,6 @@ class EventsRepository extends BaseRepository {
   String token = "", id = "", email = "";
   @override
   Future<void> loadData() async {
-    //await DefaultCacheManager().emptyCache();
-    //PaintingBinding.instance.imageCache.clear();
-    //var appDir = (await getTemporaryDirectory()).path;
-    // new Directory(appDir).delete(recursive: true);
-    //final dir = Directory("/storage/emulated/0/Andrid");
-    //dir.deleteSync(recursive: true);
-    // imageCache.clear();
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     token = prefs.getString("token");

@@ -1,27 +1,17 @@
 import 'dart:async';
-import 'dart:typed_data';
-import 'package:flutter/services.dart';
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:row_collection/row_collection.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../models/index.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../models/index.dart';
 import '../../repositories/index.dart';
-import '../pages/filter_calendar.dart';
-import '../pages/calendar_view.dart';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
-import 'dart:convert';
-import '../pages/index.dart';
-import '../pages/index.dart';
-import '../widgets/index.dart';
 import '../../util/index.dart';
 import '../screens/index.dart';
+import '../widgets/index.dart';
 
 class ItemCard extends StatelessWidget {
   final String text;
@@ -291,7 +281,6 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                             ),
                             Row(
                               children: <Widget>[
-
                                 Text(
                                   "Ell",
                                   style: TextStyle(
@@ -349,14 +338,22 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                   ),
                                 ),
                                 Spacer(),
-                                Container(
-                                  height: 50,
-                                  width: 50,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(540),
-                                    child: Image(
-                                      image: NetworkImage(
-                                          "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                        context, Routes.view_profile);
+                                  },
+                                  child: Container(
+                                    height: 50,
+                                    width: 50,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(540),
+                                      child: FadeInImage(
+                                        image: NetworkImage(
+                                            "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                        placeholder: AssetImage(
+                                            'assets/icons/loading.gif'),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -572,28 +569,11 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                                           "${Url.URL}/api/image?id=${model.allEvents[i].imageUrl}"),
                                                     )
                                                     */
-                                                      CachedNetworkImage(
-                                                    imageUrl:
-                                                        "${Url.URL}/api/image?id=${model.allEvents[i].imageUrl}",
-                                                    filterQuality:
-                                                        FilterQuality.high,
-                                                    fadeInDuration: Duration(
-                                                        milliseconds: 1000),
-                                                    placeholder:
-                                                        (context, url) =>
-                                                            Container(
-                                                      height: 200,
-                                                      child: Icon(
-                                                        Icons.image,
-                                                        size: 20,
-                                                      ),
-                                                    ),
-                                                    errorWidget:
-                                                        (context, url, error) =>
-                                                            Icon(
-                                                      Icons.error,
-                                                      size: 20,
-                                                    ),
+                                                      FadeInImage(
+                                                    image: NetworkImage(
+                                                        "${Url.URL}/api/image?id=${model.allEvents[i].imageUrl}"),
+                                                    placeholder: AssetImage(
+                                                        'assets/icons/loading.gif'),
                                                   ),
                                                 ),
                                               ),

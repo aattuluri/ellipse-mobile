@@ -1,6 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:row_collection/row_collection.dart';
+
 import '../../util/index.dart';
 
 class EventSearchItem extends StatelessWidget {
@@ -17,7 +17,11 @@ class EventSearchItem extends StatelessWidget {
             height: 50,
             width: 50,
             child: ClipRRect(
-              child: CachedNetworkImage(
+                child: FadeInImage(
+              image: NetworkImage("${Url.URL}/api/image?id=${image}"),
+              placeholder: AssetImage('assets/icons/loading.gif'),
+            )
+                /* CachedNetworkImage(
                 imageUrl: "${Url.URL}/api/image?id=${image}",
                 placeholder: (context, url) => Container(
                   width: 50,
@@ -29,7 +33,8 @@ class EventSearchItem extends StatelessWidget {
                 ),
                 errorWidget: (context, url, error) => new Icon(Icons.error),
               ),
-            ),
+              */
+                ),
           ),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

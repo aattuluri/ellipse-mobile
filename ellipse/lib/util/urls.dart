@@ -13,5 +13,4 @@ class Url {
   ///////////////////////////////////////////////////////////////////////////////////
   //static String URL = "https://ellipseserver1.herokuapp.com";
   //static String URL = "http://2.tcp.ngrok.io:17960";
-  //ellipseapp.com
 }
