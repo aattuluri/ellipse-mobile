@@ -1,27 +1,21 @@
 import 'dart:convert';
+import 'dart:core';
+import 'dart:io';
 
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'dart:async';
-import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:system_setting/system_setting.dart';
-import '../../util/constants.dart' as Constants;
-import '../../util/index.dart';
-import '../../providers/index.dart';
-import '../widgets/index.dart';
-import '../../repositories/index.dart';
+
 import '../../models/index.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/http.dart';
-import 'dart:core';
-import 'package:flutter/cupertino.dart';
-import 'package:http_parser/http_parser.dart';
+import '../../repositories/index.dart';
+import '../../util/index.dart';
 
 class EditProfile extends StatefulWidget {
   const EditProfile({Key key}) : super(key: key);

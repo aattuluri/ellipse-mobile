@@ -1,19 +1,11 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:system_setting/system_setting.dart';
-import '../../util/constants.dart' as Constants;
-import '../../util/index.dart';
-import '../../providers/index.dart';
-import '../widgets/index.dart';
-import 'package:http/http.dart' as http;
-import '../../repositories/index.dart';
+
 import '../../models/index.dart';
+import '../../repositories/index.dart';
 import '../../util/index.dart';
 
 /// Here lays all available options for the user to configurate.

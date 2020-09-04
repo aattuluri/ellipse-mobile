@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../repositories/index.dart';
-import '../../ui/screens/auth_screen.dart';
-import '../../util/index.dart';
+
 import '../../util/constants.dart' as Constants;
-import '../widgets/index.dart';
+import '../../util/index.dart';
 
 class SplashScreen extends StatefulWidget {
-
-
   @override
   State<StatefulWidget> createState() => _SplashScreenState();
 }
@@ -29,6 +24,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   void initState() {
+    SharedPreferences.setMockInitialValues({});
     SystemChannels.textInput.invokeMethod('TextInput.hide');
     super.initState();
   }
@@ -100,7 +96,8 @@ class _SplashScreenState extends State<SplashScreen> {
           )),
           InkWell(
             onTap: () {
-              redirect();
+              //redirect();
+              Navigator.pushNamed(context, Routes.signin);
             },
             child: Align(
               alignment: Alignment.bottomCenter,

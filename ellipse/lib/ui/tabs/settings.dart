@@ -1,23 +1,23 @@
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'dart:async';
 import 'dart:io';
+
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_web_browser/flutter_web_browser.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
 import 'package:share/share.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:system_setting/system_setting.dart';
+
+import '../../models/index.dart';
+import '../../providers/index.dart';
+import '../../repositories/index.dart';
+//import 'package:system_setting/system_setting.dart';
 import '../../util/constants.dart' as Constants;
 import '../../util/index.dart';
-import '../../providers/index.dart';
 import '../widgets/index.dart';
-import 'package:http/http.dart' as http;
-import '../pages/index.dart';
-import '../../repositories/index.dart';
-import '../../models/index.dart';
-import 'package:flutter_web_browser/flutter_web_browser.dart';
 
 class SettingsTab extends StatefulWidget {
   const SettingsTab({Key key}) : super(key: key);
@@ -408,7 +408,8 @@ class _SettingsTabState extends State<SettingsTab>
             title: "Notifications",
             subtitle: "On/Off",
             trailing: Icon(Icons.chevron_right),
-            onTap: () => SystemSetting.goto(SettingTarget.NOTIFICATION),
+            onTap: () {},
+            //=> SystemSetting.goto(SettingTarget.NOTIFICATION),
           ),
           /*
           Separator.divider(indent: 72),
@@ -593,7 +594,7 @@ class _SettingsTabState extends State<SettingsTab>
               //trailing: Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.pushNamed(context, Routes.help_support);
-               // HelpSupport
+                // HelpSupport
                 /*FlutterWebBrowser.openWebPage(
                 url: 'mailto:gunasekhar158@gmail.com?subject=Feedback/Issue',
                 androidToolbarColor: Theme.of(context).primaryColor,

@@ -60,4 +60,5 @@ or in production mode.
 
 flutter run --release -t lib/main_production.dart -d <device_id>
 For iOS, to build and release there is no configuration. Just follow the instructions from the documentation.
+
 */

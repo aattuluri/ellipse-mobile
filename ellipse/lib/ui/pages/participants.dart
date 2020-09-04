@@ -1,19 +1,13 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
-import 'dart:async';
 import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-import 'package:row_collection/row_collection.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:system_setting/system_setting.dart';
-import '../../util/constants.dart' as Constants;
-import '../../util/index.dart';
-import '../../providers/index.dart';
-import '../widgets/index.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../util/index.dart';
+import '../widgets/index.dart';
 
 class Participants extends StatefulWidget {
   final String event_id;
