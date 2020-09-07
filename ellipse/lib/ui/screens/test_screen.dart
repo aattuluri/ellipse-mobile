@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../pages/index.dart';
 import '../widgets/index.dart';
 
@@ -120,8 +121,7 @@ class _TestState extends State<Test> {
                 ),
                 SizedBox(height: 3),
                 SlideMenuItem1(Icons.share, "Share", "Share Event", () {}),
-                SlideMenuItem1(
-                    Icons.edit_outlined, "Edit Event", "Edit Event", () {}),
+                SlideMenuItem1(Icons.edit, "Edit Event", "Edit Event", () {}),
                 SlideMenuItem1(
                     Icons.delete, "Delete Event", "Delete Event", () {}),
               ],

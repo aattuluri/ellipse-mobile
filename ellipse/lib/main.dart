@@ -1,16 +1,13 @@
-import 'package:flutter/services.dart';
-
-import 'ui/screens/auth_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'util/constants.dart' as Constants;
-import 'util/routes.dart';
-import 'ui/screens/start.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
 import 'providers/index.dart';
 import 'repositories/index.dart';
+import 'util/routes.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
   ));
@@ -19,7 +16,6 @@ void main() async {
   runApp(App());
 }
 
-/// Builds the neccesary providers, as well as the home page.
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -27,7 +23,7 @@ class App extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => ImageQualityProvider()),
-        ChangeNotifierProvider(create: (_) => NotificationsProvider()),
+        // ChangeNotifierProvider(create: (_) => NotificationsProvider()),
         ChangeNotifierProvider(create: (_) => EventsRepository()),
         ChangeNotifierProvider(create: (_) => UserDetailsRepository()),
         ChangeNotifierProvider(create: (_) => NotificationsRepository()),

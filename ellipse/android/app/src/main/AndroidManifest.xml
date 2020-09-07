@@ -1,14 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.guna0027.ellipse"
-    android:versionCode="1"
-    android:versionName="1.0.0">
+    package="com.guna0027.ellipse">
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
          In most cases you can leave this as-is, but you if you want to provide
          additional functionality it is fine to subclass or reimplement
          FlutterApplication and put your custom class here. -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission
@@ -17,11 +16,8 @@
         android:name="io.flutter.app.FlutterApplication"
         android:label="ellipse"
         android:icon="@mipmap/ic_launcher">
-        <!--android:networkSecurityConfig="@xml/network_security_config"
-        tools:targetApi="29"-->
-
         <activity
-            android:name="MainActivity"
+            android:name=".MainActivity"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
@@ -54,9 +50,7 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-
         <meta-data android:name="io.flutter.network-policy"
             android:resource="@xml/network_security_config"/>
-
     </application>
 </manifest>

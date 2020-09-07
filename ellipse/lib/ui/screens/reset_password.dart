@@ -1,16 +1,13 @@
-import 'dart:math';
-import 'dart:convert';
-import '../../util/routes.dart';
-import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:flutter/painting.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/painting.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
-import '../../util/constants.dart' as Constants;
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../util/index.dart';
-import '../widgets/index.dart';
+import '../../util/routes.dart';
 import '../screens/index.dart';
 
 class ResetPassword extends StatefulWidget {
@@ -85,462 +82,484 @@ class _ResetPasswordState extends State<ResetPassword> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Scaffold(
-        body: Form(
-          key: _key,
-          child: Stack(
-            children: <Widget>[
-              Positioned(
-                  top: 10,
-                  right: -MediaQuery.of(context).size.width * .4,
-                  child: Container()),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: <Widget>[
-                      SizedBox(
-                        height: 10,
-                      ),
-                      InkWell(
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            Routes.signin,
-                          );
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10),
-                          child: Row(
-                            children: <Widget>[
-                              Container(
-                                padding: EdgeInsets.only(
-                                    left: 0, top: 10, bottom: 10),
-                                child: Icon(Icons.keyboard_arrow_left,
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .caption
-                                        .color),
-                              ),
-                              Text('Back to Login',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
+      child: WillPopScope(
+        onWillPop: () async {
+          return false;
+        },
+        child: Scaffold(
+          body: Form(
+            key: _key,
+            child: Stack(
+              children: <Widget>[
+                Positioned(
+                    top: 10,
+                    right: -MediaQuery.of(context).size.width * .4,
+                    child: Container()),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: <Widget>[
+                        SizedBox(
+                          height: 10,
+                        ),
+                        InkWell(
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              Routes.signin,
+                            );
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            child: Row(
+                              children: <Widget>[
+                                Container(
+                                  padding: EdgeInsets.only(
+                                      left: 0, top: 10, bottom: 10),
+                                  child: Icon(Icons.keyboard_arrow_left,
                                       color: Theme.of(context)
                                           .textTheme
                                           .caption
-                                          .color))
-                            ],
+                                          .color),
+                                ),
+                                Text('Back to Login',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .caption
+                                            .color))
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(height: 10),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            "Ell",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 45,
-                                fontFamily: 'Gugi',
-                                fontWeight: FontWeight.w800),
-                          ),
-                          Text(
-                            "i",
-                            style: TextStyle(
-                                color: Color(0xffFFA700),
-                                fontSize: 45,
-                                fontFamily: 'Gugi',
-                                fontWeight: FontWeight.w800),
-                          ),
-                          Text(
-                            "pse",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 45,
-                                fontFamily: 'Gugi',
-                                fontWeight: FontWeight.w800),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 30),
-                      widget.type == "enter_email"
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 20.0),
-                                  child: Text(
-                                    "Email",
-                                    style: TextStyle(
-                                        color: Colors.grey, fontSize: 16.0),
-                                  ),
-                                ),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Colors.grey.withOpacity(0.5),
-                                      width: 1.0,
+                        SizedBox(height: 10),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Text(
+                              "Ell",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 45,
+                                  fontFamily: 'Gugi',
+                                  fontWeight: FontWeight.w800),
+                            ),
+                            Text(
+                              "i",
+                              style: TextStyle(
+                                  color: Color(0xffFFA700),
+                                  fontSize: 45,
+                                  fontFamily: 'Gugi',
+                                  fontWeight: FontWeight.w800),
+                            ),
+                            Text(
+                              "pse",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 45,
+                                  fontFamily: 'Gugi',
+                                  fontWeight: FontWeight.w800),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 30),
+                        widget.type == "enter_email"
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 20.0),
+                                    child: Text(
+                                      "Email",
+                                      style: TextStyle(
+                                          color: Colors.grey, fontSize: 16.0),
                                     ),
-                                    borderRadius: BorderRadius.circular(20.0),
                                   ),
-                                  margin: const EdgeInsets.symmetric(
-                                      vertical: 10.0, horizontal: 5.0),
-                                  child: Row(
-                                    children: <Widget>[
-                                      new Padding(
-                                        padding: EdgeInsets.symmetric(
-                                            vertical: 10.0, horizontal: 15.0),
-                                        child: Icon(
-                                          Icons.email,
-                                          color: Colors.grey,
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        width: 1.0,
+                                      ),
+                                      borderRadius: BorderRadius.circular(20.0),
+                                    ),
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 10.0, horizontal: 5.0),
+                                    child: Row(
+                                      children: <Widget>[
+                                        new Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 10.0, horizontal: 15.0),
+                                          child: Icon(
+                                            Icons.email,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        Container(
+                                          height: 30.0,
+                                          width: 1.0,
+                                          color: Colors.grey.withOpacity(0.5),
+                                          margin: const EdgeInsets.only(
+                                              left: 00.0, right: 10.0),
+                                        ),
+                                        new Expanded(
+                                          child: TextField(
+                                            onChanged: (value) {
+                                              email = value;
+                                            },
+                                            keyboardType:
+                                                TextInputType.emailAddress,
+                                            obscureText: false,
+                                            decoration: InputDecoration(
+                                              border: InputBorder.none,
+                                              hintText: 'Enter your email',
+                                              hintStyle:
+                                                  TextStyle(color: Colors.grey),
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 5,
+                                  ),
+                                  Container(
+                                    margin: const EdgeInsets.only(top: 20.0),
+                                    padding: const EdgeInsets.only(
+                                        left: 20.0, right: 20.0),
+                                    child: new Row(
+                                      children: <Widget>[
+                                        new Expanded(
+                                          child: FlatButton(
+                                            shape: new RoundedRectangleBorder(
+                                                borderRadius:
+                                                    new BorderRadius.circular(
+                                                        30.0)),
+                                            splashColor: Theme.of(context)
+                                                .scaffoldBackgroundColor
+                                                .withOpacity(0.6),
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .caption
+                                                .color
+                                                .withOpacity(0.5),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 15),
+                                              child: new Row(
+                                                children: <Widget>[
+                                                  new Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 20.0),
+                                                    child: Text(
+                                                      "GET OTP",
+                                                      style: TextStyle(
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .scaffoldBackgroundColor),
+                                                    ),
+                                                  ),
+                                                  new Expanded(
+                                                    child: Container(),
+                                                  ),
+                                                  new Transform.translate(
+                                                    offset: Offset(15.0, 0.0),
+                                                    child: new Container(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              right: 15),
+                                                      child: Icon(
+                                                        Icons.arrow_forward,
+                                                        color: Theme.of(context)
+                                                            .scaffoldBackgroundColor,
+                                                      ),
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                            onPressed: () async {
+                                              SharedPreferences
+                                                  sharedPreferences =
+                                                  await SharedPreferences
+                                                      .getInstance();
+                                              sharedPreferences.setString(
+                                                  "verification_email", email);
+                                              var route = new MaterialPageRoute(
+                                                builder:
+                                                    (BuildContext context) =>
+                                                        OtpPageEmailVerify(
+                                                            email.trim(),
+                                                            "reset_password"),
+                                              );
+                                              Navigator.of(context).push(route);
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: 10),
+                                ],
+                              )
+                            : widget.type == "enter_password"
+                                ? Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 20.0),
+                                        child: Text(
+                                          "Password",
+                                          style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 16.0),
                                         ),
                                       ),
                                       Container(
-                                        height: 30.0,
-                                        width: 1.0,
-                                        color: Colors.grey.withOpacity(0.5),
-                                        margin: const EdgeInsets.only(
-                                            left: 00.0, right: 10.0),
-                                      ),
-                                      new Expanded(
-                                        child: TextField(
-                                          onChanged: (value) {
-                                            email = value;
-                                          },
-                                          keyboardType:
-                                              TextInputType.emailAddress,
-                                          obscureText: false,
-                                          decoration: InputDecoration(
-                                            border: InputBorder.none,
-                                            hintText: 'Enter your email',
-                                            hintStyle:
-                                                TextStyle(color: Colors.grey),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.grey.withOpacity(0.5),
+                                            width: 1.0,
                                           ),
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
                                         ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 5,
-                                ),
-                                Container(
-                                  margin: const EdgeInsets.only(top: 20.0),
-                                  padding: const EdgeInsets.only(
-                                      left: 20.0, right: 20.0),
-                                  child: new Row(
-                                    children: <Widget>[
-                                      new Expanded(
-                                        child: FlatButton(
-                                          shape: new RoundedRectangleBorder(
-                                              borderRadius:
-                                                  new BorderRadius.circular(
-                                                      30.0)),
-                                          splashColor: Theme.of(context)
-                                              .scaffoldBackgroundColor
-                                              .withOpacity(0.6),
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color
-                                              .withOpacity(0.5),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 15),
-                                            child: new Row(
-                                              children: <Widget>[
-                                                new Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          left: 20.0),
-                                                  child: Text(
-                                                    "GET OTP",
-                                                    style: TextStyle(
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 10.0, horizontal: 5.0),
+                                        child: Row(
+                                          children: <Widget>[
+                                            new Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: 10.0,
+                                                  horizontal: 15.0),
+                                              child: Icon(
+                                                Icons.lock,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                            Container(
+                                              height: 30.0,
+                                              width: 1.0,
+                                              color:
+                                                  Colors.grey.withOpacity(0.5),
+                                              margin: const EdgeInsets.only(
+                                                  left: 00.0, right: 10.0),
+                                            ),
+                                            new Expanded(
+                                              child: TextField(
+                                                onChanged: (value) {
+                                                  password = value;
+                                                },
+                                                keyboardType:
+                                                    TextInputType.text,
+                                                obscureText: _secureText1,
+                                                decoration: InputDecoration(
+                                                  suffixIcon: IconButton(
+                                                    onPressed: showHide1,
+                                                    icon: Icon(
+                                                        _secureText1
+                                                            ? Icons.visibility
+                                                            : Icons
+                                                                .visibility_off,
                                                         color: Theme.of(context)
-                                                            .scaffoldBackgroundColor),
+                                                            .textTheme
+                                                            .caption
+                                                            .color),
                                                   ),
+                                                  border: InputBorder.none,
+                                                  hintText:
+                                                      'Enter your password',
+                                                  hintStyle: TextStyle(
+                                                      color: Colors.grey),
                                                 ),
-                                                new Expanded(
-                                                  child: Container(),
-                                                ),
-                                                new Transform.translate(
-                                                  offset: Offset(15.0, 0.0),
-                                                  child: new Container(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            right: 15),
-                                                    child: Icon(
-                                                      Icons.arrow_forward,
-                                                      color: Theme.of(context)
-                                                          .scaffoldBackgroundColor,
-                                                    ),
-                                                  ),
-                                                )
-                                              ],
-                                            ),
-                                          ),
-                                          onPressed: () async {
-                                            SharedPreferences
-                                                sharedPreferences =
-                                                await SharedPreferences
-                                                    .getInstance();
-                                            sharedPreferences.setString(
-                                                "verification_email", email);
-                                            var route = new MaterialPageRoute(
-                                              builder: (BuildContext context) =>
-                                                  OtpPageEmailVerify(
-                                                      email.trim(),
-                                                      "reset_password"),
-                                            );
-                                            Navigator.of(context).push(route);
-                                          },
+                                              ),
+                                            )
+                                          ],
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(height: 10),
-                              ],
-                            )
-                          : widget.type == "enter_password"
-                              ? Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Padding(
-                                      padding:
-                                          const EdgeInsets.only(left: 20.0),
-                                      child: Text(
-                                        "Password",
-                                        style: TextStyle(
-                                            color: Colors.grey, fontSize: 16.0),
-                                      ),
-                                    ),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Colors.grey.withOpacity(0.5),
-                                          width: 1.0,
-                                        ),
-                                        borderRadius:
-                                            BorderRadius.circular(20.0),
-                                      ),
-                                      margin: const EdgeInsets.symmetric(
-                                          vertical: 10.0, horizontal: 5.0),
-                                      child: Row(
-                                        children: <Widget>[
-                                          new Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 10.0,
-                                                horizontal: 15.0),
-                                            child: Icon(
-                                              Icons.lock,
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 20.0),
+                                        child: Text(
+                                          "Confirm Password",
+                                          style: TextStyle(
                                               color: Colors.grey,
-                                            ),
-                                          ),
-                                          Container(
-                                            height: 30.0,
-                                            width: 1.0,
+                                              fontSize: 16.0),
+                                        ),
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
                                             color: Colors.grey.withOpacity(0.5),
-                                            margin: const EdgeInsets.only(
-                                                left: 00.0, right: 10.0),
+                                            width: 1.0,
                                           ),
-                                          new Expanded(
-                                            child: TextField(
-                                              onChanged: (value) {
-                                                password = value;
-                                              },
-                                              keyboardType: TextInputType.text,
-                                              obscureText: _secureText1,
-                                              decoration: InputDecoration(
-                                                suffixIcon: IconButton(
-                                                  onPressed: showHide1,
-                                                  icon: Icon(
-                                                      _secureText1
-                                                          ? Icons.visibility
-                                                          : Icons
-                                                              .visibility_off,
-                                                      color: Theme.of(context)
-                                                          .textTheme
-                                                          .caption
-                                                          .color),
-                                                ),
-                                                border: InputBorder.none,
-                                                hintText: 'Enter your password',
-                                                hintStyle: TextStyle(
-                                                    color: Colors.grey),
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                        ),
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 10.0, horizontal: 5.0),
+                                        child: Row(
+                                          children: <Widget>[
+                                            new Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: 10.0,
+                                                  horizontal: 15.0),
+                                              child: Icon(
+                                                Icons.lock,
+                                                color: Colors.grey,
                                               ),
                                             ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding:
-                                          const EdgeInsets.only(left: 20.0),
-                                      child: Text(
-                                        "Confirm Password",
-                                        style: TextStyle(
-                                            color: Colors.grey, fontSize: 16.0),
-                                      ),
-                                    ),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Colors.grey.withOpacity(0.5),
-                                          width: 1.0,
-                                        ),
-                                        borderRadius:
-                                            BorderRadius.circular(20.0),
-                                      ),
-                                      margin: const EdgeInsets.symmetric(
-                                          vertical: 10.0, horizontal: 5.0),
-                                      child: Row(
-                                        children: <Widget>[
-                                          new Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 10.0,
-                                                horizontal: 15.0),
-                                            child: Icon(
-                                              Icons.lock,
-                                              color: Colors.grey,
+                                            Container(
+                                              height: 30.0,
+                                              width: 1.0,
+                                              color:
+                                                  Colors.grey.withOpacity(0.5),
+                                              margin: const EdgeInsets.only(
+                                                  left: 00.0, right: 10.0),
                                             ),
-                                          ),
-                                          Container(
-                                            height: 30.0,
-                                            width: 1.0,
-                                            color: Colors.grey.withOpacity(0.5),
-                                            margin: const EdgeInsets.only(
-                                                left: 00.0, right: 10.0),
-                                          ),
-                                          new Expanded(
-                                            child: TextField(
-                                              onChanged: (value) {
-                                                cpassword = value;
-                                              },
-                                              keyboardType: TextInputType.text,
-                                              obscureText: _secureText2,
-                                              decoration: InputDecoration(
-                                                suffixIcon: IconButton(
-                                                  onPressed: showHide2,
-                                                  icon: Icon(
-                                                      _secureText2
-                                                          ? Icons.visibility
-                                                          : Icons
-                                                              .visibility_off,
-                                                      color: Theme.of(context)
-                                                          .textTheme
-                                                          .caption
-                                                          .color),
+                                            new Expanded(
+                                              child: TextField(
+                                                onChanged: (value) {
+                                                  cpassword = value;
+                                                },
+                                                keyboardType:
+                                                    TextInputType.text,
+                                                obscureText: _secureText2,
+                                                decoration: InputDecoration(
+                                                  suffixIcon: IconButton(
+                                                    onPressed: showHide2,
+                                                    icon: Icon(
+                                                        _secureText2
+                                                            ? Icons.visibility
+                                                            : Icons
+                                                                .visibility_off,
+                                                        color: Theme.of(context)
+                                                            .textTheme
+                                                            .caption
+                                                            .color),
+                                                  ),
+                                                  border: InputBorder.none,
+                                                  hintText:
+                                                      'Enter your password',
+                                                  hintStyle: TextStyle(
+                                                      color: Colors.grey),
                                                 ),
-                                                border: InputBorder.none,
-                                                hintText: 'Enter your password',
-                                                hintStyle: TextStyle(
-                                                    color: Colors.grey),
                                               ),
-                                            ),
-                                          )
-                                        ],
+                                            )
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    Container(
-                                      margin: const EdgeInsets.only(top: 20.0),
-                                      padding: const EdgeInsets.only(
-                                          left: 20.0, right: 20.0),
-                                      child: new Row(
-                                        children: <Widget>[
-                                          new Expanded(
-                                            child: FlatButton(
-                                              shape: new RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      new BorderRadius.circular(
-                                                          30.0)),
-                                              splashColor: Theme.of(context)
-                                                  .scaffoldBackgroundColor
-                                                  .withOpacity(0.6),
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .caption
-                                                  .color
-                                                  .withOpacity(0.5),
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        vertical: 15),
-                                                child: new Row(
-                                                  children: <Widget>[
-                                                    new Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 20.0),
-                                                      child: Text(
-                                                        "RESET PASSWORD",
-                                                        style: TextStyle(
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .scaffoldBackgroundColor),
-                                                      ),
-                                                    ),
-                                                    new Expanded(
-                                                      child: Container(),
-                                                    ),
-                                                    new Transform.translate(
-                                                      offset: Offset(15.0, 0.0),
-                                                      child: new Container(
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Container(
+                                        margin:
+                                            const EdgeInsets.only(top: 20.0),
+                                        padding: const EdgeInsets.only(
+                                            left: 20.0, right: 20.0),
+                                        child: new Row(
+                                          children: <Widget>[
+                                            new Expanded(
+                                              child: FlatButton(
+                                                shape:
+                                                    new RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            new BorderRadius
+                                                                    .circular(
+                                                                30.0)),
+                                                splashColor: Theme.of(context)
+                                                    .scaffoldBackgroundColor
+                                                    .withOpacity(0.6),
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .caption
+                                                    .color
+                                                    .withOpacity(0.5),
+                                                child: Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(vertical: 15),
+                                                  child: new Row(
+                                                    children: <Widget>[
+                                                      new Padding(
                                                         padding:
                                                             const EdgeInsets
                                                                     .only(
-                                                                right: 15),
-                                                        child: Icon(
-                                                          Icons.arrow_forward,
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .scaffoldBackgroundColor,
+                                                                left: 20.0),
+                                                        child: Text(
+                                                          "RESET PASSWORD",
+                                                          style: TextStyle(
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .scaffoldBackgroundColor),
                                                         ),
                                                       ),
-                                                    )
-                                                  ],
+                                                      new Expanded(
+                                                        child: Container(),
+                                                      ),
+                                                      new Transform.translate(
+                                                        offset:
+                                                            Offset(15.0, 0.0),
+                                                        child: new Container(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                      .only(
+                                                                  right: 15),
+                                                          child: Icon(
+                                                            Icons.arrow_forward,
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .scaffoldBackgroundColor,
+                                                          ),
+                                                        ),
+                                                      )
+                                                    ],
+                                                  ),
                                                 ),
+                                                onPressed: () async {
+                                                  if (password != cpassword) {
+                                                    Fluttertoast.showToast(
+                                                        msg:
+                                                            "Both password should be same",
+                                                        toastLength:
+                                                            Toast.LENGTH_SHORT,
+                                                        gravity:
+                                                            ToastGravity.TOP,
+                                                        textColor: Colors.white,
+                                                        timeInSecForIosWeb: 2,
+                                                        backgroundColor:
+                                                            Colors.black);
+                                                  } else {
+                                                    reset_password();
+                                                  }
+                                                },
                                               ),
-                                              onPressed: () async {
-                                                if (password != cpassword) {
-                                                  Fluttertoast.showToast(
-                                                      msg:
-                                                          "Both password should be same",
-                                                      toastLength:
-                                                          Toast.LENGTH_SHORT,
-                                                      gravity: ToastGravity.TOP,
-                                                      textColor: Colors.white,
-                                                      timeInSecForIosWeb: 2,
-                                                      backgroundColor:
-                                                          Colors.black);
-                                                } else {
-                                                  reset_password();
-                                                }
-                                              },
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(height: 10),
-                                  ],
-                                )
-                              : Container()
-                    ],
+                                      SizedBox(height: 10),
+                                    ],
+                                  )
+                                : Container()
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

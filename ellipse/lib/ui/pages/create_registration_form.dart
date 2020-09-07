@@ -184,12 +184,8 @@ class DynamicWidgetState extends State<DynamicWidget> {
                               width: 10,
                             ),
                             Icon(
-                              Icons.radio_button_off,
-                              // Icons
-                              //.check_box_outline_blank,
+                              Icons.radio_button_unchecked,
                               color: Theme.of(context).textTheme.caption.color,
-                              //: Colors.grey
-                              //.withOpacity(0.6),
                             ),
                             SizedBox(
                               width: 10,
@@ -267,7 +263,7 @@ class DynamicWidgetState extends State<DynamicWidget> {
                       child: InkWell(
                         onTap: () {},
                         child: Icon(
-                          Icons.paste,
+                          Icons.content_paste,
                           size: 25,
                         ),
                       ),
@@ -478,12 +474,6 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
                               });
                               Navigator.pop(context);
                               Navigator.pop(context);
-                              scrollController.animateTo(
-                                scrollController.position.maxScrollExtent +
-                                    1000,
-                                duration: Duration(milliseconds: 1000),
-                                curve: Curves.easeOut,
-                              );
                             }
                           },
                           child: Container(

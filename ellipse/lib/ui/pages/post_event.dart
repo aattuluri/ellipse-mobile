@@ -78,6 +78,7 @@ class _PostEventState extends State<PostEvent>
     });
   }
 
+  final _picker = ImagePicker();
   final int initPage = 0;
   PageController _pageController;
   List<String> tabs = ['Step-1', 'Step-2', 'Step-3', 'Step-4'];
@@ -135,20 +136,19 @@ class _PostEventState extends State<PostEvent>
     _controller.forward();
   }
 
-  @override
   // To store the file provided by the image_picker
   File _imageFile;
 
   // To track the file uploading state
 
   void _getImage(BuildContext context, ImageSource source) async {
-    File image = await ImagePicker.pickImage(source: source, imageQuality: 50);
-    // Compress plugin
-
+    final pickedFile = await _picker.getImage(source: source, imageQuality: 70);
+    final File file = File(pickedFile.path);
+    //File file = await FilePicker.getFile(type: FileType.image);
     setState(() {
-      _imageFile = image;
+      _imageFile = File(pickedFile.path);
+      //_imageFile = file;
     });
-
     // Closes the bottom sheet
     Navigator.pop(context);
   }
@@ -1807,7 +1807,7 @@ class _PostEventState extends State<PostEvent>
                                                       child: InkWell(
                                                         onTap: () {},
                                                         child: Icon(
-                                                          Icons.paste,
+                                                          Icons.content_paste,
                                                           size: 25,
                                                         ),
                                                       ),

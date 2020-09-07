@@ -173,8 +173,8 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                       )),
                 ),
                 SizedBox(height: 3),
-                SlideMenuItem1(Icons.group_outlined, "Participants",
-                    "Registered Participants", () {
+                SlideMenuItem1(
+                    Icons.group, "Participants", "Registered Participants", () {
                   setState(() {
                     view = Participants(_event.id);
                     default_view = false;
@@ -220,8 +220,7 @@ class _MyEventsInfoPageState extends State<MyEventsInfoPage>
                 SlideMenuItem1(Icons.share, "Share", "Share Event", () {
                   Share.share("https://ellipseapp.com/un/event/${_event.id}");
                 }),
-                SlideMenuItem1(Icons.edit_outlined, "Edit Event", "Edit Event",
-                    () {
+                SlideMenuItem1(Icons.edit, "Edit Event", "Edit Event", () {
                   setState(() {
                     view = EditEvent(widget.index);
                     default_view = false;

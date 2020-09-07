@@ -27,6 +27,7 @@ class EditProfile extends StatefulWidget {
 class _EditProfileState extends State<EditProfile> {
   final _key = new GlobalKey<FormState>();
   bool isloading = false;
+  final _picker = ImagePicker();
   String token = "", id = "", email = "", college_id = "";
   String designation;
   final List<String> _designations = ["Student", "Club"];
@@ -53,13 +54,12 @@ class _EditProfileState extends State<EditProfile> {
   bool _isUploading = false;
 
   void _getImage(BuildContext context, ImageSource source) async {
-    File image = await ImagePicker.pickImage(source: source, imageQuality: 10);
-    // Compress plugin
+    final pickedFile = await _picker.getImage(source: source, imageQuality: 70);
+    // final File file = File(pickedFile.path);
 
     setState(() {
-      _imageFile = image;
+      _imageFile = File(pickedFile.path);
     });
-
     // Closes the bottom sheet
     Navigator.pop(context);
   }

@@ -45,6 +45,7 @@ class _EditEventState extends State<EditEvent> {
   String requirement;
   String reg_mode;
   String selected = "";
+  final _picker = ImagePicker();
   getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
@@ -72,13 +73,12 @@ class _EditEventState extends State<EditEvent> {
   bool _isUploading = false;
 
   void _getImage(BuildContext context, ImageSource source) async {
-    File image = await ImagePicker.pickImage(source: source, imageQuality: 10);
-    // Compress plugin
+    final pickedFile = await _picker.getImage(source: source, imageQuality: 70);
+    // final File file = File(pickedFile.path);
 
     setState(() {
-      _imageFile = image;
+      _imageFile = File(pickedFile.path);
     });
-
     // Closes the bottom sheet
     Navigator.pop(context);
   }
@@ -942,7 +942,7 @@ class _EditEventState extends State<EditEvent> {
                                               .color,
                                         )
                                       : Icon(
-                                          Icons.radio_button_off,
+                                          Icons.radio_button_unchecked,
                                           color: Theme.of(context)
                                               .textTheme
                                               .caption
@@ -983,7 +983,7 @@ class _EditEventState extends State<EditEvent> {
                                               .color,
                                         )
                                       : Icon(
-                                          Icons.radio_button_off,
+                                          Icons.radio_button_unchecked,
                                           color: Theme.of(context)
                                               .textTheme
                                               .caption
@@ -1087,7 +1087,7 @@ class _EditEventState extends State<EditEvent> {
                                               .color,
                                         )
                                       : Icon(
-                                          Icons.radio_button_off,
+                                          Icons.radio_button_unchecked,
                                           color: Theme.of(context)
                                               .textTheme
                                               .caption
@@ -1128,7 +1128,7 @@ class _EditEventState extends State<EditEvent> {
                                               .color,
                                         )
                                       : Icon(
-                                          Icons.radio_button_off,
+                                          Icons.radio_button_unchecked,
                                           color: Theme.of(context)
                                               .textTheme
                                               .caption

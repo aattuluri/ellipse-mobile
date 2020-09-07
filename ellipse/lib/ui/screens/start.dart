@@ -85,130 +85,141 @@ class _StartScreenState extends State<StartScreen> {
     super.initState();
   }
 
+  Future<bool> _exitApp() {
+    Navigator.of(context).pop(false);
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<EventsRepository>(
-      builder: (context, model1, child) => Consumer<UserDetailsRepository>(
-        builder: (context, model2, child) => Consumer<NotificationsRepository>(
-          builder: (context, model3, child) => SafeArea(
-            child:
-                //////////////////////////////////
-                model1.isLoading ||
-                        model1.loadingFailed ||
-                        model2.isLoading ||
-                        model2.loadingFailed ||
-                        model3.isLoading ||
-                        model3.loadingFailed
-                    ? Scaffold(
-                        body: Align(
-                          alignment: Alignment.center,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CircularProgressIndicator(),
-                              SizedBox(
-                                height: 40,
-                              ),
-                              Text(
-                                "Loading",
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .caption
-                                        .color,
-                                    fontSize: 40.0,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(
-                                height: 20,
-                              ),
-                              Text(
-                                "Please Wait....",
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .caption
-                                        .color,
-                                    fontSize: 30.0,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    :
-                    ////////////////////////////
-                    Scaffold(
-                        key: scaffoldKey,
-                        body: currentPage,
-                        bottomNavigationBar: Container(
-                          /*
-                        decoration: BoxDecoration(
-                          border: Border(
-                            top: BorderSide(
-                              width: 1.0,
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .caption
-                                  .color
-                                  .withOpacity(0.1),
-                            ),
-                          ),
-                        ),
-                        */
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(25.0),
-                              topRight: Radius.circular(25.0),
-                            ),
-                            child: BottomNavigationBar(
-                              iconSize: 30,
-                              elevation: 5,
-                              selectedLabelStyle:
-                                  TextStyle(fontFamily: 'ProductSans'),
-                              unselectedLabelStyle:
-                                  TextStyle(fontFamily: 'ProductSans'),
-                              type: BottomNavigationBarType.fixed,
-                              currentIndex: currentTab,
-                              onTap: (index) async {
-                                setState(() {
-                                  currentTab = index;
-                                  currentPage = pages[index];
-                                });
-                              },
-                              items: <BottomNavigationBarItem>[
-                                BottomNavigationBarItem(
-                                  title: SizedBox.shrink(),
-                                  //title: Text("Home"),
-                                  icon: Icon(Icons.home),
+    return WillPopScope(
+      onWillPop: () async {
+        return false;
+      },
+      child: Consumer<EventsRepository>(
+        builder: (context, model1, child) => Consumer<UserDetailsRepository>(
+          builder: (context, model2, child) =>
+              Consumer<NotificationsRepository>(
+            builder: (context, model3, child) => SafeArea(
+              child:
+                  //////////////////////////////////
+                  model1.isLoading ||
+                          model1.loadingFailed ||
+                          model2.isLoading ||
+                          model2.loadingFailed ||
+                          model3.isLoading ||
+                          model3.loadingFailed
+                      ? Scaffold(
+                          body: Align(
+                            alignment: Alignment.center,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(
+                                  height: 40,
                                 ),
-                                BottomNavigationBarItem(
-                                  title: SizedBox.shrink(),
-                                  //title: Text("Explore"),
-                                  icon: Icon(Icons.explore),
+                                Text(
+                                  "Loading",
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color,
+                                      fontSize: 40.0,
+                                      fontWeight: FontWeight.bold),
                                 ),
-                                BottomNavigationBarItem(
-                                  title: SizedBox.shrink(),
-                                  //title: Text("Calendar"),
-                                  icon: Icon(Icons.event),
+                                SizedBox(
+                                  height: 20,
                                 ),
-                                BottomNavigationBarItem(
-                                  title: SizedBox.shrink(),
-                                  //title: Text("Notifications"),
-                                  icon: Icon(Icons.notifications),
-                                ),
-                                BottomNavigationBarItem(
-                                  title: SizedBox.shrink(),
-                                  //title: Text("Settings"),
-                                  //icon: Icon(Icons.settings),
-                                  icon: Icon(Icons.menu),
+                                Text(
+                                  "Please Wait....",
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color,
+                                      fontSize: 30.0,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
                           ),
+                        )
+                      :
+                      ////////////////////////////
+                      Scaffold(
+                          key: scaffoldKey,
+                          body: currentPage,
+                          bottomNavigationBar: Container(
+                            /*
+                          decoration: BoxDecoration(
+                            border: Border(
+                              top: BorderSide(
+                                width: 1.0,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .caption
+                                    .color
+                                    .withOpacity(0.1),
+                              ),
+                            ),
+                          ),
+                          */
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(25.0),
+                                topRight: Radius.circular(25.0),
+                              ),
+                              child: BottomNavigationBar(
+                                iconSize: 30,
+                                elevation: 5,
+                                selectedLabelStyle:
+                                    TextStyle(fontFamily: 'ProductSans'),
+                                unselectedLabelStyle:
+                                    TextStyle(fontFamily: 'ProductSans'),
+                                type: BottomNavigationBarType.fixed,
+                                currentIndex: currentTab,
+                                onTap: (index) async {
+                                  setState(() {
+                                    currentTab = index;
+                                    currentPage = pages[index];
+                                  });
+                                },
+                                items: <BottomNavigationBarItem>[
+                                  BottomNavigationBarItem(
+                                    title: SizedBox.shrink(),
+                                    //title: Text("Home"),
+                                    icon: Icon(Icons.home),
+                                  ),
+                                  BottomNavigationBarItem(
+                                    title: SizedBox.shrink(),
+                                    //title: Text("Explore"),
+                                    icon: Icon(Icons.explore),
+                                  ),
+                                  BottomNavigationBarItem(
+                                    title: SizedBox.shrink(),
+                                    //title: Text("Calendar"),
+                                    icon: Icon(Icons.event),
+                                  ),
+                                  BottomNavigationBarItem(
+                                    title: SizedBox.shrink(),
+                                    //title: Text("Notifications"),
+                                    icon: Icon(Icons.notifications),
+                                  ),
+                                  BottomNavigationBarItem(
+                                    title: SizedBox.shrink(),
+                                    //title: Text("Settings"),
+                                    //icon: Icon(Icons.settings),
+                                    icon: Icon(Icons.menu),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+            ),
           ),
         ),
       ),

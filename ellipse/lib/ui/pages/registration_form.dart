@@ -232,7 +232,7 @@ class DynamicWidgetItem extends StatelessWidget {
                                         .color,
                                   )
                                 : Icon(
-                                    Icons.radio_button_off,
+                                    Icons.radio_button_unchecked,
                                     color: Theme.of(context)
                                         .textTheme
                                         .caption
@@ -315,7 +315,7 @@ class DynamicWidgetItem extends StatelessWidget {
                   child: InkWell(
                     onTap: () {},
                     child: Icon(
-                      Icons.paste,
+                      Icons.content_paste,
                       size: 25,
                     ),
                   ),

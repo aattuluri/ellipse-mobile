@@ -82,7 +82,46 @@ class _ViewProfileState extends State<ViewProfile> {
                           borderRadius: BorderRadius.circular(540),
                           child: InkWell(
                             onTap: () {
-                              Navigator.pushNamed(context, Routes.view_profile);
+                              showDialog(
+                                context: context,
+                                builder: (_) => Container(
+                                  color: Theme.of(context)
+                                      .scaffoldBackgroundColor
+                                      .withOpacity(0.7),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(10.0),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          FadeInImage(
+                                            image: NetworkImage(
+                                                "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                            placeholder: AssetImage(
+                                                'assets/icons/loading.gif'),
+                                          ),
+                                          SizedBox(height: 10),
+                                          FloatingActionButton(
+                                            backgroundColor:
+                                                Theme.of(context).accentColor,
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            tooltip: 'Increment',
+                                            child: Icon(Icons.close, size: 30),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
                             },
                             child: Container(
                               height: 60,
@@ -174,7 +213,7 @@ class _ViewProfileState extends State<ViewProfile> {
                                 //Theme.of(context).accentColor,
                               ),
                               child: Center(
-                                child: Icon(Icons.person_pin_circle_outlined,
+                                child: Icon(Icons.person_pin,
                                     size: 25,
                                     color: Theme.of(context)
                                         .scaffoldBackgroundColor),
