@@ -143,7 +143,7 @@ class _PostEventState extends State<PostEvent>
 
   void _getImage(BuildContext context, ImageSource source) async {
     final pickedFile = await _picker.getImage(source: source, imageQuality: 70);
-    final File file = File(pickedFile.path);
+    //final File file = File(pickedFile.path);
     //File file = await FilePicker.getFile(type: FileType.image);
     setState(() {
       _imageFile = File(pickedFile.path);

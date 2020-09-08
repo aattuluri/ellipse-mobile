@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 /// Contains app colors to used them all around the app
@@ -10,7 +9,8 @@ const lightAccentColor = Color(0xFF3949AB);
 
 /// DARK THEME
 const darkPrimaryColor = Color(0xFF151515);
-const darkAccentColor = Color(0xFFFBC02D);
+const darkAccentColor = Color(0xFF00BDAA);
+//const darkAccentColor = Color(0xFFFBC02D);
 const darkBackgroundColor = Color(0xFF212121);
 const darkCanvasColor = Color(0xFF272727);
 const darkCardColor = Color(0xFF2C2C2C);

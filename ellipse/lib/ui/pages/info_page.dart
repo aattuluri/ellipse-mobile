@@ -32,6 +32,7 @@ class InfoPage extends StatefulWidget {
 class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
   bool default_view = true;
   Widget view;
+  List<String> favourites = [];
   GlobalKey<SliderMenuContainerState> _key =
       new GlobalKey<SliderMenuContainerState>();
   ScrollController scrollController;
@@ -211,10 +212,10 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                   _key.currentState.closeDrawer();
                 }),
                 SlideMenuItem1(
-                    Icons.favorite, "Add to Favourites", "To favourites", () {
-                  setState(() {
-                    //default_view = false;
-                  });
+                    Icons.favorite, "Add to Favourites", "To favourites",
+                    () async {
+                  setState(() {});
+                  _key.currentState.closeDrawer();
                 }),
                 SlideMenuItem1(Icons.share, "Share", "Share Event", () {
                   if (Platform.isAndroid) {

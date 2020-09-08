@@ -267,39 +267,28 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                         ),
                       ),
                       */
-
+                      SizedBox(
+                        height: 10,
+                      ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         child: Row(
                           children: <Widget>[
-                            Image.asset(
-                              "assets/dark_theme_logo.png",
-                              height: 50,
-                            ),
                             SizedBox(
                               width: 8,
                             ),
-                            Row(
-                              children: <Widget>[
-                                Text(
-                                  "Ell",
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyText1
-                                          .color,
-                                      fontSize: 35,
-                                      fontFamily: 'Gugi',
-                                      fontWeight: FontWeight.w800),
-                                ),
-                                Text(
-                                  "ipse",
-                                  style: TextStyle(
-                                      color: Color(0xffFCCD00),
-                                      fontSize: 35,
-                                      fontWeight: FontWeight.w800),
-                                )
-                              ],
+                            Text(
+                              "Ellipse",
+                              style: TextStyle(
+                                  //color: Theme.of(context)
+                                  //     .textTheme
+                                  //  .caption
+                                  //  .color
+                                  //.withOpacity(0.8),
+                                  color: Theme.of(context).accentColor,
+                                  fontSize: 35,
+                                  fontFamily: 'Gugi',
+                                  fontWeight: FontWeight.w800),
                             ),
                           ],
                         ),
@@ -316,25 +305,11 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 15.0),
-                                  child: RichText(
-                                    text: TextSpan(
-                                      children: [
-                                        TextSpan(
-                                          text: 'Hello,' + _userdetails.name,
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w500),
-                                        ),
-                                        /*
-                                        TextSpan(text: '\n'),
-                                        TextSpan(
-                                            text: _userdetails.name,
-                                            style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.w500)),
-                                        */
-                                      ],
-                                    ),
+                                  child: Text(
+                                    'Hello,' + _userdetails.name,
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w500),
                                   ),
                                 ),
                                 Spacer(),
@@ -563,13 +538,9 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                                       BorderRadius.all(
                                                     Radius.circular(10.0),
                                                   ),
-                                                  child:
-                                                      /*Image(
-                                                      image: NetworkImage(
-                                                          "${Url.URL}/api/image?id=${model.allEvents[i].imageUrl}"),
-                                                    )
-                                                    */
-                                                      FadeInImage(
+                                                  child: FadeInImage(
+                                                    fadeInDuration: Duration(
+                                                        milliseconds: 1000),
                                                     image: NetworkImage(
                                                         "${Url.URL}/api/image?id=${model.allEvents[i].imageUrl}"),
                                                     placeholder: AssetImage(

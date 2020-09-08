@@ -47,48 +47,48 @@ class _SplashScreenState extends State<SplashScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Image.asset(
+                  ///#3282b8
+                  /*  Image.asset(
                     "assets/logo.png",
                     height: 150,
                   ),
+
+                  Text(
+                    "E",
+                    style: TextStyle(
+                        color: Colors.white70,
+                        //color: Color(0xFF3282b8),
+                        fontSize: 300,
+                        fontFamily: 'Gugi',
+                        fontWeight: FontWeight.w900),
+                  ),*/
                   SizedBox(
                     height: 18,
                   ),
-                  Row(
-                    children: <Widget>[
-                      Text(
-                        "Ell",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 45,
-                            fontFamily: 'Gugi',
-                            fontWeight: FontWeight.w800),
-                      ),
-                      Text(
-                        "i",
-                        style: TextStyle(
-                            color: Color(0xffFFA700),
-                            fontSize: 45,
-                            fontFamily: 'Gugi',
-                            fontWeight: FontWeight.w800),
-                      ),
-                      Text(
-                        "pse",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 45,
-                            fontFamily: 'Gugi',
-                            fontWeight: FontWeight.w800),
-                      ),
-                    ],
+                  Text(
+                    "Ellipse",
+                    style: TextStyle(
+                        color: Theme.of(context)
+                            .textTheme
+                            .caption
+                            .color
+                            .withOpacity(0.7),
+                        fontSize: 55,
+                        fontFamily: 'Gugi',
+                        fontWeight: FontWeight.w800),
                   ),
+
                   SizedBox(
                     height: 14,
                   ),
                   Text(
                     "There’s a lot of events happening around you! Our mission is to explore best events to you!",
                     style: TextStyle(
-                        color: Colors.white,
+                        color: Theme.of(context)
+                            .textTheme
+                            .caption
+                            .color
+                            .withOpacity(0.8),
                         fontSize: 20,
                         fontWeight: FontWeight.w500),
                   ),
@@ -111,6 +111,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       maxHeight:
                           7.9 * MediaQuery.of(context).size.height / 100),
                   decoration: BoxDecoration(
+                    //color: Color(0xFF00BDAA),
                     borderRadius: BorderRadius.vertical(
                       top: Radius.circular(
                           4 * MediaQuery.of(context).size.width / 100),

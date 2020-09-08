@@ -81,38 +81,11 @@ class EventTileGeneralState extends State<EventTileGeneral> {
                     children: [
                       Center(
                         child: FadeInImage(
+                          fadeInDuration: Duration(milliseconds: 1000),
                           image: NetworkImage(
                               "${Url.URL}/api/image?id=${_event.imageUrl}"),
                           placeholder: AssetImage('assets/icons/loading.gif'),
                         ),
-                        /*Image(
-                        image: NetworkImage(
-                            "${Url.URL}/api/image?id=${_event.imageUrl}"),
-                      )*/
-
-                        /*CachedNetworkImage(
-                          imageUrl:
-                              "${Url.URL}/api/image?id=${_event.imageUrl}",
-                          filterQuality: FilterQuality.medium,
-                          fadeInDuration: Duration(milliseconds: 1000),
-                          placeholder: (context, url) => Container(
-                            width: MediaQuery.of(context).size.width * 0.9,
-                            height: MediaQuery.of(context).size.width * 0.9,
-                            child: Icon(
-                              Icons.image,
-                              size: 80,
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            width: MediaQuery.of(context).size.width * 0.9,
-                            height: MediaQuery.of(context).size.width * 0.9,
-                            child: Icon(
-                              Icons.error,
-                              size: 80,
-                            ),
-                          ),
-                        ),
-                        */
                       ),
                       SizedBox(height: 70),
                     ],
@@ -128,8 +101,12 @@ class EventTileGeneralState extends State<EventTileGeneral> {
                               begin: Alignment.bottomCenter,
                               end: Alignment.topCenter,
                               colors: [
-                            Colors.black.withOpacity(0.8),
-                            Colors.black87.withOpacity(0.8)
+                            Theme.of(context)
+                                .scaffoldBackgroundColor
+                                .withOpacity(0.8),
+                            Theme.of(context)
+                                .scaffoldBackgroundColor
+                                .withOpacity(0.8),
                           ])),
                     ),
                   ),
