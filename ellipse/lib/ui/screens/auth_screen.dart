@@ -274,35 +274,20 @@ class _SigninState extends State<Signin> {
                         ),
                         */
                         SizedBox(height: 10),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                              "Ell",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 45,
-                                  fontFamily: 'Gugi',
-                                  fontWeight: FontWeight.w800),
-                            ),
-                            Text(
-                              "i",
-                              style: TextStyle(
-                                  color: Color(0xffFFA700),
-                                  fontSize: 45,
-                                  fontFamily: 'Gugi',
-                                  fontWeight: FontWeight.w800),
-                            ),
-                            Text(
-                              "pse",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 45,
-                                  fontFamily: 'Gugi',
-                                  fontWeight: FontWeight.w800),
-                            ),
-                          ],
+                        Center(
+                          child: Text(
+                            "Ellipse",
+                            style: TextStyle(
+                                //color: Theme.of(context)
+                                //     .textTheme
+                                //  .caption
+                                //  .color
+                                //.withOpacity(0.8),
+                                color: Theme.of(context).accentColor,
+                                fontSize: 45,
+                                fontFamily: 'Gugi',
+                                fontWeight: FontWeight.w800),
+                          ),
                         ),
                         SizedBox(height: 30),
                         Padding(
@@ -539,7 +524,7 @@ class _SigninState extends State<Signin> {
                                 Text(
                                   'Register',
                                   style: TextStyle(
-                                      color: Color(0xfff79c4f),
+                                      color: Theme.of(context).accentColor,
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600),
                                 ),
@@ -706,35 +691,20 @@ class _SignupState extends State<Signup> {
                         ),
                       ),
                       */
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            "Ell",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 45,
-                                fontFamily: 'Gugi',
-                                fontWeight: FontWeight.w800),
-                          ),
-                          Text(
-                            "i",
-                            style: TextStyle(
-                                color: Color(0xffFFA700),
-                                fontSize: 45,
-                                fontFamily: 'Gugi',
-                                fontWeight: FontWeight.w800),
-                          ),
-                          Text(
-                            "pse",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 45,
-                                fontFamily: 'Gugi',
-                                fontWeight: FontWeight.w800),
-                          ),
-                        ],
+                      Center(
+                        child: Text(
+                          "Ellipse",
+                          style: TextStyle(
+                              //color: Theme.of(context)
+                              //     .textTheme
+                              //  .caption
+                              //  .color
+                              //.withOpacity(0.8),
+                              color: Theme.of(context).accentColor,
+                              fontSize: 45,
+                              fontFamily: 'Gugi',
+                              fontWeight: FontWeight.w800),
+                        ),
                       ),
                       SizedBox(
                         height: 25,
@@ -1159,7 +1129,7 @@ class _SignupState extends State<Signup> {
                               Text(
                                 'Login',
                                 style: TextStyle(
-                                    color: Color(0xfff79c4f),
+                                    color: Theme.of(context).accentColor,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600),
                               ),

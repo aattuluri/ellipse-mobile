@@ -68,11 +68,12 @@ class _SplashScreenState extends State<SplashScreen> {
                   Text(
                     "Ellipse",
                     style: TextStyle(
-                        color: Theme.of(context)
-                            .textTheme
-                            .caption
-                            .color
-                            .withOpacity(0.7),
+                        color: Theme.of(context).accentColor,
+                        //color: Theme.of(context)
+                        // .textTheme
+                        //.caption
+                        //.color
+                        //.withOpacity(0.7),
                         fontSize: 55,
                         fontFamily: 'Gugi',
                         fontWeight: FontWeight.w800),
@@ -123,13 +124,15 @@ class _SplashScreenState extends State<SplashScreen> {
                       Expanded(flex: 2, child: Container()),
                       Text(
                         "Get Started",
-                        style: TextStyle(fontSize: 25),
+                        style: TextStyle(
+                            fontSize: 25, color: Theme.of(context).accentColor),
                       ),
                       Expanded(
                         flex: 5,
                         child: Icon(
                           Icons.arrow_forward,
                           size: 7 * MediaQuery.of(context).size.width / 100,
+                          color: Theme.of(context).accentColor,
                         ),
                       ),
                     ],

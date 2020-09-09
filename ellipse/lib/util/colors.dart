@@ -5,7 +5,8 @@ import 'package:flutter/widgets.dart';
 
 /// LIGHT THEME
 const lightPrimaryColor = Color(0xFF1E1E1E);
-const lightAccentColor = Color(0xFF3949AB);
+//const lightAccentColor = Color(0xFF3949AB);
+const lightAccentColor = Color(0xFF00BDAA);
 
 /// DARK THEME
 const darkPrimaryColor = Color(0xFF151515);
@@ -18,7 +19,8 @@ const darkDividerColor = Color(0xFF424242);
 
 /// BLACK THEME
 const blackPrimaryColor = Color(0xFF000000);
-const blackAccentColor = Color(0xFFFFFFFF);
+//const blackAccentColor = Color(0xFFFFFFFF);
+const blackAccentColor = Color(0xFF00BDAA);
 const blackBackgroundColor = Color(0xFF000000);
 const blackCardColor = Color(0xFF000000);
 const blackDividerColor = Color(0xFF323232);
