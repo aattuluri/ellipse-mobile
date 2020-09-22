@@ -1,19 +1,152 @@
-import 'dart:io';
-import 'package:big_tip/big_tip.dart';
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../models/index.dart';
-import '../../repositories/index.dart';
-import 'dart:ui';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/http.dart';
-import 'dart:core';
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
+import 'dart:core';
+import 'dart:io';
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../models/index.dart';
+import '../../repositories/index.dart';
 import '../../util/index.dart';
+import '../widgets/index.dart';
+
+class Timeline extends StatefulWidget {
+  final int index;
+  final String id;
+  const Timeline(this.index, this.id);
+  @override
+  _TimelineState createState() => _TimelineState();
+}
+
+class _TimelineState extends State<Timeline> with TickerProviderStateMixin {
+  String token = "", id = "", email = "", college = "";
+  getPref() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    setState(() {
+      token = preferences.getString("token");
+      id = preferences.getString("id");
+      email = preferences.getString("email");
+    });
+  }
+
+  @override
+  void initState() {
+    getPref();
+    print(widget.index);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Events _event =
+        context.watch<EventsRepository>().getEvents(widget.index);
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            TimelineTile(
+              axis: TimelineAxis.vertical,
+              alignment: TimelineAlign.center,
+              isFirst: true,
+              indicatorStyle: const IndicatorStyle(
+                width: 20,
+                padding: EdgeInsets.all(8),
+              ),
+              startChild: Container(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 25,
+                    ),
+                    Text(
+                      "Event Registration\nLast Date",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      DateFormat('MMMM dd,yyyy\nEEE,HH:mm')
+                          .format(_event.reg_last_date),
+                      style: TextStyle(fontSize: 12),
+                    )
+                  ],
+                ),
+              ),
+            ),
+            TimelineTile(
+              alignment: TimelineAlign.center,
+              indicatorStyle: const IndicatorStyle(
+                width: 20,
+                padding: EdgeInsets.all(8),
+              ),
+              endChild: Container(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 25,
+                    ),
+                    Text(
+                      "Event Start Date",
+                      textAlign: TextAlign.center,
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      DateFormat('MMMM dd,yyyy\nEEE,HH:mm')
+                          .format(_event.start_time),
+                      style: TextStyle(fontSize: 12),
+                    )
+                  ],
+                ),
+              ),
+            ),
+            TimelineTile(
+              alignment: TimelineAlign.center,
+              isLast: true,
+              indicatorStyle: const IndicatorStyle(
+                width: 20,
+                padding: EdgeInsets.all(8),
+              ),
+              startChild: Container(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 25,
+                    ),
+                    Text(
+                      "Event End Date",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      DateFormat('MMMM dd,yyyy\nEEE,HH:mm')
+                          .format(_event.finish_time),
+                      style: TextStyle(fontSize: 12),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class Announcements extends StatefulWidget {
   final int index;
@@ -208,11 +341,13 @@ class _AddAnnouncementState extends State<AddAnnouncement>
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
     if (response.statusCode == 200) {
+      /*
       Navigator.pushNamed(
         context,
         Routes.my_events_info_page,
         arguments: {'index': widget.index},
       );
+      */
     } else {
       print(response.body);
     }

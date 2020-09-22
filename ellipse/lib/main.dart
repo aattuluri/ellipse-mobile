@@ -8,9 +8,6 @@ import 'util/routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-  ));
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   runApp(App());
@@ -23,7 +20,7 @@ class App extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => ImageQualityProvider()),
-        // ChangeNotifierProvider(create: (_) => NotificationsProvider()),
+        //ChangeNotifierProvider(create: (_) => NotificationsProvider()),
         ChangeNotifierProvider(create: (_) => EventsRepository()),
         ChangeNotifierProvider(create: (_) => UserDetailsRepository()),
         ChangeNotifierProvider(create: (_) => NotificationsRepository()),

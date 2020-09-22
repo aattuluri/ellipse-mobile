@@ -1,17 +1,16 @@
-import 'package:flutter/services.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'dart:async';
-import '../screens/index.dart';
-import 'package:flutter/material.dart';
-import '../../util/index.dart';
-import '../../util/constants.dart' as Constants;
-import '../../util/routes.dart';
-import '../../repositories/index.dart';
+import 'dart:convert';
+
 import 'package:connectivity/connectivity.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../util/constants.dart' as Constants;
+import '../../util/index.dart';
+import '../../util/routes.dart';
+import '../screens/index.dart';
 
 class Initialization extends StatefulWidget {
   @override
@@ -27,7 +26,8 @@ class _InitializationState extends State<Initialization> {
     if (loggedin) {
       getPref();
     } else {
-      Navigator.pushNamed(context, Routes.signin);
+      Navigator.pushNamed(context, Routes.splash_screen);
+      //Navigator.pushNamed(context, Routes.main_screen);
     }
   }
 
@@ -154,7 +154,7 @@ class _InitializationState extends State<Initialization> {
             height: 20,
           ),
           Text(
-            "Please Wait....",
+            "Please Wait.......",
             style: TextStyle(
                 color: Theme.of(context).textTheme.caption.color,
                 fontSize: 30.0,

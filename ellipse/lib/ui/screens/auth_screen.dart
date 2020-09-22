@@ -173,6 +173,7 @@ class _SigninState extends State<Signin> {
     http.Response response =
         await http.post("${Url.URL}/api/users/login", body: data);
     if (response.statusCode == 200) {
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
       var jsonResponse = json.decode(response.body);
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');

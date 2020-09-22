@@ -531,7 +531,8 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                                     Navigator.pushNamed(context,
                                                         Routes.info_page,
                                                         arguments: {
-                                                      'index': i
+                                                      'index': i,
+                                                      'type': "user"
                                                     }),
                                                 child: ClipRRect(
                                                   borderRadius:

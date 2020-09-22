@@ -1,15 +1,15 @@
-import '../ui/tabs/index.dart';
 import 'package:flutter/material.dart';
+
 import '../ui/pages/index.dart';
 import '../ui/screens/index.dart';
-import '../main.dart';
 
 /// Class that holds both route names & generate methods.
 /// Used by the Flutter routing system
 class Routes {
   // Static route names
-  //static const isloggedin = '/';
-  static const splash_screen = '/';
+  static const generalRoute = '/';
+  static const splash_screen = '/splash_screeen';
+  static const main_screen = '/main_screen';
   static const initialization = '/initialization';
   static const connection_error = '/connection_error';
   static const start = '/start';
@@ -19,7 +19,7 @@ class Routes {
   static const signin = '/signin';
   static const my_events = '/my_events';
   static const registered_events = '/registered_events';
-  static const my_events_info_page = '/my_events_info_page';
+  //static const my_events_info_page = '/my_events_info_page';
   static const edit_event = '/edit_event';
   static const edit_profile = '/edit_profile';
   static const view_profile = '/view_profile';
@@ -33,15 +33,20 @@ class Routes {
       final Map<String, dynamic> args = routeSettings.arguments;
 
       switch (routeSettings.name) {
+        case generalRoute:
+          return MaterialPageRoute(
+            settings: routeSettings,
+            builder: (_) => Initialization(),
+          );
+        case main_screen:
+          return MaterialPageRoute(
+            settings: routeSettings,
+            builder: (_) => MainScreen(),
+          );
         case splash_screen:
           return MaterialPageRoute(
             settings: routeSettings,
             builder: (_) => SplashScreen(),
-          );
-        case connection_error:
-          return MaterialPageRoute(
-            settings: routeSettings,
-            builder: (_) => ConnectionErrorScreen(),
           );
         case initialization:
           return MaterialPageRoute(
@@ -61,17 +66,19 @@ class Routes {
           );
         case info_page:
           final index = args['index'] as int;
+          final type = args['type'] as String;
           return MaterialPageRoute(
             settings: routeSettings,
-            builder: (_) => InfoPage(index),
+            builder: (_) => InfoPage(index, type),
           );
-        case my_events_info_page:
+
+        /* case my_events_info_page:
           final index = args['index'] as int;
           return MaterialPageRoute(
             settings: routeSettings,
             builder: (_) => MyEventsInfoPage(index),
           );
-
+          */
         case post_event:
           return MaterialPageRoute(
             settings: routeSettings,
@@ -122,6 +129,11 @@ class Routes {
           return MaterialPageRoute(
             settings: routeSettings,
             builder: (_) => HelpSupport(),
+          );
+        case connection_error:
+          return MaterialPageRoute(
+            settings: routeSettings,
+            builder: (_) => ConnectionErrorScreen(),
           );
         default:
           return errorRoute(routeSettings);

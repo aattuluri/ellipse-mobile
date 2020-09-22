@@ -23,8 +23,9 @@ import '../widgets/index.dart';
 
 class InfoPage extends StatefulWidget {
   final int index;
+  final String type;
 
-  const InfoPage(this.index);
+  const InfoPage(this.index, this.type);
   @override
   _InfoPageState createState() => _InfoPageState();
 }
@@ -87,15 +88,6 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          leading: InkWell(
-              onTap: () {
-                Navigator.pushNamed(
-                  context,
-                  Routes.start,
-                  arguments: {'currebt_tab': 1},
-                );
-              },
-              child: Icon(Icons.arrow_back)),
           iconTheme: Theme.of(context).iconTheme,
           actions: [
             InkWell(
@@ -130,149 +122,304 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
             isShadow: false,
             sliderOpen: SliderOpen.RIGHT_TO_LEFT,
             sliderMenuOpenOffset: 250,
-            sliderMenu: ListView(
-              children: <Widget>[
-                SlideMenuItem1(Icons.desktop_windows, "Event View",
-                    "View event information", () {
-                  setState(() {
-                    default_view = true;
-                  });
-                  _key.currentState.closeDrawer();
-                }),
-                Container(
-                  margin: EdgeInsetsDirectional.only(
-                    start: 10.0,
-                    bottom: 10,
-                    top: 10,
-                  ),
-                  child: Text("Registration",
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.w500,
-                      )),
-                ),
-                SizedBox(height: 3),
-                SlideMenuItem1(Icons.group, "Register", "Register to event",
-                    () {
-                  if (_event.registered == true) {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: new Text("Event Registration"),
-                          content: new Text(
-                              "You have to already registered to this event"),
-                          actions: <Widget>[
-                            new FlatButton(
-                              child: new Text("Ok"),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  } else if (_event.registered == false &&
-                      _event.reg_mode == "form") {
-                    setState(() {
-                      view = RegistrationForm(widget.index, _event.reg_fields);
-                      default_view = false;
-                    });
+            sliderMenu: widget.type == "user"
+                ///////////////////////////////////////////user///////////////////////////////////
+                ? ListView(
+                    children: <Widget>[
+                      SlideMenuItem1(Icons.desktop_windows, "Event View",
+                          "View event information", () {
+                        setState(() {
+                          default_view = true;
+                        });
+                        _key.currentState.closeDrawer();
+                      }),
+                      SlideMenuItem1(
+                          Icons.access_time, "Timeline", "Event timeline", () {
+                        setState(() {
+                          view = Timeline(widget.index, _event.id);
+                          default_view = false;
+                        });
+                        _key.currentState.closeDrawer();
+                      }),
+                      Container(
+                        margin: EdgeInsetsDirectional.only(
+                          start: 10.0,
+                          bottom: 10,
+                          top: 10,
+                        ),
+                        child: Text("Registration",
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                            )),
+                      ),
+                      SizedBox(height: 3),
+                      SlideMenuItem1(
+                          Icons.group, "Register", "Register to event", () {
+                        if (_event.registered == true) {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: new Text("Event Registration"),
+                                content: new Text(
+                                    "You have to already registered to this event"),
+                                actions: <Widget>[
+                                  new FlatButton(
+                                    child: new Text("Ok"),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        } else if (_event.registered == false &&
+                            _event.reg_mode == "form") {
+                          setState(() {
+                            view = RegistrationForm(
+                                widget.index, _event.reg_fields);
+                            default_view = false;
+                          });
 
-                    _key.currentState.closeDrawer();
-                  } else if (_event.reg_mode == "link") {
-                    String link = _event.reg_link;
-                    FlutterWebBrowser.openWebPage(
-                      url: '$link',
-                      androidToolbarColor: Theme.of(context).primaryColor,
-                    );
-                  }
-                }),
+                          _key.currentState.closeDrawer();
+                        } else if (_event.reg_mode == "link") {
+                          String link = _event.reg_link;
+                          FlutterWebBrowser.openWebPage(
+                            url: '$link',
+                            androidToolbarColor: Theme.of(context).primaryColor,
+                          );
+                        }
+                      }),
+                      Container(
+                        margin: EdgeInsetsDirectional.only(
+                          start: 10.0,
+                          bottom: 10,
+                          top: 10,
+                        ),
+                        child: Text("Event",
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                            )),
+                      ),
+                      SizedBox(height: 3),
+                      SlideMenuItem1(Icons.announcement, "Announcements",
+                          "Your Announcements", () {
+                        setState(() {
+                          view = Announcements(widget.index, _event.id);
+                          default_view = false;
+                        });
+                        _key.currentState.closeDrawer();
+                      }),
+                      SlideMenuItem1(
+                          Icons.favorite, "Add to Favourites", "To favourites",
+                          () async {
+                        setState(() {});
+                        _key.currentState.closeDrawer();
+                      }),
+                      SlideMenuItem1(Icons.share, "Share", "Share Event", () {
+                        if (Platform.isAndroid) {
+                          Share.share(
+                              "https://ellipseapp.com/un/event/${_event.id}");
+                        } else if (Platform.isIOS) {}
+                      }),
+                      SlideMenuItem1(Icons.report, "Report", "Report", () {
+                        setState(() {
+                          view = Report("Event_report", _event.id);
+                          default_view = false;
+                        });
+                        _key.currentState.closeDrawer();
+                      }),
+                      Container(
+                        margin: EdgeInsetsDirectional.only(
+                          start: 10.0,
+                          bottom: 10,
+                          top: 10,
+                        ),
+                        child: Text("Chat",
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                            )),
+                      ),
+                      SizedBox(height: 3),
+                      SlideMenuItem1(Icons.chat, "Chat", "Your Chat", () {
+                        if (_event.registered == true ||
+                            _event.reg_mode == "link") {
+                          setState(() {
+                            view = ChatPage(_event.id, "participant",
+                                widget.index, _event.user_id);
+                            default_view = false;
+                          });
+                          _key.currentState.closeDrawer();
+                        } else {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: new Text("Chat"),
+                                content: new Text(
+                                    "You have to register to event to chat with event admin"),
+                                actions: <Widget>[
+                                  new FlatButton(
+                                    child: new Text("Ok"),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        }
+                      }),
+                    ],
+                  )
+                ////////////////////////////////////////////admin///////////////////////////////////////////////
+                : ListView(
+                    children: <Widget>[
+                      SlideMenuItem1(Icons.desktop_windows, "Event View",
+                          "View event information", () {
+                        setState(() {
+                          default_view = true;
+                        });
+                        _key.currentState.closeDrawer();
+                      }),
+                      SlideMenuItem1(
+                          Icons.access_time, "Timeline", "Event timeline", () {
+                        setState(() {
+                          view = Timeline(widget.index, _event.id);
+                          default_view = false;
+                        });
+                        _key.currentState.closeDrawer();
+                      }),
+                      Container(
+                        margin: EdgeInsetsDirectional.only(
+                          start: 10.0,
+                          bottom: 10,
+                          top: 10,
+                        ),
+                        child: Text("Announcements",
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                            )),
+                      ),
+                      SizedBox(height: 3),
+                      SlideMenuItem1(Icons.announcement, "Announcements",
+                          "Your Announcements", () {
+                        setState(() {
+                          view = Announcements(widget.index, _event.id);
+                          default_view = false;
+                        });
+                        _key.currentState.closeDrawer();
+                      }),
+                      SlideMenuItem1(Icons.add_alert, "Add Announcement",
+                          "Add Announcement", () {
+                        setState(() {
+                          view = AddAnnouncement(widget.index, _event.id);
+                          default_view = false;
+                        });
+                        _key.currentState.closeDrawer();
+                      }),
+                      Container(
+                        margin: EdgeInsetsDirectional.only(
+                          start: 10.0,
+                          bottom: 10,
+                          top: 10,
+                        ),
+                        child: Text("Chat",
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                            )),
+                      ),
+                      SizedBox(height: 3),
+                      SlideMenuItem1(Icons.chat, "Chat", "Your Chat", () {
+                        setState(() {
+                          view = ChatPage(
+                              _event.id, "admin", widget.index, _event.user_id);
+                          default_view = false;
+                        });
+                        _key.currentState.closeDrawer();
+                      }),
+                      Container(
+                        margin: EdgeInsetsDirectional.only(
+                          start: 10.0,
+                          bottom: 10,
+                          top: 10,
+                        ),
+                        child: Text("Registrations",
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                            )),
+                      ),
+                      SizedBox(height: 3),
+                      SlideMenuItem1(Icons.group, "Participants",
+                          "Registered Participants", () {
+                        setState(() {
+                          view = Participants(_event.id);
+                          default_view = false;
+                        });
+                        _key.currentState.closeDrawer();
+                      }),
+                      /*
+                SlideMenuItem1(Icons.attach_email, "Send Mail",
+                    "Send mail to participants", () {}),
+                */
+                      /*
                 Container(
                   margin: EdgeInsetsDirectional.only(
                     start: 10.0,
                     bottom: 10,
                     top: 10,
                   ),
-                  child: Text("Event",
+                  child: Text("Moderators",
                       style: TextStyle(
                         fontSize: 16.0,
                         fontWeight: FontWeight.w500,
                       )),
                 ),
                 SizedBox(height: 3),
+                SlideMenuItem1(Icons.group, "Manage Moderators",
+                    "moderators for event", () {}),
+                SlideMenuItem1(Icons.group_add, "Add Moderator",
+                    "Add new moderator", () {}),
+                */
+                      Container(
+                        margin: EdgeInsetsDirectional.only(
+                          start: 10.0,
+                          bottom: 10,
+                          top: 10,
+                        ),
+                        child: Text("Event",
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                            )),
+                      ),
+                      SizedBox(height: 3),
+                      SlideMenuItem1(Icons.share, "Share", "Share Event", () {
+                        Share.share(
+                            "https://ellipseapp.com/un/event/${_event.id}");
+                      }),
+                      SlideMenuItem1(Icons.edit, "Edit Event", "Edit Event",
+                          () {
+                        setState(() {
+                          view = EditEvent(widget.index);
+                          default_view = false;
+                        });
+                        _key.currentState.closeDrawer();
+                      }),
+                      /*
                 SlideMenuItem1(
-                    Icons.announcement, "Announcements", "Your Announcements",
-                    () {
-                  setState(() {
-                    view = Announcements(widget.index, _event.id);
-                    default_view = false;
-                  });
-                  _key.currentState.closeDrawer();
-                }),
-                SlideMenuItem1(
-                    Icons.favorite, "Add to Favourites", "To favourites",
-                    () async {
-                  setState(() {});
-                  _key.currentState.closeDrawer();
-                }),
-                SlideMenuItem1(Icons.share, "Share", "Share Event", () {
-                  if (Platform.isAndroid) {
-                    Share.share("https://ellipseapp.com/un/event/${_event.id}");
-                  } else if (Platform.isIOS) {}
-                }),
-                SlideMenuItem1(Icons.report, "Report", "Report", () {
-                  setState(() {
-                    view = Report("Event_report", _event.id);
-                    default_view = false;
-                  });
-                  _key.currentState.closeDrawer();
-                }),
-                Container(
-                  margin: EdgeInsetsDirectional.only(
-                    start: 10.0,
-                    bottom: 10,
-                    top: 10,
+                    Icons.delete, "Delete Event", "Delete Event", () {}),
+                */
+                    ],
                   ),
-                  child: Text("Chat",
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.w500,
-                      )),
-                ),
-                SizedBox(height: 3),
-                SlideMenuItem1(Icons.chat, "Chat", "Your Chat", () {
-                  if (_event.registered == true || _event.reg_mode == "link") {
-                    setState(() {
-                      view = ChatPage(_event.id, "participant", widget.index,
-                          _event.user_id);
-                      default_view = false;
-                    });
-                    _key.currentState.closeDrawer();
-                  } else {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: new Text("Chat"),
-                          content: new Text(
-                              "You have to register to event to chat with event admin"),
-                          actions: <Widget>[
-                            new FlatButton(
-                              child: new Text("Ok"),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  }
-                }),
-              ],
-            ),
             sliderMain: Container(
                 child: default_view
                     ? NestedScrollView(

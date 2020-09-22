@@ -14,7 +14,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/index.dart';
 import '../../providers/index.dart';
 import '../../repositories/index.dart';
-//import 'package:system_setting/system_setting.dart';
 import '../../util/constants.dart' as Constants;
 import '../../util/index.dart';
 import '../widgets/index.dart';
@@ -297,7 +296,8 @@ class _MoreTabState extends State<MoreTab> with TickerProviderStateMixin {
           }),
           SettingsMainViewItem(Icons.share, 'Share Ellipse', false, () {
             if (Platform.isAndroid) {
-              Share.share("Ellipse App");
+              Share.share(
+                  "https://play.google.com/store/apps/details?id=com.guna0027.ellipse");
             } else if (Platform.isIOS) {}
           }),
           /*
@@ -557,6 +557,19 @@ class _MoreTabState extends State<MoreTab> with TickerProviderStateMixin {
                   androidToolbarColor: Theme.of(context).primaryColor,
                 );
               }),
+          Separator.divider(indent: 72),
+          ListCell.icon(
+              icon: Icons.android,
+              title: "Ellipse App",
+              subtitle: 'Open in Playstore',
+              //trailing: Icon(Icons.chevron_right),
+              onTap: () {
+                FlutterWebBrowser.openWebPage(
+                  url:
+                      'https://play.google.com/store/apps/details?id=com.guna0027.ellipse',
+                  androidToolbarColor: Theme.of(context).primaryColor,
+                );
+              }),
           /*
           Separator.divider(indent: 72),
           ListCell.icon(
@@ -581,6 +594,18 @@ class _MoreTabState extends State<MoreTab> with TickerProviderStateMixin {
               }),
           */
           HeaderText("Other"),
+          ListCell.icon(
+              icon: Icons.info_outline,
+              title: "Privacy Policy",
+              subtitle: "app privacy policy",
+              //trailing: Icon(Icons.chevron_right),
+              onTap: () {
+                FlutterWebBrowser.openWebPage(
+                  url: 'https://ellipseapp.com/Privacy_Policy.pdf',
+                  androidToolbarColor: Theme.of(context).primaryColor,
+                );
+              }),
+          Separator.divider(indent: 72),
           ListCell.icon(
               icon: Icons.web,
               title: "Terms and conditions",
@@ -607,7 +632,13 @@ class _MoreTabState extends State<MoreTab> with TickerProviderStateMixin {
               title: "Rate Us",
               subtitle: "rate our app",
               //trailing: Icon(Icons.chevron_right),
-              onTap: () {}),
+              onTap: () {
+                FlutterWebBrowser.openWebPage(
+                  url:
+                      'https://play.google.com/store/apps/details?id=com.guna0027.ellipse',
+                  androidToolbarColor: Theme.of(context).primaryColor,
+                );
+              }),
         ]);
   }
 

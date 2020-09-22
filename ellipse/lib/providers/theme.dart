@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../util/colors.dart';
 
 enum Themes { light, dark, black, system }
@@ -11,7 +12,9 @@ final Map<Themes, ThemeData> _themeData = {
     visualDensity: VisualDensity.adaptivePlatformDensity,
     brightness: Brightness.light,
     primaryColor: lightPrimaryColor,
+    scaffoldBackgroundColor: lightBackgroundColor,
     accentColor: lightAccentColor,
+    cardColor: lightCardColor,
     popupMenuTheme: PopupMenuThemeData(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(6),

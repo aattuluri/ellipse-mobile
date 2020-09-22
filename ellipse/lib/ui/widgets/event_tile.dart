@@ -62,12 +62,12 @@ class EventTileGeneralState extends State<EventTileGeneral> {
             onTap: () {
               if (widget.route == "info_page") {
                 Navigator.pushNamed(context, Routes.info_page,
-                    arguments: {'index': widget.index});
+                    arguments: {'index': widget.index, 'type': 'user'});
               } else if (widget.route == "myevents_info_page") {
                 Navigator.pushNamed(
                   context,
-                  Routes.my_events_info_page,
-                  arguments: {'index': widget.index},
+                  Routes.info_page,
+                  arguments: {'index': widget.index, 'type': 'admin'},
                 );
               }
             },
@@ -289,11 +289,11 @@ class EventTileCalendarState extends State<EventTileCalendar> {
                       Navigator.pushNamed(context, Routes.info_page,
                           arguments: {'index': widget.index});
                     } else if (widget.route == "myevents_info_page") {
-                      Navigator.pushNamed(
+                      /*  Navigator.pushNamed(
                         context,
                         Routes.my_events_info_page,
                         arguments: {'index': widget.index},
-                      );
+                      );*/
                     }
                   },
                   child: ClipRRect(
