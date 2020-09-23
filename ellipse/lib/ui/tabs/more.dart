@@ -122,17 +122,9 @@ class _MoreTabState extends State<MoreTab> with TickerProviderStateMixin {
     super.initState();
   }
 
-  _onBack() async {
-    setState(() {
-      view = buildMainView(context);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer<UserDetailsRepository>(builder: (context, model, child) {
-      final UserDetails _userdetails =
-          context.watch<UserDetailsRepository>().getUserDetails(0);
       return RefreshIndicator(
         onRefresh: () => _onRefresh(context, model),
         child: SimplePage2(

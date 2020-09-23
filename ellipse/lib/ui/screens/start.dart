@@ -85,11 +85,6 @@ class _StartScreenState extends State<StartScreen> {
     super.initState();
   }
 
-  Future<bool> _exitApp() {
-    Navigator.of(context).pop(false);
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(

@@ -40,14 +40,32 @@ Future<void> _onRefresh(BuildContext context, BaseRepository repository) {
   return completer.future;
 }
 
+class IconTab {
+  IconTab({
+    this.name,
+    this.icon,
+  });
+
+  final String name;
+  final IconData icon;
+}
+
 class ExploreTab extends StatefulWidget {
   @override
   _ExploreTabState createState() => _ExploreTabState();
 }
 
 class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
+  final List tabs = [
+    IconTab(name: "All", icon: Icons.all_inclusive),
+    IconTab(name: "New", icon: Icons.trending_up),
+    IconTab(name: "Past", icon: Icons.access_time),
+    IconTab(name: "Posted", icon: Icons.star),
+    IconTab(name: "Registered", icon: Icons.beenhere),
+  ];
   final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
   Widget view;
+  TabController tab_controller;
   GlobalKey<SliderMenuContainerState> _key =
       new GlobalKey<SliderMenuContainerState>();
   ScrollController scrollController;
@@ -57,7 +75,7 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
   DateTime endDate = DateTime.now().add(const Duration(days: 31));
   bool isChecked = true;
   bool isFilter = false;
-
+  bool tab_all = true;
   DateTime d;
   final TextEditingController _searchQuery = new TextEditingController();
   bool isSearching = false;
@@ -83,6 +101,10 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
   bool free = true;
   @override
   void initState() {
+    tab_controller = new TabController(
+      length: 5,
+      vsync: this,
+    );
     SystemChannels.textInput.invokeMethod('TextInput.hide');
     getPref();
     animationController = AnimationController(
@@ -171,20 +193,8 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
       builder: (context, model, child) => RefreshIndicator(
         onRefresh: () => _onRefresh(context, model),
         child: Scaffold(
-          //drawer: CollapsingNavigationDrawer(),
           appBar: new AppBar(
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-/*
-            leading: InkWell(
-              child: Icon(
-                Icons.menu,
-                size: 30,
-              ),
-              onTap: () {
-                scaffoldKey.currentState.openDrawer();
-              },
-            ),
-*/
             automaticallyImplyLeading: false,
             title: isSearching ? _buildSearchField() : _buildTitle(context),
             actions: [
@@ -205,57 +215,88 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
                       children: [
                         IconButton(
                             icon: Icon(
-                              Icons.refresh,
+                              Icons.autorenew,
                               color: Theme.of(context).textTheme.caption.color,
                               size: 27,
                             ),
                             onPressed: () => _onRefresh(context, model)),
-                        /*
-                        IconButton(
-                            icon: Icon(
-                              Icons.calendar_today,
-                              color: Theme.of(context).textTheme.caption.color,
-                              size: 27,
-                            ),
-                            onPressed: () => Navigator.pushNamed(
-                                context, Routes.calendar_view)),
-                        */
-                        IconButton(
-                          icon: Icon(
-                            Icons.sort,
-                            color: Theme.of(context).textTheme.caption.color,
-                            size: 27,
-                          ),
-                          onPressed: () {
-                            FocusScope.of(context).requestFocus(FocusNode());
-                            if (isFilter == false) {
-                              setState(() {
-                                isFilter = true;
-                              });
-                            } else {
-                              setState(() {
-                                isFilter = false;
-                              });
-                            }
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.search,
-                            color: Theme.of(context).textTheme.caption.color,
-                            size: 27,
-                          ),
-                          onPressed: () {
-                            print(allcolleges);
-                            setState(() {
-                              isSearching = true;
-                              isFilter = false;
-                            });
-                          },
-                        ),
+                        tab_all
+                            ? IconButton(
+                                icon: Icon(
+                                  Icons.sort,
+                                  color:
+                                      Theme.of(context).textTheme.caption.color,
+                                  size: 27,
+                                ),
+                                onPressed: () {
+                                  FocusScope.of(context)
+                                      .requestFocus(FocusNode());
+                                  if (isFilter == false) {
+                                    setState(() {
+                                      isFilter = true;
+                                    });
+                                  } else {
+                                    setState(() {
+                                      isFilter = false;
+                                    });
+                                  }
+                                },
+                              )
+                            : SizedBox.shrink(),
+                        tab_all
+                            ? IconButton(
+                                icon: Icon(
+                                  Icons.search,
+                                  color:
+                                      Theme.of(context).textTheme.caption.color,
+                                  size: 27,
+                                ),
+                                onPressed: () {
+                                  print(allcolleges);
+                                  setState(() {
+                                    isSearching = true;
+                                    isFilter = false;
+                                  });
+                                },
+                              )
+                            : SizedBox.shrink(),
                       ],
                     ),
             ],
+            bottom: TabBar(
+              onTap: (tab) {
+                if (tab == 0) {
+                  setState(() {
+                    tab_all = true;
+                  });
+                } else {
+                  setState(() {
+                    isFilter = false;
+                  });
+                  setState(() {
+                    tab_all = false;
+                  });
+                }
+              },
+              controller: tab_controller,
+              isScrollable: true,
+              tabs: tabs.map((tab) {
+                return Tab(
+                  child: Row(
+                    children: [
+                      Icon(
+                        tab.icon,
+                        size: 18,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Text(tab.name),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
           ),
           key: scaffoldKey,
           floatingActionButton: isFilter
@@ -270,725 +311,805 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
                         size: 40, color: Colors.black),
                   ),
                 ),
-          body: SafeArea(
-            child: SliderMenuContainer(
-              key: _key,
-              isShadow: false,
-              sliderOpen: SliderOpen.RIGHT_TO_LEFT,
-              sliderMenuOpenOffset: MediaQuery.of(context).size.width * 0.7,
-              sliderMenu: ListView(
-                children: <Widget>[
-                  InkWell(
-                    onTap: () {
-                      setState(() {});
-                      _key.currentState.closeDrawer();
-                    },
-                    child: Container(
-                      height: 60.0,
-                      margin: EdgeInsetsDirectional.only(start: 15.0, end: 5),
-                      child: Row(
-                        children: [
-                          Container(
-                            margin: EdgeInsetsDirectional.only(end: 13.0),
-                            child: Container(
-                              child: Icon(Icons.arrow_forward, size: 24),
-                              margin: EdgeInsets.only(
-                                  top: 3, left: 3, bottom: 3, right: 3),
-                            ),
+          body: TabBarView(
+            controller: tab_controller,
+            children: <Widget>[
+              ///////////////////////////////Tab1//////////////////////////////////////
+              SafeArea(
+                child: SliderMenuContainer(
+                  key: _key,
+                  isShadow: false,
+                  sliderOpen: SliderOpen.RIGHT_TO_LEFT,
+                  sliderMenuOpenOffset: MediaQuery.of(context).size.width * 0.7,
+                  sliderMenu: ListView(
+                    children: <Widget>[
+                      InkWell(
+                        onTap: () {
+                          setState(() {});
+                          _key.currentState.closeDrawer();
+                        },
+                        child: Container(
+                          height: 60.0,
+                          margin:
+                              EdgeInsetsDirectional.only(start: 15.0, end: 5),
+                          child: Row(
+                            children: [
+                              Container(
+                                margin: EdgeInsetsDirectional.only(end: 13.0),
+                                child: Container(
+                                  child: Icon(Icons.arrow_forward, size: 24),
+                                  margin: EdgeInsets.only(
+                                      top: 3, left: 3, bottom: 3, right: 3),
+                                ),
+                              ),
+                              Text(
+                                "Close",
+                                style: TextStyle(
+                                    fontFamily: "NunitoSans",
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
+                              ),
+                            ],
                           ),
-                          Text(
-                            "Close",
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsetsDirectional.only(
+                          start: 10.0,
+                          bottom: 10,
+                          top: 0,
+                        ),
+                        child: Center(
+                          child: Text("Filters",
+                              style: TextStyle(
+                                fontSize: 20.0,
+                                fontWeight: FontWeight.w500,
+                              )),
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsetsDirectional.only(
+                          start: 10.0,
+                          bottom: 10,
+                          top: 0,
+                        ),
+                        child: Text("Filter by type",
                             style: TextStyle(
-                                fontFamily: "NunitoSans",
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
-                          ),
-                        ],
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                            )),
                       ),
-                    ),
-                  ),
-                  Container(
-                    margin: EdgeInsetsDirectional.only(
-                      start: 10.0,
-                      bottom: 10,
-                      top: 0,
-                    ),
-                    child: Center(
-                      child: Text("Filters",
-                          style: TextStyle(
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.w500,
-                          )),
-                    ),
-                  ),
-                  Container(
-                    margin: EdgeInsetsDirectional.only(
-                      start: 10.0,
-                      bottom: 10,
-                      top: 0,
-                    ),
-                    child: Text("Filter by type",
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.w500,
-                        )),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Expanded(
-                        child: Row(
-                          children: <Widget>[
-                            Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(4.0)),
-                                onTap: () {
-                                  all
-                                      ? setState(() {
-                                          all = false;
-                                          online = false;
-                                          offline = false;
-                                          paid = false;
-                                          free = false;
-                                        })
-                                      : setState(() {
-                                          all = true;
-                                          online = true;
-                                          offline = true;
-                                          paid = true;
-                                          free = true;
-                                        });
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    children: <Widget>[
-                                      Icon(
-                                        all
-                                            ? Icons.check_box
-                                            : Icons.check_box_outline_blank,
-                                        color: all
-                                            ? Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                            : Colors.grey.withOpacity(0.6),
-                                      ),
-                                      const SizedBox(
-                                        width: 4,
-                                      ),
-                                      Text(
-                                        "All",
-                                        style: TextStyle(
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Expanded(
-                        child: Row(
-                          children: <Widget>[
-                            Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(4.0)),
-                                onTap: () {
-                                  offline
-                                      ? setState(() {
-                                          this.setState(() =>
-                                              filters_list.remove("offline"));
-
-                                          offline = false;
-                                          all = false;
-                                        })
-                                      : setState(() {
-                                          this.setState(() =>
-                                              filters_list.add("offline"));
-                                          offline = true;
-                                        });
-                                  online && offline && free && paid
-                                      ? setState(() {
-                                          all = true;
-                                        })
-                                      : null;
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    children: <Widget>[
-                                      Icon(
-                                        offline
-                                            ? Icons.check_box
-                                            : Icons.check_box_outline_blank,
-                                        color: offline
-                                            ? Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                            : Colors.grey.withOpacity(0.6),
-                                      ),
-                                      const SizedBox(
-                                        width: 4,
-                                      ),
-                                      Text(
-                                        "Offline",
-                                        style: TextStyle(
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Row(
-                          children: <Widget>[
-                            Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(4.0)),
-                                onTap: () {
-                                  online
-                                      ? setState(() {
-                                          this.setState(() =>
-                                              filters_list.remove("online"));
-                                          online = false;
-                                          all = false;
-                                        })
-                                      : setState(() {
-                                          this.setState(
-                                              () => filters_list.add("online"));
-                                          online = true;
-                                        });
-                                  online && offline && free && paid
-                                      ? setState(() {
-                                          all = true;
-                                        })
-                                      : null;
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    children: <Widget>[
-                                      Icon(
-                                        online
-                                            ? Icons.check_box
-                                            : Icons.check_box_outline_blank,
-                                        color: online
-                                            ? Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                            : Colors.grey.withOpacity(0.6),
-                                      ),
-                                      const SizedBox(
-                                        width: 4,
-                                      ),
-                                      Text(
-                                        "Online",
-                                        style: TextStyle(
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Expanded(
-                        child: Row(
-                          children: <Widget>[
-                            Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(4.0)),
-                                onTap: () {
-                                  free
-                                      ? setState(() {
-                                          this.setState(() =>
-                                              filters_list.remove("free"));
-                                          free = false;
-                                          all = false;
-                                        })
-                                      : setState(() {
-                                          this.setState(
-                                              () => filters_list.add("free"));
-                                          free = true;
-                                        });
-                                  online && offline && free && paid
-                                      ? setState(() {
-                                          all = true;
-                                        })
-                                      : null;
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    children: <Widget>[
-                                      Icon(
-                                        free
-                                            ? Icons.check_box
-                                            : Icons.check_box_outline_blank,
-                                        color: free
-                                            ? Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                            : Colors.grey.withOpacity(0.6),
-                                      ),
-                                      const SizedBox(
-                                        width: 4,
-                                      ),
-                                      Text(
-                                        "Free",
-                                        style: TextStyle(
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Row(
-                          children: <Widget>[
-                            Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(4.0)),
-                                onTap: () {
-                                  paid
-                                      ? setState(() {
-                                          this.setState(() =>
-                                              filters_list.remove("paid"));
-                                          paid = false;
-                                          all = false;
-                                        })
-                                      : setState(() {
-                                          this.setState(
-                                              () => filters_list.add("paid"));
-                                          paid = true;
-                                        });
-                                  online && offline && free && paid
-                                      ? setState(() {
-                                          all = true;
-                                        })
-                                      : null;
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    children: <Widget>[
-                                      Icon(
-                                        paid
-                                            ? Icons.check_box
-                                            : Icons.check_box_outline_blank,
-                                        color: paid
-                                            ? Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                            : Colors.grey.withOpacity(0.6),
-                                      ),
-                                      const SizedBox(
-                                        width: 4,
-                                      ),
-                                      Text(
-                                        "Paid",
-                                        style: TextStyle(
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Container(
-                    margin: EdgeInsetsDirectional.only(
-                      start: 10.0,
-                      bottom: 10,
-                      top: 0,
-                    ),
-                    child: Text("Filter by college",
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.w500,
-                        )),
-                  ),
-                  Material(
-                    color: Colors.transparent,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: Row(
-                        children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                           Expanded(
-                            child: Text(
-                              "My College",
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .caption
-                                      .color),
-                            ),
-                          ),
-                          CupertinoSwitch(
-                            activeColor: mycollege
-                                ? Theme.of(context).textTheme.caption.color
-                                : Colors.grey.withOpacity(0.6),
-                            onChanged: (bool value) {
-                              setState(() {
-                                mycollege = value;
-                              });
-                              if (allcolleges == true && value == true) {
-                                setState(() {
-                                  allcolleges = false;
-                                });
-                              }
-                              if (allcolleges == false && value == false) {
-                                setState(() {
-                                  allcolleges = true;
-                                });
-                              }
-                            },
-                            value: mycollege,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Material(
-                    color: Colors.transparent,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: Text(
-                              "All Colleges",
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .caption
-                                      .color),
-                            ),
-                          ),
-                          CupertinoSwitch(
-                            activeColor: allcolleges
-                                ? Theme.of(context).textTheme.caption.color
-                                : Colors.grey.withOpacity(0.6),
-                            onChanged: (bool value) {
-                              setState(() {
-                                allcolleges = value;
-                              });
-                              if (mycollege == true && value == true) {
-                                setState(() {
-                                  mycollege = false;
-                                });
-                              }
-                              if (mycollege == false && value == false) {
-                                setState(() {
-                                  mycollege = true;
-                                });
-                              }
-                            },
-                            value: allcolleges,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        left: 35, right: 35, bottom: 16, top: 8),
-                    child: Container(
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .textTheme
-                            .caption
-                            .color
-                            .withOpacity(0.1),
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(24.0)),
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(24.0)),
-                          highlightColor: Colors.transparent,
-                          onTap: () {
-                            try {
-                              _key.currentState.closeDrawer();
-                              filters_list.clear();
-                              if (online) {
-                                this.setState(() => filters_list.add("Online"));
-                              }
-                              if (offline) {
-                                this.setState(
-                                    () => filters_list.add("Offline"));
-                              }
-                              if (free) {
-                                this.setState(() => filters_list.add("Free"));
-                              }
-                              if (paid) {
-                                this.setState(() => filters_list.add("Paid"));
-                              }
-                              print("filters_list");
-                              print(filters_list);
-                            } catch (_) {
-                              print("error");
-                            }
-                          },
-                          child: Center(
-                            child: Text(
-                              'Apply',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 18,
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .caption
-                                      .color),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                ],
-              ),
-              sliderMain: Scaffold(
-                body: Stack(
-                  children: <Widget>[
-                    InkWell(
-                      splashColor: Colors.transparent,
-                      focusColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                      hoverColor: Colors.transparent,
-                      onTap: () {
-                        FocusScope.of(context).requestFocus(FocusNode());
-                      },
-                      child: Column(
-                        children: <Widget>[
-                          Expanded(
-                            child: NestedScrollView(
-                              controller: _scrollController,
-                              headerSliverBuilder: (BuildContext context,
-                                  bool innerBoxIsScrolled) {
-                                return <Widget>[
-                                  SliverList(
-                                    delegate: SliverChildBuilderDelegate(
-                                        (BuildContext context, int index) {
-                                      return Column(
+                            child: Row(
+                              children: <Widget>[
+                                Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(4.0)),
+                                    onTap: () {
+                                      all
+                                          ? setState(() {
+                                              all = false;
+                                              online = false;
+                                              offline = false;
+                                              paid = false;
+                                              free = false;
+                                            })
+                                          : setState(() {
+                                              all = true;
+                                              online = true;
+                                              offline = true;
+                                              paid = true;
+                                              free = true;
+                                            });
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
                                         children: <Widget>[
-                                          isFilter
-                                              ? getTimeDateUI()
-                                              : SizedBox(height: 0),
-                                          SizedBox(height: 10.0),
+                                          Icon(
+                                            all
+                                                ? Icons.check_box
+                                                : Icons.check_box_outline_blank,
+                                            color: all
+                                                ? Theme.of(context)
+                                                    .textTheme
+                                                    .caption
+                                                    .color
+                                                : Colors.grey.withOpacity(0.6),
+                                          ),
+                                          const SizedBox(
+                                            width: 4,
+                                          ),
+                                          Text(
+                                            "All",
+                                            style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .caption
+                                                    .color),
+                                          ),
                                         ],
-                                      );
-                                    }, childCount: 1),
-                                  ),
-                                ];
-                              },
-                              body: model.isLoading || model.loadingFailed
-                                  ? _loadingIndicator
-                                  : ListView(
-                                      physics: ClampingScrollPhysics(),
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 15.0),
-                                      scrollDirection: Axis.vertical,
-                                      children: <Widget>[
-                                        for (var i = 0;
-                                            i < model.allEvents.length;
-                                            i++)
-                                          if (isFilter &&
-                                              model.allEvents[i].start_time
-                                                  .isAfter(DateTime.now())) ...[
-                                            if (isChecked
-                                                ? model.allEvents[i].start_time
-                                                        .isAfter(DateTime(
-                                                            startDate.year,
-                                                            startDate.month,
-                                                            startDate.day -
-                                                                1)) &&
-                                                    model
-                                                        .allEvents[i].start_time
-                                                        .isBefore(DateTime(
-                                                            endDate.year,
-                                                            endDate.month,
-                                                            endDate.day + 1))
-                                                : model.allEvents[i].start_time
-                                                        .isAfter(
-                                                            DateTime.now()) &&
-                                                    model.allEvents[i].start_time.day ==
-                                                        startDate.day &&
-                                                    model.allEvents[i]
-                                                            .start_time.month ==
-                                                        startDate.month &&
-                                                    model.allEvents[i]
-                                                            .start_time.year ==
-                                                        startDate.year) ...[
-                                              if (mycollege
-                                                  ? model.allEvents[i]
-                                                          .college_id
-                                                          .toString()
-                                                          .trim() ==
-                                                      college_id
-                                                          .toString()
-                                                          .trim()
-                                                  : model.allEvents[i]
-                                                          .college_id
-                                                          .toString()
-                                                          .trim() !=
-                                                      null) ...[
-                                                if (all || (online && offline && !paid && !free) || (paid && free && !online && !offline)) ...[EventTileGeneral(true, i, "info_page")] else if ((online &&
-                                                        !offline &&
-                                                        !paid &&
-                                                        !free &&
-                                                        model.allEvents[i].event_mode ==
-                                                            "Online") ||
-                                                    (!online &&
-                                                        offline &&
-                                                        !paid &&
-                                                        !free &&
-                                                        model.allEvents[i].event_mode ==
-                                                            "Offline") ||
-                                                    (!online &&
-                                                        !offline &&
-                                                        paid &&
-                                                        !free &&
-                                                        model.allEvents[i].payment_type ==
-                                                            "Paid") ||
-                                                    (!online &&
-                                                        !offline &&
-                                                        !paid &&
-                                                        free &&
-                                                        model.allEvents[i].payment_type == "Free")) ...[EventTileGeneral(true, i, "info_page")] else if ((!online && offline && paid && free && model.allEvents[i].event_mode != "Online") ||
-                                                    (online &&
-                                                        !offline &&
-                                                        paid &&
-                                                        free &&
-                                                        model.allEvents[i].event_mode !=
-                                                            "Offline") ||
-                                                    (online &&
-                                                        offline &&
-                                                        !paid &&
-                                                        free &&
-                                                        model.allEvents[i].payment_type !=
-                                                            "Paid") ||
-                                                    (online && offline && paid && !free && model.allEvents[i].payment_type != "Free")) ...[EventTileGeneral(true, i, "info_page")] else if ((online &&
-                                                        !offline &&
-                                                        paid &&
-                                                        !free &&
-                                                        model.allEvents[i].event_mode == "Online" &&
-                                                        model.allEvents[i].payment_type == "Paid") ||
-                                                    (online && !offline && !paid && free && model.allEvents[i].event_mode == "Offline" && model.allEvents[i].payment_type == "Free") ||
-                                                    (!online && offline && paid && !free && model.allEvents[i].event_mode == "Offline" && model.allEvents[i].payment_type == "Paid") ||
-                                                    (!online && offline && !paid && free && model.allEvents[i].event_mode == "Offline" && model.allEvents[i].payment_type == "Free")) ...[EventTileGeneral(true, i, "info_page")]
-                                              ]
-                                            ]
-                                          ]
-                                          //////////////////////////////filter///////////////////////////////////////
-                                          /////////no filter
-                                          else if (!isFilter &&
-                                              model.allEvents[i].start_time
-                                                  .isAfter(DateTime.now())) ...[
-                                            if (isSearching) ...[
-                                              if (model.allEvents[i].name
-                                                  .toLowerCase()
-                                                  .contains(_searchText
-                                                      .toLowerCase())) ...[
-                                                EventSearchItem(
-                                                    model.allEvents[i].imageUrl,
-                                                    model.allEvents[i].name,
-                                                    () {
-                                                  Navigator.pushNamed(
-                                                      context, Routes.info_page,
-                                                      arguments: {'index': i});
-                                                })
-                                              ]
-                                            ] else
-                                              EventTileGeneral(
-                                                  true, i, "info_page")
-                                          ]
-                                      ],
+                                      ),
                                     ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          )
+                          ),
                         ],
                       ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: <Widget>[
+                                Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(4.0)),
+                                    onTap: () {
+                                      offline
+                                          ? setState(() {
+                                              this.setState(() => filters_list
+                                                  .remove("offline"));
+
+                                              offline = false;
+                                              all = false;
+                                            })
+                                          : setState(() {
+                                              this.setState(() =>
+                                                  filters_list.add("offline"));
+                                              offline = true;
+                                            });
+                                      online && offline && free && paid
+                                          ? setState(() {
+                                              all = true;
+                                            })
+                                          : null;
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Icon(
+                                            offline
+                                                ? Icons.check_box
+                                                : Icons.check_box_outline_blank,
+                                            color: offline
+                                                ? Theme.of(context)
+                                                    .textTheme
+                                                    .caption
+                                                    .color
+                                                : Colors.grey.withOpacity(0.6),
+                                          ),
+                                          const SizedBox(
+                                            width: 4,
+                                          ),
+                                          Text(
+                                            "Offline",
+                                            style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .caption
+                                                    .color),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Row(
+                              children: <Widget>[
+                                Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(4.0)),
+                                    onTap: () {
+                                      online
+                                          ? setState(() {
+                                              this.setState(() => filters_list
+                                                  .remove("online"));
+                                              online = false;
+                                              all = false;
+                                            })
+                                          : setState(() {
+                                              this.setState(() =>
+                                                  filters_list.add("online"));
+                                              online = true;
+                                            });
+                                      online && offline && free && paid
+                                          ? setState(() {
+                                              all = true;
+                                            })
+                                          : null;
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Icon(
+                                            online
+                                                ? Icons.check_box
+                                                : Icons.check_box_outline_blank,
+                                            color: online
+                                                ? Theme.of(context)
+                                                    .textTheme
+                                                    .caption
+                                                    .color
+                                                : Colors.grey.withOpacity(0.6),
+                                          ),
+                                          const SizedBox(
+                                            width: 4,
+                                          ),
+                                          Text(
+                                            "Online",
+                                            style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .caption
+                                                    .color),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: <Widget>[
+                                Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(4.0)),
+                                    onTap: () {
+                                      free
+                                          ? setState(() {
+                                              this.setState(() =>
+                                                  filters_list.remove("free"));
+                                              free = false;
+                                              all = false;
+                                            })
+                                          : setState(() {
+                                              this.setState(() =>
+                                                  filters_list.add("free"));
+                                              free = true;
+                                            });
+                                      online && offline && free && paid
+                                          ? setState(() {
+                                              all = true;
+                                            })
+                                          : null;
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Icon(
+                                            free
+                                                ? Icons.check_box
+                                                : Icons.check_box_outline_blank,
+                                            color: free
+                                                ? Theme.of(context)
+                                                    .textTheme
+                                                    .caption
+                                                    .color
+                                                : Colors.grey.withOpacity(0.6),
+                                          ),
+                                          const SizedBox(
+                                            width: 4,
+                                          ),
+                                          Text(
+                                            "Free",
+                                            style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .caption
+                                                    .color),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Row(
+                              children: <Widget>[
+                                Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(4.0)),
+                                    onTap: () {
+                                      paid
+                                          ? setState(() {
+                                              this.setState(() =>
+                                                  filters_list.remove("paid"));
+                                              paid = false;
+                                              all = false;
+                                            })
+                                          : setState(() {
+                                              this.setState(() =>
+                                                  filters_list.add("paid"));
+                                              paid = true;
+                                            });
+                                      online && offline && free && paid
+                                          ? setState(() {
+                                              all = true;
+                                            })
+                                          : null;
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Icon(
+                                            paid
+                                                ? Icons.check_box
+                                                : Icons.check_box_outline_blank,
+                                            color: paid
+                                                ? Theme.of(context)
+                                                    .textTheme
+                                                    .caption
+                                                    .color
+                                                : Colors.grey.withOpacity(0.6),
+                                          ),
+                                          const SizedBox(
+                                            width: 4,
+                                          ),
+                                          Text(
+                                            "Paid",
+                                            style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .caption
+                                                    .color),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Container(
+                        margin: EdgeInsetsDirectional.only(
+                          start: 10.0,
+                          bottom: 10,
+                          top: 0,
+                        ),
+                        child: Text("Filter by college",
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                            )),
+                      ),
+                      Material(
+                        color: Colors.transparent,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 15),
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: Text(
+                                  "My College",
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color),
+                                ),
+                              ),
+                              CupertinoSwitch(
+                                activeColor: mycollege
+                                    ? Theme.of(context).textTheme.caption.color
+                                    : Colors.grey.withOpacity(0.6),
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    mycollege = value;
+                                  });
+                                  if (allcolleges == true && value == true) {
+                                    setState(() {
+                                      allcolleges = false;
+                                    });
+                                  }
+                                  if (allcolleges == false && value == false) {
+                                    setState(() {
+                                      allcolleges = true;
+                                    });
+                                  }
+                                },
+                                value: mycollege,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Material(
+                        color: Colors.transparent,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 15),
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: Text(
+                                  "All Colleges",
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color),
+                                ),
+                              ),
+                              CupertinoSwitch(
+                                activeColor: allcolleges
+                                    ? Theme.of(context).textTheme.caption.color
+                                    : Colors.grey.withOpacity(0.6),
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    allcolleges = value;
+                                  });
+                                  if (mycollege == true && value == true) {
+                                    setState(() {
+                                      mycollege = false;
+                                    });
+                                  }
+                                  if (mycollege == false && value == false) {
+                                    setState(() {
+                                      mycollege = true;
+                                    });
+                                  }
+                                },
+                                value: allcolleges,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 35, right: 35, bottom: 16, top: 8),
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .textTheme
+                                .caption
+                                .color
+                                .withOpacity(0.1),
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(24.0)),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(24.0)),
+                              highlightColor: Colors.transparent,
+                              onTap: () {
+                                try {
+                                  _key.currentState.closeDrawer();
+                                  filters_list.clear();
+                                  if (online) {
+                                    this.setState(
+                                        () => filters_list.add("Online"));
+                                  }
+                                  if (offline) {
+                                    this.setState(
+                                        () => filters_list.add("Offline"));
+                                  }
+                                  if (free) {
+                                    this.setState(
+                                        () => filters_list.add("Free"));
+                                  }
+                                  if (paid) {
+                                    this.setState(
+                                        () => filters_list.add("Paid"));
+                                  }
+                                  print("filters_list");
+                                  print(filters_list);
+                                } catch (_) {
+                                  print("error");
+                                }
+                              },
+                              child: Center(
+                                child: Text(
+                                  'Apply',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 18,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                  sliderMain: Scaffold(
+                    body: Stack(
+                      children: <Widget>[
+                        InkWell(
+                          splashColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                          onTap: () {
+                            FocusScope.of(context).requestFocus(FocusNode());
+                          },
+                          child: Column(
+                            children: <Widget>[
+                              Expanded(
+                                child: NestedScrollView(
+                                  controller: _scrollController,
+                                  headerSliverBuilder: (BuildContext context,
+                                      bool innerBoxIsScrolled) {
+                                    return <Widget>[
+                                      SliverList(
+                                        delegate: SliverChildBuilderDelegate(
+                                            (BuildContext context, int index) {
+                                          return Column(
+                                            children: <Widget>[
+                                              isFilter
+                                                  ? getTimeDateUI()
+                                                  : SizedBox(height: 0),
+                                              SizedBox(height: 10.0),
+                                            ],
+                                          );
+                                        }, childCount: 1),
+                                      ),
+                                    ];
+                                  },
+                                  body: model.isLoading || model.loadingFailed
+                                      ? _loadingIndicator
+                                      : ListView(
+                                          physics: ClampingScrollPhysics(),
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 15.0),
+                                          scrollDirection: Axis.vertical,
+                                          children: <Widget>[
+                                            for (var i = 0;
+                                                i < model.allEvents.length;
+                                                i++)
+                                              if (isFilter &&
+                                                  model.allEvents[i].start_time
+                                                      .isAfter(
+                                                          DateTime.now())) ...[
+                                                if (isChecked
+                                                    ? model.allEvents[i].start_time
+                                                            .isAfter(DateTime(
+                                                                startDate.year,
+                                                                startDate.month,
+                                                                startDate.day -
+                                                                    1)) &&
+                                                        model.allEvents[i]
+                                                            .start_time
+                                                            .isBefore(DateTime(
+                                                                endDate.year,
+                                                                endDate.month,
+                                                                endDate.day +
+                                                                    1))
+                                                    : model.allEvents[i].start_time.isAfter(DateTime.now()) &&
+                                                        model.allEvents[i].start_time.day ==
+                                                            startDate.day &&
+                                                        model
+                                                                .allEvents[i]
+                                                                .start_time
+                                                                .month ==
+                                                            startDate.month &&
+                                                        model
+                                                                .allEvents[i]
+                                                                .start_time
+                                                                .year ==
+                                                            startDate.year) ...[
+                                                  if (mycollege
+                                                      ? model.allEvents[i]
+                                                              .college_id
+                                                              .toString()
+                                                              .trim() ==
+                                                          college_id
+                                                              .toString()
+                                                              .trim()
+                                                      : model.allEvents[i]
+                                                              .college_id
+                                                              .toString()
+                                                              .trim() !=
+                                                          null) ...[
+                                                    if (all || (online && offline && !paid && !free) || (paid && free && !online && !offline)) ...[EventTileGeneral(true, i, "info_page")] else if ((online &&
+                                                            !offline &&
+                                                            !paid &&
+                                                            !free &&
+                                                            model.allEvents[i].event_mode ==
+                                                                "Online") ||
+                                                        (!online &&
+                                                            offline &&
+                                                            !paid &&
+                                                            !free &&
+                                                            model.allEvents[i].event_mode ==
+                                                                "Offline") ||
+                                                        (!online &&
+                                                            !offline &&
+                                                            paid &&
+                                                            !free &&
+                                                            model.allEvents[i].payment_type ==
+                                                                "Paid") ||
+                                                        (!online &&
+                                                            !offline &&
+                                                            !paid &&
+                                                            free &&
+                                                            model.allEvents[i].payment_type == "Free")) ...[EventTileGeneral(true, i, "info_page")] else if ((!online && offline && paid && free && model.allEvents[i].event_mode != "Online") ||
+                                                        (online &&
+                                                            !offline &&
+                                                            paid &&
+                                                            free &&
+                                                            model.allEvents[i].event_mode !=
+                                                                "Offline") ||
+                                                        (online &&
+                                                            offline &&
+                                                            !paid &&
+                                                            free &&
+                                                            model.allEvents[i].payment_type !=
+                                                                "Paid") ||
+                                                        (online && offline && paid && !free && model.allEvents[i].payment_type != "Free")) ...[EventTileGeneral(true, i, "info_page")] else if ((online &&
+                                                            !offline &&
+                                                            paid &&
+                                                            !free &&
+                                                            model.allEvents[i].event_mode == "Online" &&
+                                                            model.allEvents[i].payment_type == "Paid") ||
+                                                        (online && !offline && !paid && free && model.allEvents[i].event_mode == "Offline" && model.allEvents[i].payment_type == "Free") ||
+                                                        (!online && offline && paid && !free && model.allEvents[i].event_mode == "Offline" && model.allEvents[i].payment_type == "Paid") ||
+                                                        (!online && offline && !paid && free && model.allEvents[i].event_mode == "Offline" && model.allEvents[i].payment_type == "Free")) ...[EventTileGeneral(true, i, "info_page")]
+                                                  ]
+                                                ]
+                                              ]
+                                              //////////////////////////////filter///////////////////////////////////////
+                                              /////////no filter
+                                              else if (!isFilter &&
+                                                  model.allEvents[i].start_time
+                                                      .isAfter(
+                                                          DateTime.now())) ...[
+                                                if (isSearching) ...[
+                                                  if (model.allEvents[i].name
+                                                          .toLowerCase()
+                                                          .contains(_searchText
+                                                              .toLowerCase()) &&
+                                                      model.allEvents[i]
+                                                          .start_time
+                                                          .isAfter(DateTime
+                                                              .now())) ...[
+                                                    EventSearchItem(
+                                                        model.allEvents[i]
+                                                            .imageUrl,
+                                                        model.allEvents[i].name,
+                                                        () {
+                                                      Navigator.pushNamed(
+                                                          context,
+                                                          Routes.info_page,
+                                                          arguments: {
+                                                            'index': i,
+                                                            'type': 'user'
+                                                          });
+                                                    })
+                                                  ]
+                                                ] else
+                                                  EventTileGeneral(
+                                                      true, i, "info_page")
+                                              ]
+                                          ],
+                                        ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+              ///////////////////////////////Tab2//////////////////////////////////////
+              ListView(
+                physics: ClampingScrollPhysics(),
+                padding: EdgeInsets.symmetric(horizontal: 15.0),
+                scrollDirection: Axis.vertical,
+                children: <Widget>[
+                  for (var i = 0;
+                      i <
+                          (model.allEvents.length > 6
+                              ? 6
+                              : model.allEvents.length);
+                      i++)
+                    if (model.allEvents[i].start_time
+                        .isAfter(DateTime.now())) ...[
+                      EventTileGeneral(true, i, "info_page")
+                    ]
+                ],
+              ),
+
+              ///////////////////////////////Tab3//////////////////////////////////////
+              ListView(
+                physics: ClampingScrollPhysics(),
+                padding: EdgeInsets.symmetric(horizontal: 15.0),
+                scrollDirection: Axis.vertical,
+                children: <Widget>[
+                  for (var i = 0;
+                      i <
+                          (model.allEvents.length > 6
+                              ? 6
+                              : model.allEvents.length);
+                      i++)
+                    if (model.allEvents[i].start_time
+                        .isBefore(DateTime.now())) ...[
+                      EventTileGeneral(true, i, "null")
+                    ]
+                ],
+              ),
+              ///////////////////////////////Tab4//////////////////////////////////////
+              ListView(
+                physics: ClampingScrollPhysics(),
+                padding: EdgeInsets.symmetric(horizontal: 15.0),
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                children: <Widget>[
+                  for (var i = 0; i < model.allEvents.length; i++)
+                    if (model.allEvents[i].user_id.toString().trim() ==
+                        id.toString().trim()) ...[
+                      EventTileGeneral(true, i, "myevents_info_page")
+                    ],
+                ],
+              ),
+              ///////////////////////////////Tab5//////////////////////////////////////
+              Container(),
+            ],
           ),
+
+          /*
+          */
         ),
       ),
     );

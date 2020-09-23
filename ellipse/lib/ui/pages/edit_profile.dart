@@ -283,39 +283,109 @@ class _EditProfileState extends State<EditProfile> {
                               SizedBox(width: 10.0),
                               _imageFile != null
                                   ? Container(
-                                      height: 120.0,
-                                      width: 120.0,
-                                      decoration: BoxDecoration(
-                                        borderRadius:
-                                            BorderRadius.circular(80.0),
-                                        boxShadow: [
-                                          BoxShadow(
-                                              blurRadius: 3.0,
-                                              offset: Offset(0, 4.0),
-                                              color: Colors.black38),
-                                        ],
-                                        image: DecorationImage(
-                                          image: FileImage(
-                                            _imageFile,
-                                          ),
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
-                                    )
-                                  : Container(
-                                      width: 70.0,
-                                      height: 70.0,
+                                      width: 80.0,
+                                      height: 80.0,
                                       child: CircleAvatar(
                                         radius: 40,
                                         backgroundColor: Colors.grey,
                                         child: ClipRRect(
                                           borderRadius:
-                                              BorderRadius.circular(50.0),
-                                          child: FadeInImage(
-                                            image: NetworkImage(
-                                                "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
-                                            placeholder: AssetImage(
-                                                'assets/icons/loading.gif'),
+                                              BorderRadius.circular(540),
+                                          child: Container(
+                                            height: 73,
+                                            width: 73,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(80.0),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                    blurRadius: 3.0,
+                                                    offset: Offset(0, 4.0),
+                                                    color: Colors.black38),
+                                              ],
+                                              image: DecorationImage(
+                                                image: FileImage(
+                                                  _imageFile,
+                                                ),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : Container(
+                                      width: 80.0,
+                                      height: 80.0,
+                                      child: CircleAvatar(
+                                        radius: 40,
+                                        backgroundColor: Colors.grey,
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(540),
+                                          child: InkWell(
+                                            onTap: () {
+                                              showDialog(
+                                                context: context,
+                                                builder: (_) => Container(
+                                                  color: Theme.of(context)
+                                                      .scaffoldBackgroundColor
+                                                      .withOpacity(0.7),
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.all(
+                                                        Radius.circular(10.0),
+                                                      ),
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .center,
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          FadeInImage(
+                                                            image: NetworkImage(
+                                                                "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                                            placeholder: AssetImage(
+                                                                'assets/icons/loading.gif'),
+                                                          ),
+                                                          SizedBox(height: 10),
+                                                          FloatingActionButton(
+                                                            backgroundColor:
+                                                                Theme.of(
+                                                                        context)
+                                                                    .accentColor,
+                                                            onPressed: () {
+                                                              Navigator.pop(
+                                                                  context);
+                                                            },
+                                                            tooltip: 'Close',
+                                                            child: Icon(
+                                                                Icons.close,
+                                                                size: 30),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: Container(
+                                              height: 73,
+                                              width: 73,
+                                              child: FadeInImage(
+                                                image: NetworkImage(
+                                                    "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                                placeholder: AssetImage(
+                                                    'assets/icons/loading.gif'),
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       )),

@@ -408,7 +408,7 @@ class _ChatPageState extends State<ChatPage> {
                                         'msg': {
                                           'id': id + datetime,
                                           'user_id': id,
-                                          'user_name': _userdetails.username,
+                                          'user_name': _userdetails.name,
                                           'user_pic': _userdetails.profile_pic,
                                           'message': textController.text,
                                           'date': datetime

@@ -102,12 +102,13 @@ class _EventSearchState extends State<EventSearch>
             children: <Widget>[
               for (var i = 0; i < model.allEvents?.length; i++)
                 if (model.allEvents[i].name
-                    .toLowerCase()
-                    .contains(_searchText.toLowerCase())) ...[
+                        .toLowerCase()
+                        .contains(_searchText.toLowerCase()) &&
+                    model.allEvents[i].start_time.isAfter(DateTime.now())) ...[
                   EventSearchItem(
                       model.allEvents[i].imageUrl, model.allEvents[i].name, () {
                     Navigator.pushNamed(context, Routes.info_page,
-                        arguments: {'index': i});
+                        arguments: {'index': i, 'type': 'user'});
                   })
                 ]
             ],

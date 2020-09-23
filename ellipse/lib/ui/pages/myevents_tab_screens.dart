@@ -211,7 +211,6 @@ class _AnnouncementsState extends State<Announcements>
           if (snapshot.hasData) {
             List<AnnouncementsModel> data = snapshot.data;
             return ListView.builder(
-                reverse: true,
                 itemCount: data.length,
                 itemBuilder: (context, index) {
                   final _time = DateTime.parse(data[index].time);
@@ -341,13 +340,8 @@ class _AddAnnouncementState extends State<AddAnnouncement>
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
     if (response.statusCode == 200) {
-      /*
-      Navigator.pushNamed(
-        context,
-        Routes.my_events_info_page,
-        arguments: {'index': widget.index},
-      );
-      */
+      Navigator.pushNamed(context, Routes.info_page,
+          arguments: {'index': widget.index, 'type': 'admin'});
     } else {
       print(response.body);
     }

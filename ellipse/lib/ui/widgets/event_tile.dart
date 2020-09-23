@@ -69,7 +69,7 @@ class EventTileGeneralState extends State<EventTileGeneral> {
                   Routes.info_page,
                   arguments: {'index': widget.index, 'type': 'admin'},
                 );
-              }
+              } else if (widget.route == "null") {}
             },
             child: ClipRRect(
               borderRadius: BorderRadius.all(
@@ -153,7 +153,7 @@ class EventTileGeneralState extends State<EventTileGeneral> {
                                 style: TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold)),
                             SizedBox(height: 4),
-                            Text("10:00 - 12:00 PM",
+                            Text(DateFormat('EEEE').format(_event.finish_time),
                                 style: TextStyle(
                                     color: Colors.grey, fontSize: 14)),
                           ],

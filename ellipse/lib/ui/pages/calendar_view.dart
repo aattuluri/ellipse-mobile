@@ -1,13 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:cached_network_image/cached_network_image.dart';
-import '../../util/routes.dart';
-import 'package:intl/intl.dart';
+
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../widgets/index.dart';
+
 import '../../repositories/index.dart';
-import '../../models/index.dart';
+import '../widgets/index.dart';
 
 Widget get _loadingIndicator =>
     Center(child: const CircularProgressIndicator());
@@ -135,7 +133,7 @@ class _CalendarTabState extends State<CalendarTab> {
               actions: [
                 IconButton(
                     icon: Icon(
-                      Icons.refresh,
+                      Icons.autorenew,
                       color: Theme.of(context).textTheme.caption.color,
                       size: 27,
                     ),

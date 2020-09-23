@@ -379,7 +379,7 @@ class _RegistrationFormState extends State<RegistrationForm>
     if (response.statusCode == 200) {
       context.read<EventsRepository>().refreshData();
       Navigator.pushNamed(context, Routes.info_page,
-          arguments: {'index': widget.index});
+          arguments: {'index': widget.index, 'type': 'user'});
     }
   }
 
