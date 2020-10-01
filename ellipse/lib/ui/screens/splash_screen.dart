@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../util/constants.dart' as Constants;
 import '../../util/index.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -14,7 +13,7 @@ class _SplashScreenState extends State<SplashScreen> {
   bool logged = false;
   redirect() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool loggedin = (prefs.getBool(Constants.LOGGED_IN) ?? false);
+    bool loggedin = (prefs.getBool('loggedIn') ?? false);
     if (loggedin) {
       Navigator.pushNamed(context, Routes.initialization);
     } else {

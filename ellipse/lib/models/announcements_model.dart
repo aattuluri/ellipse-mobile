@@ -1,7 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'index.dart';
-
 class AnnouncementsModel {
   final String title, description;
   final bool visible;

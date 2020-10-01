@@ -33,7 +33,7 @@ class _ChatPageState extends State<ChatPage> {
   bool isLoading = false;
   ScrollController scrollController;
   bool message = false;
-  String token = "", id = "", email = "", college = "";
+  //String token = "", id = "", email = "", college = "";
   String _messageText = "";
   var textController = new TextEditingController();
   _SearchListState() {
@@ -52,19 +52,20 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  getPref() async {
+  loadMessages() async {
     setState(() {
       //isLoading = true;
     });
     SharedPreferences preferences = await SharedPreferences.getInstance();
+    /*
     setState(() {
       token = preferences.getString("token");
       id = preferences.getString("id");
       email = preferences.getString("email");
     });
-
+*/
     Map<String, String> headers = {
-      HttpHeaders.authorizationHeader: "Bearer $token",
+      HttpHeaders.authorizationHeader: "Bearer $prefToken",
       HttpHeaders.contentTypeHeader: "application/json"
     };
     var response = await http.get(
@@ -109,7 +110,7 @@ class _ChatPageState extends State<ChatPage> {
               // time: time,
               sender_type:
                   senderid == widget.event_uid ? "admin" : "participant",
-              type: senderid == id
+              type: senderid == prefId
                   ? MessageType.Me
                   /* sender_type == "admin"
                       ? widget.sender_type != "admin"
@@ -132,10 +133,11 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Future<void> initState() {
+    loadPref();
     _SearchListState();
     scrollController = ScrollController();
 
-    getPref();
+    loadMessages();
 
     SystemChannels.textInput.invokeMethod('TextInput.hide');
     setState(() {
@@ -185,7 +187,7 @@ class _ChatPageState extends State<ChatPage> {
                     // time: time,
                     sender_type:
                         senderid == widget.event_uid ? "admin" : "participant",
-                    type: senderid == id
+                    type: senderid == prefId
                         ? MessageType.Me
                         /* sender_type == "admin"
                       ? widget.sender_type != "admin"
@@ -406,8 +408,8 @@ class _ChatPageState extends State<ChatPage> {
                                         'action': "send_message",
                                         'event_id': widget.event_id,
                                         'msg': {
-                                          'id': id + datetime,
-                                          'user_id': id,
+                                          'id': prefId + datetime,
+                                          'user_id': prefId,
                                           'user_name': _userdetails.name,
                                           'user_pic': _userdetails.profile_pic,
                                           'message': textController.text,

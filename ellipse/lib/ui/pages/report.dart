@@ -1,17 +1,10 @@
-import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../models/index.dart';
-import '../../repositories/index.dart';
-import 'dart:ui';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/http.dart';
-import 'dart:core';
 import 'dart:convert';
-import 'dart:async';
-import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
+import 'dart:core';
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
 import '../../util/index.dart';
 
 class Report extends StatefulWidget {
@@ -24,22 +17,13 @@ class Report extends StatefulWidget {
 class _ReportState extends State<Report> with TickerProviderStateMixin {
   String title = "", description = "";
   bool visible = false;
-  String token = "", id = "", email = "", college = "";
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-    });
-  }
 
   add_report(String event_id, title, description) async {
     http.Response response = await http.post(
       '${Url.URL}/api/event/report',
       headers: <String, String>{
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token'
+        'Authorization': 'Bearer $prefToken'
       },
       body: jsonEncode(<String, dynamic>{
         'event_id': "${widget.id}",
@@ -58,7 +42,7 @@ class _ReportState extends State<Report> with TickerProviderStateMixin {
 
   @override
   void initState() {
-    getPref();
+    loadPref();
     print(widget.id);
     super.initState();
   }

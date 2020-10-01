@@ -13,6 +13,8 @@ dependencies:
 
   cupertino_icons: ^1.0.0
   ##utils##
+  firebase_admob: ^0.10.0+1
+  firebase_messaging: ^7.0.2
   connectivity: ^0.4.9+3
   path_provider: ^1.6.18
   web_socket_channel: ^1.1.0
@@ -28,7 +30,7 @@ dependencies:
   ##ui##
   add_2_calendar: ^1.4.0
   big_tip: ^1.1.1
-  expand_widget: ^1.0.0+2
+  expand_widget: ^1.1.0
   fluttertoast: ^7.1.1
   datetime_picker_formfield: ^1.0.0
   mime: ^0.9.7

@@ -11,7 +11,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/index.dart';
 import '../../repositories/index.dart';
@@ -28,7 +27,7 @@ class _EditProfileState extends State<EditProfile> {
   final _key = new GlobalKey<FormState>();
   bool isloading = false;
   final _picker = ImagePicker();
-  String token = "", id = "", email = "", college_id = "";
+  // String token = "", id = "", email = "", college_id = "";
   String designation;
   final List<String> _designations = ["Student", "Club"];
   var _nameController = new TextEditingController();
@@ -36,7 +35,8 @@ class _EditProfileState extends State<EditProfile> {
   var _usernameController = new TextEditingController();
   var _phonenoController = new TextEditingController();
   var _bioController = new TextEditingController();
-  getPref() async {
+
+  /*getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
       token = preferences.getString("token");
@@ -44,7 +44,7 @@ class _EditProfileState extends State<EditProfile> {
       email = preferences.getString("email");
       college_id = preferences.getString("college_id");
     });
-  }
+  }*/
 
   @override
   // To store the file provided by the image_picker
@@ -147,7 +147,7 @@ class _EditProfileState extends State<EditProfile> {
         '${Url.URL}/api/users/updateprofile',
         headers: <String, String>{
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          'Authorization': 'Bearer $prefToken'
         },
         body: jsonEncode(<String, dynamic>{
           'name': _nameController.text,
@@ -155,7 +155,7 @@ class _EditProfileState extends State<EditProfile> {
           'bio': _bioController.text,
           'gender': gender_,
           'designation': designation_,
-          'college_id': college_id
+          'college_id': prefCollegeId
         }),
       );
       print('Response status: ${response.statusCode}');
@@ -163,7 +163,7 @@ class _EditProfileState extends State<EditProfile> {
       if (response.statusCode == 200) {
         if (_imageFile != null) {
           Map<String, String> headers = {
-            HttpHeaders.authorizationHeader: "Bearer $token",
+            HttpHeaders.authorizationHeader: "Bearer $prefToken",
             HttpHeaders.contentTypeHeader: "application/json"
           };
           final mimeTypeData =
@@ -218,7 +218,7 @@ class _EditProfileState extends State<EditProfile> {
 
   @override
   void initState() {
-    getPref();
+    loadPref();
     super.initState();
   }
 

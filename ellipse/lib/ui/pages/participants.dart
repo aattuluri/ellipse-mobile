@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../util/index.dart';
 import '../widgets/index.dart';
@@ -18,22 +17,16 @@ class Participants extends StatefulWidget {
 
 class _ParticipantsState extends State<Participants>
     with TickerProviderStateMixin {
-  String token = "", id = "", email = "";
+  // String token = "", id = "", email = "";
   bool expanded = false;
   bool isloading = false;
   List<dynamic> participants = [];
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-    });
+  loadRegisteredEvents() async {
     setState(() {
       isloading = true;
     });
     Map<String, String> headers = {
-      HttpHeaders.authorizationHeader: "Bearer $token",
+      HttpHeaders.authorizationHeader: "Bearer $prefToken",
       HttpHeaders.contentTypeHeader: "application/json"
     };
     String event_id = widget.event_id.trim().toString();
@@ -55,13 +48,8 @@ class _ParticipantsState extends State<Participants>
 
   @override
   void initState() {
-    getPref();
+    loadPref();
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override

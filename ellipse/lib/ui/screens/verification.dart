@@ -13,7 +13,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../util/constants.dart' as Constants;
 import '../../util/index.dart';
-import '../../util/routes.dart';
 import '../screens/index.dart';
 
 class OtpPageEmailVerify extends StatefulWidget {
@@ -34,16 +33,17 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
 
   TextEditingController currController = new TextEditingController();
 
-  String token = "", id = "", email = "", verification_email = "";
+  //String token = "", id = "", email = "", verification_email = "";
   bool email_sent = false;
-  getPref() async {
+
+  /* getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
       email = preferences.getString("email");
       id = preferences.getString("id");
       token = preferences.getString("token");
     });
-  }
+  }*/
 
   void matchOtp_reset_password() async {
     String otp = controller1.text +
@@ -80,9 +80,10 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
       '${Url.URL}/api/users/emailverified',
       headers: <String, String>{
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token'
+        'Authorization': 'Bearer $prefToken'
       },
-      body: jsonEncode(<dynamic, dynamic>{'email': '$email', 'otp': '$otp'}),
+      body:
+          jsonEncode(<dynamic, dynamic>{'email': '$prefEmail', 'otp': '$otp'}),
     );
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
@@ -97,7 +98,7 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
     http.Response response1 = await http.post(
       '${Url.URL}/api/users/emailverify?email=${widget.email}',
       body: jsonEncode(<dynamic, dynamic>{
-        "email": "$verification_email",
+        "email": "",
       }),
     );
     print('Response status: ${response1.statusCode}');
@@ -115,7 +116,8 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
 
   @override
   void initState() {
-    getPref();
+    loadPref();
+    //getPref();
     super.initState();
     currController = controller1;
   }
@@ -676,20 +678,20 @@ class _CheckState extends State<Check> {
   String _college;
   String image_url;
   String designation, bio;
-  String token = "", id = "", email = "";
+  //String token = "", id = "", email = "";
   bool male = false;
   bool female = false;
   final List<String> _designations = ["Student", "Club"];
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-    });
+  next() async {
+    // SharedPreferences preferences = await SharedPreferences.getInstance();
+    //setState(() {
+    // token = preferences.getString("token");
+    // id = preferences.getString("id");
+    //email = preferences.getString("email");
+    //  });
     String gender = male ? "Male" : female ? "Female" : null;
     if (_imageFile == null ||
-        id.isNullOrEmpty() ||
+        prefId.isNullOrEmpty() ||
         _college.isNullOrEmpty() ||
         bio.isNullOrEmpty() ||
         designation.isNullOrEmpty() ||
@@ -719,10 +721,10 @@ class _CheckState extends State<Check> {
         '${Url.URL}/api/users/userdetails',
         headers: <String, String>{
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          'Authorization': 'Bearer $prefToken'
         },
         body: jsonEncode(<dynamic, dynamic>{
-          'id': "$id",
+          'id': "$prefId",
           "college_id": "$_college",
           'bio': "$bio",
           'designation': "$designation",
@@ -731,7 +733,7 @@ class _CheckState extends State<Check> {
       );
       if (response.statusCode == 200) {
         Map<String, String> headers = {
-          HttpHeaders.authorizationHeader: "Bearer $token",
+          HttpHeaders.authorizationHeader: "Bearer $prefToken",
           HttpHeaders.contentTypeHeader: "application/json"
         };
         final mimeTypeData =
@@ -740,7 +742,7 @@ class _CheckState extends State<Check> {
 
         // Intilize the multipart request
         final imageUploadRequest = http.MultipartRequest(
-            'POST', Uri.parse('${Url.URL}/api/users/uploadimage?id=$id'));
+            'POST', Uri.parse('${Url.URL}/api/users/uploadimage?id=$prefId'));
         imageUploadRequest.headers.addAll(headers);
         // Attach the file in the request
         final file = await http.MultipartFile.fromPath('image', _imageFile.path,
@@ -854,6 +856,7 @@ class _CheckState extends State<Check> {
 
   @override
   void initState() {
+    loadPref();
     getData();
     super.initState();
   }
@@ -1383,7 +1386,7 @@ class _CheckState extends State<Check> {
                                           ),
                                         ),
                                         onPressed: () async {
-                                          getPref();
+                                          next();
                                           //Navigator.pushNamed(
                                           // context,
                                           // Routes.start,

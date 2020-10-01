@@ -1,8 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'index.dart';
-import '../util/index.dart';
-
 class Events {
   final String id,
       user_id,

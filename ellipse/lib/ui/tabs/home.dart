@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/index.dart';
 import '../../repositories/index.dart';
@@ -90,31 +89,21 @@ Future<void> _onRefresh(BuildContext context, BaseRepository repository) {
   return completer.future;
 }
 
-class HomeTab extends StatefulWidget {
+class HomeeeeTab extends StatefulWidget {
   @override
-  _HomeTabState createState() => _HomeTabState();
+  _HomeeeeTabState createState() => _HomeeeeTabState();
 }
 
-class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
-  String token = "", id = "", email = "", college_id = "";
+class _HomeeeeTabState extends State<HomeeeeTab> with TickerProviderStateMixin {
   TabController _controller;
   Widget view;
   final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-      college_id = preferences.getString("college_id");
-    });
-  }
 
   @override
   void initState() {
     SystemChannels.textInput.invokeMethod('TextInput.hide');
     _controller = TabController(length: 3, vsync: this);
-    getPref();
+    loadPref();
     super.initState();
   }
 
@@ -376,7 +365,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                   Navigator.pushNamed(
                                     context,
                                     Routes.start,
-                                    arguments: {'currebt_tab': 1},
+                                    arguments: {'current_tab': 1},
                                   );
                                 },
                                 child: Material(
@@ -480,7 +469,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                       Navigator.pushNamed(
                                         context,
                                         Routes.start,
-                                        arguments: {'currebt_tab': 1},
+                                        arguments: {'current_tab': 1},
                                       );
                                     },
                                     child: Text(

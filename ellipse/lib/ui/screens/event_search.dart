@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../repositories/index.dart';
 import '../../util/index.dart';
@@ -17,7 +16,6 @@ class EventSearch extends StatefulWidget {
 class _EventSearchState extends State<EventSearch>
     with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
-  String token = "", id = "", email = "";
   String _searchText = "";
   final TextEditingController _searchQuery = new TextEditingController();
   _SearchListState() {
@@ -34,25 +32,11 @@ class _EventSearchState extends State<EventSearch>
     });
   }
 
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-    });
-  }
-
   @override
   void initState() {
-    getPref();
+    loadPref();
     _SearchListState();
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override

@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:connectivity/connectivity.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../util/constants.dart' as Constants;
 import '../../util/index.dart';
 import '../../util/routes.dart';
 import '../screens/index.dart';
@@ -18,19 +18,24 @@ class Initialization extends StatefulWidget {
 }
 
 class _InitializationState extends State<Initialization> {
-  String token = "", id = "", email = "", college_id = "";
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+  String title = "Title";
+  String helper = "helper";
+  //String token = "", id = "", email = "", college_id = "";
   bool ischecking = false;
   Future loggedin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool loggedin = (prefs.getBool(Constants.LOGGED_IN) ?? false);
+    bool loggedin = (prefs.getBool('loggedIn') ?? false);
     if (loggedin) {
-      getPref();
+      loadPref();
+      check_connectivity();
+      // getPref();
     } else {
       Navigator.pushNamed(context, Routes.splash_screen);
-      //Navigator.pushNamed(context, Routes.main_screen);
     }
   }
 
+/*
   getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
@@ -38,9 +43,9 @@ class _InitializationState extends State<Initialization> {
       id = preferences.getString("id");
       email = preferences.getString("email");
     });
-    check_connectivity();
-  }
 
+  }
+*/
   check_connectivity() async {
     var connectivityResult = await (Connectivity().checkConnectivity());
     if (connectivityResult == ConnectivityResult.mobile) {
@@ -77,9 +82,9 @@ class _InitializationState extends State<Initialization> {
         '${Url.URL}/api/users/check',
         headers: <String, String>{
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          'Authorization': 'Bearer $prefToken'
         },
-        body: jsonEncode(<dynamic, dynamic>{'id': '$id'}),
+        body: jsonEncode(<dynamic, dynamic>{'id': '$prefId'}),
       );
     } catch (e) {
       Navigator.pushNamed(context, Routes.signin);
@@ -90,7 +95,7 @@ class _InitializationState extends State<Initialization> {
     if (response.statusCode == 401) {
       var route = new MaterialPageRoute(
         builder: (BuildContext context) =>
-            OtpPageEmailVerify(email, "email_verification"),
+            OtpPageEmailVerify(prefEmail, "email_verification"),
       );
       Navigator.of(context).push(route);
     } else if (response.statusCode == 402) {
@@ -100,22 +105,18 @@ class _InitializationState extends State<Initialization> {
       Navigator.of(context).push(route);
     } else if (response.statusCode == 403) {
       setState(() {
-        preferences.setString("college_id", "${response.body}".toString());
+        preferences.setString("collegeId", "${response.body}".toString());
       });
-      print(college_id);
       Navigator.pushNamed(
         context,
         Routes.start,
-        arguments: {'currebt_tab': 0},
+        arguments: {'current_tab': 0},
       );
       setState(() {
         ischecking = false;
       });
       print("All details checked");
     } else {
-      setState(() {
-        preferences.setBool(Constants.CHECKED, false);
-      });
       setState(() {
         ischecking = false;
       });
@@ -126,7 +127,45 @@ class _InitializationState extends State<Initialization> {
   @override
   void initState() {
     loggedin();
+    getFirebaseToken();
+    firebase();
     super.initState();
+  }
+
+  getFirebaseToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _firebaseMessaging.getToken().then((deviceToken) {
+      print("FirebaseToken");
+      print("$deviceToken");
+      prefs.setString("firebaseMessagingToken", "$deviceToken".toString());
+    });
+  }
+
+  firebase() {
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        print("onMessage: $message");
+        final notification = message['notification'];
+        setState(() {
+          //messages.add(Message(
+          //    title: notification['title'], body: notification['body']));
+        });
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print("onLaunch: $message");
+
+        final notification = message['data'];
+        setState(() {
+          // messages.add(Message(
+          //   title: '${notification['title']}',
+          //  body: '${notification['body']}',
+          //));
+        });
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print("onResume: $message");
+      },
+    );
   }
 
   @override

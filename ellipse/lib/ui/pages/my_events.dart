@@ -1,14 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../util/routes.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../widgets/index.dart';
+
 import '../../repositories/index.dart';
-import '../../models/index.dart';
+import '../../util/index.dart';
+import '../widgets/index.dart';
 
 Widget get _loadingIndicator =>
     Center(child: const CircularProgressIndicator());
@@ -39,9 +36,9 @@ class MyEvents extends StatefulWidget {
 }
 
 class _MyEventsState extends State<MyEvents> {
-  String token = "", id = "", email = "", college_id = "";
+  // String token = "", id = "", email = "", college_id = "";
 
-  getPref() async {
+  /*getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     preferences.setString("eveid", "");
     setState(() {
@@ -51,10 +48,10 @@ class _MyEventsState extends State<MyEvents> {
       college_id = preferences.getString("college_id");
     });
   }
-
+*/
   @override
   void initState() {
-    getPref();
+    loadPref();
     super.initState();
   }
 
@@ -95,7 +92,7 @@ class _MyEventsState extends State<MyEvents> {
                   children: <Widget>[
                     for (var i = 0; i < model.allEvents.length; i++)
                       if (model.allEvents[i].user_id.toString().trim() ==
-                          id.toString().trim()) ...[
+                          prefId.toString().trim()) ...[
                         EventTileGeneral(true, i, "myevents_info_page")
                       ],
                   ],

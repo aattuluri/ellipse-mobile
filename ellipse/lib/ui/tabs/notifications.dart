@@ -1,14 +1,11 @@
-import 'dart:async';
-
 import 'package:big_tip/big_tip.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:row_collection/row_collection.dart';
-import '../widgets/index.dart';
-import '../../models/index.dart';
+
 import '../../repositories/index.dart';
 import '../../util/index.dart';
+import '../widgets/index.dart';
 
 Widget get _loadingIndicator =>
     Center(child: const CircularProgressIndicator());

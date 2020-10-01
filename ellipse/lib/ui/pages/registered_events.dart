@@ -1,16 +1,14 @@
-import 'dart:async';
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../util/routes.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../widgets/index.dart';
-import '../../repositories/index.dart';
-import 'package:flutter/cupertino.dart';
 import 'dart:io';
-import '../../util/index.dart';
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+
+import '../../repositories/index.dart';
+import '../../util/index.dart';
+import '../widgets/index.dart';
 
 Widget get _loadingIndicator =>
     Center(child: const CircularProgressIndicator());
@@ -21,27 +19,19 @@ class RegisteredEvents extends StatefulWidget {
 }
 
 class _RegisteredEventsState extends State<RegisteredEvents> {
-  String token = "", id = "", email = "", college_id = "";
   bool isloading = false;
   List<dynamic> registered = [];
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    preferences.setString("eveid", "");
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-      college_id = preferences.getString("college_id");
-    });
+  loadRegEvents() async {
     context.read<EventsRepository>().refreshData();
     setState(() {
       isloading = true;
     });
     Map<String, String> headers = {
-      HttpHeaders.authorizationHeader: "Bearer $token",
+      HttpHeaders.authorizationHeader: "Bearer $prefToken",
       HttpHeaders.contentTypeHeader: "application/json"
     };
-    var response = await http.get("${Url.URL}/api/user/registeredEvents?id=$id",
+    var response = await http.get(
+        "${Url.URL}/api/user/registeredEvents?id=$prefId",
         headers: headers);
     print('Response status: ${response.statusCode}');
     //print('Response body: ${response.body}');
@@ -60,7 +50,8 @@ class _RegisteredEventsState extends State<RegisteredEvents> {
 
   @override
   void initState() {
-    getPref();
+    loadPref();
+    loadRegEvents();
 
     super.initState();
   }
@@ -118,7 +109,7 @@ class _RegisteredEventsState extends State<RegisteredEvents> {
                   children: <Widget>[
                     for (var i = 0; i < model.allEvents.length; i++) ...[
                       for (var j = 0; j < registered.length; j++) ...[
-                        if (registered[j]['user_id'] == id &&
+                        if (registered[j]['user_id'] == prefId &&
                             registered[j]['event_id'] ==
                                 model.allEvents[i].id) ...[
                           EventTileGeneral(true, i, "info_page")

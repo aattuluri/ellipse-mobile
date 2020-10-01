@@ -26,17 +26,7 @@ class MoreTab extends StatefulWidget {
 }
 
 class _MoreTabState extends State<MoreTab> with TickerProviderStateMixin {
-  String token = "", id = "", email = "", college_id = "";
   Widget view;
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-      college_id = preferences.getString("college_id");
-    });
-  }
 
   // Settings indexes
   ImageQuality _imageQualityIndex;
@@ -44,7 +34,7 @@ class _MoreTabState extends State<MoreTab> with TickerProviderStateMixin {
   logout() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     Map<String, String> headers = {
-      HttpHeaders.authorizationHeader: "Bearer $token",
+      HttpHeaders.authorizationHeader: "Bearer $prefToken",
       HttpHeaders.contentTypeHeader: "application/json"
     };
     var response =
@@ -112,7 +102,7 @@ class _MoreTabState extends State<MoreTab> with TickerProviderStateMixin {
 
   @override
   void initState() {
-    getPref();
+    loadPref();
     _themeIndex = context.read<ThemeProvider>().theme;
     _imageQualityIndex = context.read<ImageQualityProvider>().imageQuality;
     setState(() {

@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../repositories/index.dart';
-import '../../util/constants.dart' as Constants;
 import '../../util/index.dart';
 import '../pages/index.dart';
 import '../tabs/index.dart';
@@ -23,29 +22,19 @@ class StartScreen extends StatefulWidget {
 
 class _StartScreenState extends State<StartScreen> {
   final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
-  String token = "", id = "", email = "", college_id = "";
+
   Future loggedin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool loggedin = (prefs.getBool(Constants.LOGGED_IN) ?? false);
+    bool loggedin = (prefs.getBool('loggedIn') ?? false);
     if (loggedin) {
-      getPref();
+      loadPref();
     } else {
       Navigator.pushNamed(context, Routes.signin);
     }
   }
 
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-      college_id = preferences.getString("college_id");
-    });
-  }
-
+  //HomeeeeTab homeTab;
   HomeTab homeTab;
-  ExploreTab exploreTab;
   CalendarTab calendarTab;
   NotificationsTab notificationsTab;
   MoreTab moreTab;
@@ -62,18 +51,18 @@ class _StartScreenState extends State<StartScreen> {
       DeviceOrientation.portraitDown,
     ]);
     currentTab = widget.current_tab;
+    //homeTab = HomeeeeTab();
     homeTab = HomeTab();
-    exploreTab = ExploreTab();
     calendarTab = CalendarTab();
     notificationsTab = NotificationsTab();
     moreTab = MoreTab();
-    pages = [homeTab, exploreTab, calendarTab, notificationsTab, moreTab];
+    pages = [homeTab, calendarTab, notificationsTab, moreTab];
     switch (currentTab) {
       case 0:
         currentPage = homeTab;
         break;
       case 1:
-        currentPage = exploreTab;
+        currentPage = calendarTab;
         break;
       case 2:
         currentPage = notificationsTab;
@@ -188,11 +177,13 @@ class _StartScreenState extends State<StartScreen> {
                                     //title: Text("Home"),
                                     icon: Icon(Icons.home),
                                   ),
-                                  BottomNavigationBarItem(
+
+                                  /*BottomNavigationBarItem(
                                     title: SizedBox.shrink(),
                                     //title: Text("Explore"),
                                     icon: Icon(Icons.explore),
                                   ),
+                                  */
                                   BottomNavigationBarItem(
                                     title: SizedBox.shrink(),
                                     //title: Text("Calendar"),

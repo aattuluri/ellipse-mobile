@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/index.dart';
 import '../../repositories/index.dart';
@@ -24,19 +23,9 @@ class Timeline extends StatefulWidget {
 }
 
 class _TimelineState extends State<Timeline> with TickerProviderStateMixin {
-  String token = "", id = "", email = "", college = "";
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-    });
-  }
-
   @override
   void initState() {
-    getPref();
+    loadPref();
     print(widget.index);
     super.initState();
   }
@@ -158,19 +147,9 @@ class Announcements extends StatefulWidget {
 
 class _AnnouncementsState extends State<Announcements>
     with TickerProviderStateMixin {
-  String token = "", id = "", email = "", college = "";
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-    });
-  }
-
   Future<List<AnnouncementsModel>> _fetch_announcements() async {
     Map<String, String> headers = {
-      HttpHeaders.authorizationHeader: "Bearer $token",
+      HttpHeaders.authorizationHeader: "Bearer $prefToken",
       HttpHeaders.contentTypeHeader: "application/json"
     };
     String event_id = widget.id.trim().toString();
@@ -192,7 +171,7 @@ class _AnnouncementsState extends State<Announcements>
 
   @override
   void initState() {
-    getPref();
+    loadPref();
     print(widget.index);
     super.initState();
   }
@@ -313,22 +292,13 @@ class _AddAnnouncementState extends State<AddAnnouncement>
     with TickerProviderStateMixin {
   String title = "", description = "";
   bool visible = false;
-  String token = "", id = "", email = "", college = "";
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-    });
-  }
 
   add_announcements(String event_id, title, description, visible) async {
     http.Response response = await http.post(
       '${Url.URL}/api/event/add_announcement',
       headers: <String, String>{
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token'
+        'Authorization': 'Bearer $prefToken'
       },
       body: jsonEncode(<String, dynamic>{
         'event_id': '$event_id',
@@ -349,7 +319,7 @@ class _AddAnnouncementState extends State<AddAnnouncement>
 
   @override
   void initState() {
-    getPref();
+    loadPref();
     print(widget.index);
     super.initState();
   }
@@ -471,19 +441,9 @@ class RegisteredParticipants extends StatefulWidget {
 
 class _RegisteredParticipantsState extends State<RegisteredParticipants>
     with TickerProviderStateMixin {
-  String token = "", id = "", email = "", college = "";
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-    });
-  }
-
   @override
   void initState() {
-    getPref();
+    loadPref();
     print(widget.index);
     super.initState();
   }

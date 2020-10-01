@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "342210789174",
+    "firebase_url": "https://ellipse-e2428.firebaseio.com",
+    "project_id": "ellipse-e2428",
+    "storage_bucket": "ellipse-e2428.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:342210789174:android:1127baf500129c57cc3d97",
+        "android_client_info": {
+          "package_name": "com.guna0027.ellipse"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "342210789174-o330sj04c1v4r9ev589lfm1ali9eqfe7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSsNp2tdDveI2A4EhAJ_ZF0GyrmdTaQYA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "342210789174-o330sj04c1v4r9ev589lfm1ali9eqfe7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

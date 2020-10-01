@@ -281,7 +281,8 @@ class DynamicWidgetItem extends StatelessWidget {
             onShowPicker: (context, currentValue) async {
               final date = await showDatePicker(
                   context: context,
-                  firstDate: DateTime.now(),
+                  firstDate: DateTime(DateTime.now().year - 100,
+                      DateTime.now().month, DateTime.now().day),
                   initialDate: currentValue ?? DateTime.now(),
                   lastDate: DateTime(2100));
               if (date != null) {

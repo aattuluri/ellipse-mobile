@@ -1,9 +1,5 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:row_collection/row_collection.dart';
-import '../../util/index.dart';
-import 'index.dart';
 
 class NotificationItem extends StatelessWidget {
   final String title, description, time;

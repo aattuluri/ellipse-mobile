@@ -1,7 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_browser/flutter_web_browser.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../util/index.dart';
 
 class HelpSupport extends StatefulWidget {
   const HelpSupport({Key key}) : super(key: key);
@@ -12,9 +13,10 @@ class HelpSupport extends StatefulWidget {
 
 class _HelpSupportState extends State<HelpSupport>
     with TickerProviderStateMixin {
-  String token = "", id = "", email = "";
+  // String token = "", id = "", email = "";
   String title = "", description = "";
-  getPref() async {
+
+  /*getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
       token = preferences.getString("token");
@@ -22,10 +24,10 @@ class _HelpSupportState extends State<HelpSupport>
       email = preferences.getString("email");
     });
   }
-
+*/
   @override
   void initState() {
-    getPref();
+    loadPref();
     super.initState();
   }
 

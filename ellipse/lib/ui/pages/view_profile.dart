@@ -2,7 +2,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/index.dart';
 import '../../repositories/index.dart';
@@ -16,19 +15,9 @@ class ViewProfile extends StatefulWidget {
 }
 
 class _ViewProfileState extends State<ViewProfile> {
-  String token = "", id = "", email = "";
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-    });
-  }
-
   @override
   void initState() {
-    getPref();
+    loadPref();
     super.initState();
   }
 

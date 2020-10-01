@@ -1,7 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'index.dart';
-
 class UserDetails {
   final String id,
       name,

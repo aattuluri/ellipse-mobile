@@ -1,7 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'index.dart';
-
 class Notifications {
   final String id, user_id, event_id, title, description;
   final DateTime time;

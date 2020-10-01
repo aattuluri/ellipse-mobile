@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../util/constants.dart' as Constants;
 import '../../util/index.dart';
 import '../screens/index.dart';
 
@@ -20,8 +19,9 @@ class ChangePassword extends StatefulWidget {
 class _ChangePasswordState extends State<ChangePassword>
     with TickerProviderStateMixin {
   bool isloading = false;
-  String token = "", id = "", email = "";
+  // String token = "", id = "", email = "";
   String opassword = "", npassword = "";
+  /*
   getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
@@ -29,22 +29,17 @@ class _ChangePasswordState extends State<ChangePassword>
       id = preferences.getString("id");
       email = preferences.getString("email");
     });
-  }
+  }*/
 
   forgot_password() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     Map<String, String> headers = {
-      HttpHeaders.authorizationHeader: "Bearer $token",
+      HttpHeaders.authorizationHeader: "Bearer $prefToken",
       HttpHeaders.contentTypeHeader: "application/json"
     };
     var response =
         await http.post("${Url.URL}/api/users/logout", headers: headers);
-    setState(() {
-      sharedPreferences.setString("token", "");
-      sharedPreferences.setString("id", "");
-      sharedPreferences.setString("email", "");
-      sharedPreferences.setBool(Constants.LOGGED_IN, false);
-    });
+    resetPref();
     var route = new MaterialPageRoute(
         builder: (BuildContext context) => ResetPassword("enter_email"));
     Navigator.of(context).push(route);
@@ -58,10 +53,10 @@ class _ChangePasswordState extends State<ChangePassword>
       '${Url.URL}/api/users/updatepassword',
       headers: <String, String>{
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token'
+        'Authorization': 'Bearer $prefToken'
       },
       body: jsonEncode(<dynamic, dynamic>{
-        'email': email,
+        'email': prefEmail,
         'cPassword': '$opassword',
         'nPassword': '$npassword'
       }),
@@ -78,7 +73,7 @@ class _ChangePasswordState extends State<ChangePassword>
 
   @override
   void initState() {
-    getPref();
+    loadPref();
     super.initState();
   }
 

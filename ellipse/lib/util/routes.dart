@@ -9,7 +9,6 @@ class Routes {
   // Static route names
   static const generalRoute = '/';
   static const splash_screen = '/splash_screeen';
-  static const main_screen = '/main_screen';
   static const initialization = '/initialization';
   static const connection_error = '/connection_error';
   static const start = '/start';
@@ -38,11 +37,6 @@ class Routes {
             settings: routeSettings,
             builder: (_) => Initialization(),
           );
-        case main_screen:
-          return MaterialPageRoute(
-            settings: routeSettings,
-            builder: (_) => MainScreen(),
-          );
         case splash_screen:
           return MaterialPageRoute(
             settings: routeSettings,
@@ -54,7 +48,7 @@ class Routes {
             builder: (_) => Initialization(),
           );
         case start:
-          final current_tab = args['currebt_tab'] as int;
+          final current_tab = args['current_tab'] as int;
           return MaterialPageRoute(
             settings: routeSettings,
             builder: (_) => StartScreen(current_tab),

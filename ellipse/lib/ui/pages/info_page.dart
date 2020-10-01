@@ -12,7 +12,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
 import 'package:share/share.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/events_model.dart';
 import '../../models/index.dart';
@@ -37,7 +36,7 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
   GlobalKey<SliderMenuContainerState> _key =
       new GlobalKey<SliderMenuContainerState>();
   ScrollController scrollController;
-  String token = "", id = "", email = "", college = "";
+  //String token = "", id = "", email = "", college = "";
   String _messageText = "";
   bool message = false;
   var textController = new TextEditingController();
@@ -57,7 +56,7 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
     });
   }
 
-  getPref() async {
+  /*getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
       token = preferences.getString("token");
@@ -66,10 +65,10 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
     });
     print(id);
   }
-
+*/
   @override
   void initState() {
-    getPref();
+    loadPref();
     print(widget.index);
     super.initState();
     _SearchListState();
@@ -211,12 +210,6 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                           view = Announcements(widget.index, _event.id);
                           default_view = false;
                         });
-                        _key.currentState.closeDrawer();
-                      }),
-                      SlideMenuItem1(
-                          Icons.favorite, "Add to Favourites", "To favourites",
-                          () async {
-                        setState(() {});
                         _key.currentState.closeDrawer();
                       }),
                       SlideMenuItem1(Icons.share, "Share", "Share Event", () {
@@ -565,10 +558,11 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                               onPressed: () async {
                                                 await Add2Calendar.addEvent2Cal(
                                                     Event(
-                                                  title: "eatrt",
+                                                  title: _event.name,
                                                   allDay: false,
-                                                  description: "wegrht",
-                                                  location: "wegrhtjy",
+                                                  description:
+                                                      _event.description,
+                                                  location: _event.venue,
                                                   startDate: _event.start_time,
                                                   endDate: _event.finish_time,
                                                 ));

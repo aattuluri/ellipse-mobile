@@ -61,4 +61,7 @@ or in production mode.
 flutter run --release -t lib/main_production.dart -d <device_id>
 For iOS, to build and release there is no configuration. Just follow the instructions from the documentation.
 
+
+
+https://us-central1-ellipse-e2428.cloudfunctions.net/sendNotification?token=et2_2bh9SFmaPEyuRRTCqA:APA91bEtttMGcLeiFs7nJf2fA9mrE6YQNIiddXKgLMcRtmWxKuRtH3RggdlUL0q2mMIwTwT314D5V4a7KkcovWTy3c9lOzgei9RGgH71IkgjNYadROMmLwfkvw57pk23eqldM5kUtLQV&title=sfdef&message=segfr
 */

@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 extension Extension on Object {
   bool isNullOrEmpty() => this == null || this == "" || this == "undefined";
 

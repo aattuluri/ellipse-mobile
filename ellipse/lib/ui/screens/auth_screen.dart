@@ -8,9 +8,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../util/constants.dart' as Constants;
 import '../../util/index.dart';
-import '../../util/routes.dart';
 import '../screens/index.dart';
 import '../widgets/index.dart';
 
@@ -89,19 +87,9 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  reset() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      preferences.setString("token", "");
-      preferences.setString("id", "");
-      preferences.setString("email", "");
-      preferences.setBool(Constants.LOGGED_IN, false);
-    });
-  }
-
   @override
   void initState() {
-    reset();
+    resetPref();
     super.initState();
   }
 
@@ -184,7 +172,7 @@ class _SigninState extends State<Signin> {
           sharedPreferences.setString("id", jsonResponse['userid']);
         });
         setState(() {
-          sharedPreferences.setBool(Constants.LOGGED_IN, true);
+          sharedPreferences.setBool('loggedIn', true);
           isLoading = false;
         });
         Navigator.pushNamed(context, Routes.initialization);
@@ -193,24 +181,14 @@ class _SigninState extends State<Signin> {
       setState(() {
         isLoading = false;
       });
-      print("fdxgchvjbk");
+      print("Error in Signin");
     }
-  }
-
-  reset() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      preferences.setString("token", "");
-      preferences.setString("id", "");
-      preferences.setString("email", "");
-      preferences.setBool(Constants.LOGGED_IN, false);
-    });
   }
 
   @override
   void initState() {
     SystemChannels.textInput.invokeMethod('TextInput.hide');
-    reset();
+    resetPref();
     super.initState();
   }
 
@@ -604,7 +582,7 @@ class _SignupState extends State<Signup> {
           sharedPreferences.setString("id", jsonResponse['userid']);
         });
         setState(() {
-          sharedPreferences.setBool(Constants.LOGGED_IN, true);
+          sharedPreferences.setBool('loggedIn', true);
         });
         Navigator.pushNamed(context, Routes.initialization);
       }
@@ -616,20 +594,10 @@ class _SignupState extends State<Signup> {
     }
   }
 
-  reset() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      preferences.setString("token", "");
-      preferences.setString("id", "");
-      preferences.setString("email", "");
-      preferences.setBool(Constants.LOGGED_IN, false);
-    });
-  }
-
   @override
   void initState() {
     SystemChannels.textInput.invokeMethod('TextInput.hide');
-    reset();
+    resetPref();
     super.initState();
   }
 

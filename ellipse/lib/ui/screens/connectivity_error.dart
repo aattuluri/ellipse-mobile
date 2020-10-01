@@ -1,5 +1,6 @@
 import 'package:big_tip/big_tip.dart';
 import 'package:flutter/material.dart';
+
 import '../../util/index.dart';
 
 class ConnectionErrorScreen extends StatelessWidget {

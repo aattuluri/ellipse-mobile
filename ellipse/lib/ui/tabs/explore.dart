@@ -1,11 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../repositories/index.dart';
 import '../../util/index.dart';
@@ -50,18 +52,17 @@ class IconTab {
   final IconData icon;
 }
 
-class ExploreTab extends StatefulWidget {
+class HomeTab extends StatefulWidget {
   @override
-  _ExploreTabState createState() => _ExploreTabState();
+  _HomeTabState createState() => _HomeTabState();
 }
 
-class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
+class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   final List tabs = [
     IconTab(name: "All", icon: Icons.all_inclusive),
-    IconTab(name: "New", icon: Icons.trending_up),
-    IconTab(name: "Past", icon: Icons.access_time),
-    IconTab(name: "Posted", icon: Icons.star),
     IconTab(name: "Registered", icon: Icons.beenhere),
+    IconTab(name: "Posted", icon: Icons.star),
+    IconTab(name: "Past", icon: Icons.access_time),
   ];
   final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
   Widget view;
@@ -80,15 +81,24 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
   final TextEditingController _searchQuery = new TextEditingController();
   bool isSearching = false;
   String _searchText = "";
-  String token = "", id = "", email = "", college_id = "";
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-      college_id = preferences.getString("college_id");
-    });
+  List<dynamic> registered = [];
+  loadRegEvents() async {
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Bearer $prefToken",
+      HttpHeaders.contentTypeHeader: "application/json"
+    };
+    var response = await http.get(
+        "${Url.URL}/api/user/registeredEvents?id=$prefId",
+        headers: headers);
+    print('Response status: ${response.statusCode}');
+    //print('Response body: ${response.body}');
+    if (response.statusCode == 200) {
+      setState(() {
+        registered = json.decode(response.body);
+      });
+    } else {
+      throw Exception('Failed to load data');
+    }
   }
 
   List<String> filters_list = [];
@@ -101,12 +111,13 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
   bool free = true;
   @override
   void initState() {
+    loadPref();
     tab_controller = new TabController(
-      length: 5,
+      length: 4,
       vsync: this,
     );
     SystemChannels.textInput.invokeMethod('TextInput.hide');
-    getPref();
+    loadRegEvents();
     animationController = AnimationController(
         duration: const Duration(milliseconds: 1000), vsync: this);
     setState(() {
@@ -144,12 +155,19 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          SizedBox(width: 15),
+          SizedBox(width: 5),
           Text(
-            'Events',
+            "Ellipse",
             style: TextStyle(
-                color: Theme.of(context).textTheme.caption.color,
-                fontSize: 23.0),
+                //color: Theme.of(context)
+                //     .textTheme
+                //  .caption
+                //  .color
+                //.withOpacity(0.8),
+                color: Theme.of(context).accentColor,
+                fontSize: 35,
+                fontFamily: 'Gugi',
+                fontWeight: FontWeight.w800),
           ),
         ],
       ),
@@ -163,8 +181,13 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
       cursorColor: Theme.of(context).textTheme.caption.color,
       decoration: InputDecoration(
         hintText: 'Search...',
-        icon: InkWell(
-          onTap: () {
+        icon: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).textTheme.caption.color,
+            size: 27,
+          ),
+          onPressed: () {
             setState(() {
               _searchQuery.clear();
             });
@@ -172,11 +195,6 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
               isSearching = false;
             });
           },
-          child: Icon(
-            Icons.arrow_back,
-            color: Theme.of(context).textTheme.caption.color,
-            size: 27,
-          ),
         ),
         border: InputBorder.none,
         hintStyle: TextStyle(
@@ -269,9 +287,11 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
                   setState(() {
                     tab_all = true;
                   });
+                  context.read<EventsRepository>().refreshData();
                 } else {
                   setState(() {
                     isFilter = false;
+                    isSearching = false;
                   });
                   setState(() {
                     tab_all = false;
@@ -287,10 +307,15 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
                       Icon(
                         tab.icon,
                         size: 18,
+                        color: Theme.of(context).textTheme.caption.color,
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Text(tab.name),
+                        child: Text(
+                          tab.name,
+                          style: TextStyle(
+                              color: Theme.of(context).textTheme.caption.color),
+                        ),
                       ),
                     ],
                   ),
@@ -304,6 +329,8 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
               : Padding(
                   padding: const EdgeInsets.only(right: 25, bottom: 25),
                   child: FloatingActionButton(
+                    backgroundColor:
+                        Theme.of(context).accentColor.withOpacity(0.8),
                     onPressed: () {
                       Navigator.pushNamed(context, Routes.post_event);
                     },
@@ -312,6 +339,7 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
                   ),
                 ),
           body: TabBarView(
+            physics: NeverScrollableScrollPhysics(),
             controller: tab_controller,
             children: <Widget>[
               ///////////////////////////////Tab1//////////////////////////////////////
@@ -909,8 +937,8 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
                                       ? _loadingIndicator
                                       : ListView(
                                           physics: ClampingScrollPhysics(),
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 15.0),
+                                          //padding: EdgeInsets.symmetric(
+                                          //   horizontal: 10.0),
                                           scrollDirection: Axis.vertical,
                                           children: <Widget>[
                                             for (var i = 0;
@@ -952,7 +980,7 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
                                                               .college_id
                                                               .toString()
                                                               .trim() ==
-                                                          college_id
+                                                          prefCollegeId
                                                               .toString()
                                                               .trim()
                                                       : model.allEvents[i]
@@ -1013,7 +1041,7 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
                                                   model.allEvents[i].start_time
                                                       .isAfter(
                                                           DateTime.now())) ...[
-                                                if (isSearching) ...[
+                                                if (isSearching && tab_all) ...[
                                                   if (model.allEvents[i].name
                                                           .toLowerCase()
                                                           .contains(_searchText
@@ -1053,28 +1081,43 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
                 ),
               ),
               ///////////////////////////////Tab2//////////////////////////////////////
+
               ListView(
                 physics: ClampingScrollPhysics(),
                 padding: EdgeInsets.symmetric(horizontal: 15.0),
                 scrollDirection: Axis.vertical,
+                shrinkWrap: true,
                 children: <Widget>[
-                  for (var i = 0;
-                      i <
-                          (model.allEvents.length > 6
-                              ? 6
-                              : model.allEvents.length);
-                      i++)
-                    if (model.allEvents[i].start_time
-                        .isAfter(DateTime.now())) ...[
-                      EventTileGeneral(true, i, "info_page")
+                  for (var i = 0; i < model.allEvents.length; i++) ...[
+                    for (var j = 0; j < registered.length; j++) ...[
+                      if (registered[j]['user_id'] == prefId &&
+                          registered[j]['event_id'] ==
+                              model.allEvents[i].id) ...[
+                        EventTileGeneral(true, i, "info_page")
+                      ]
                     ]
+                  ]
                 ],
               ),
-
               ///////////////////////////////Tab3//////////////////////////////////////
               ListView(
                 physics: ClampingScrollPhysics(),
-                padding: EdgeInsets.symmetric(horizontal: 15.0),
+                //padding: EdgeInsets.symmetric(horizontal: 15.0),
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                children: <Widget>[
+                  for (var i = 0; i < model.allEvents.length; i++)
+                    if (model.allEvents[i].user_id.toString().trim() ==
+                        prefId.toString().trim()) ...[
+                      EventTileGeneral(true, i, "myevents_info_page")
+                    ],
+                ],
+              ),
+
+              ///////////////////////////////Tab4//////////////////////////////////////
+              ListView(
+                physics: ClampingScrollPhysics(),
+                //padding: EdgeInsets.symmetric(horizontal: 15.0),
                 scrollDirection: Axis.vertical,
                 children: <Widget>[
                   for (var i = 0;
@@ -1089,27 +1132,8 @@ class _ExploreTabState extends State<ExploreTab> with TickerProviderStateMixin {
                     ]
                 ],
               ),
-              ///////////////////////////////Tab4//////////////////////////////////////
-              ListView(
-                physics: ClampingScrollPhysics(),
-                padding: EdgeInsets.symmetric(horizontal: 15.0),
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                children: <Widget>[
-                  for (var i = 0; i < model.allEvents.length; i++)
-                    if (model.allEvents[i].user_id.toString().trim() ==
-                        id.toString().trim()) ...[
-                      EventTileGeneral(true, i, "myevents_info_page")
-                    ],
-                ],
-              ),
-              ///////////////////////////////Tab5//////////////////////////////////////
-              Container(),
             ],
           ),
-
-          /*
-          */
         ),
       ),
     );

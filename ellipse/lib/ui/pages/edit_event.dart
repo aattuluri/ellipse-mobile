@@ -12,7 +12,6 @@ import 'package:intl/intl.dart';
 import 'package:mime/mime.dart';
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/index.dart';
 import '../../repositories/index.dart';
@@ -28,7 +27,7 @@ class EditEvent extends StatefulWidget {
 }
 
 class _EditEventState extends State<EditEvent> {
-  String token = "", id = "", email = "", college_id = "";
+  //String token = "", id = "", email = "", college_id = "";
   final _key = new GlobalKey<FormState>();
   final List<String> _eventtypes = ["Technical", "Cultural"];
   List colleges = List();
@@ -46,7 +45,7 @@ class _EditEventState extends State<EditEvent> {
   String reg_mode;
   String selected = "";
   final _picker = ImagePicker();
-  getPref() async {
+  /*getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
       token = preferences.getString("token");
@@ -55,7 +54,7 @@ class _EditEventState extends State<EditEvent> {
       college_id = preferences.getString("college_id");
     });
   }
-
+*/
   Future<List> getData() async {
     final response = await http.get("${Url.URL}/api/colleges");
     var resBody = json.decode(response.body.toString());
@@ -182,7 +181,7 @@ class _EditEventState extends State<EditEvent> {
         '${Url.URL}/api/updateevent',
         headers: <String, String>{
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          'Authorization': 'Bearer $prefToken'
         },
         body: jsonEncode(<String, dynamic>{
           "eventId": id,
@@ -211,7 +210,7 @@ class _EditEventState extends State<EditEvent> {
       if (response.statusCode == 200) {
         if (_imageFile != null) {
           Map<String, String> headers = {
-            HttpHeaders.authorizationHeader: "Bearer $token",
+            HttpHeaders.authorizationHeader: "Bearer $prefToken",
             HttpHeaders.contentTypeHeader: "application/json"
           };
           final mimeTypeData =
@@ -272,7 +271,7 @@ class _EditEventState extends State<EditEvent> {
 
   @override
   void initState() {
-    getPref();
+    loadPref();
     getData();
     super.initState();
   }

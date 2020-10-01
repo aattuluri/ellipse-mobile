@@ -1,11 +1,11 @@
 import 'dart:async';
+
 import 'package:big_tip/big_tip.dart';
-import '../../repositories/base.dart';
-import '../../util/base.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong/latlong.dart';
 import 'package:provider/provider.dart';
-import 'package:row_collection/row_collection.dart';
+
+import '../../repositories/base.dart';
 import 'header_map.dart';
 import 'index.dart';
 

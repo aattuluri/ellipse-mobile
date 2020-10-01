@@ -14,7 +14,6 @@ import 'package:mime/mime.dart';
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
 import 'package:rxdart/subjects.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../repositories/index.dart';
 import '../../util/index.dart';
@@ -39,7 +38,7 @@ class _PostEventState extends State<PostEvent>
   final List<String> _eventtypes = ["Technical", "Cultural"];
   final List<String> _requirements = ["Laptop", "Internet"];
   final List<String> _themes = ["Coding", "Writing"];
-  String id = "", token = "";
+
   List fetched_form;
   List colleges = List();
   List<String> selected_requirements = [];
@@ -60,14 +59,6 @@ class _PostEventState extends State<PostEvent>
   String reg_mode = "";
   String requirement;
   String selected = "";
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      id = preferences.getString("id");
-      token = preferences.getString("token");
-    });
-    print(fetched_form);
-  }
 
   Future<List> getData() async {
     final response = await http.get("${Url.URL}/api/colleges");
@@ -94,7 +85,7 @@ class _PostEventState extends State<PostEvent>
   @override
   void initState() {
     getData();
-    getPref();
+    loadPref();
     super.initState();
     _currentPageSubject = BehaviorSubject<int>.seeded(initPage);
     _pageController = PageController(initialPage: initPage);
@@ -251,11 +242,11 @@ class _PostEventState extends State<PostEvent>
         '${Url.URL}/api/events',
         headers: <String, String>{
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          'Authorization': 'Bearer $prefToken'
         },
         body: jsonEncode(<String, dynamic>{
           "poster_url": null,
-          "user_id": "$id",
+          "user_id": "$prefId",
           "college_id": "$_college",
           "name": _nameController.text,
           "description": _descriptionController.text,
@@ -284,7 +275,7 @@ class _PostEventState extends State<PostEvent>
       String eventId = jsonResponse['eventId'];
       if (response.statusCode == 200) {
         Map<String, String> headers = {
-          HttpHeaders.authorizationHeader: "Bearer $token",
+          HttpHeaders.authorizationHeader: "Bearer $prefToken",
           HttpHeaders.contentTypeHeader: "application/json"
         };
         final mimeTypeData =
@@ -316,7 +307,7 @@ class _PostEventState extends State<PostEvent>
             Navigator.pushNamed(
               context,
               Routes.start,
-              arguments: {'currebt_tab': 2},
+              arguments: {'current_tab': 1},
             );
             setState(() {
               _isUploading = false;
