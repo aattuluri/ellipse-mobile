@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../util/index.dart';
 
@@ -10,17 +9,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  bool logged = false;
-  redirect() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool loggedin = (prefs.getBool('loggedIn') ?? false);
-    if (loggedin) {
-      Navigator.pushNamed(context, Routes.initialization);
-    } else {
-      Navigator.pushNamed(context, Routes.signin);
-    }
-  }
-
   @override
   void initState() {
     //SharedPreferences.setMockInitialValues({});
@@ -100,8 +88,7 @@ class _SplashScreenState extends State<SplashScreen> {
             )),
             InkWell(
               onTap: () {
-                redirect();
-                //Navigator.pushNamed(context, Routes.signin);
+                Navigator.pushNamed(context, Routes.signin);
               },
               child: Align(
                 alignment: Alignment.bottomCenter,

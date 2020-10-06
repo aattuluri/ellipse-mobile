@@ -1186,6 +1186,7 @@ class _EditEventState extends State<EditEvent> {
                                   Theme.of(context).textTheme.caption.color,
                               decoration: InputDecoration(
                                 border: OutlineInputBorder(),
+                                labelText: 'Start time',
                                 hintText: 'Start time',
                                 hintStyle: TextStyle(
                                   color:
@@ -1228,6 +1229,7 @@ class _EditEventState extends State<EditEvent> {
                                   Theme.of(context).textTheme.caption.color,
                               decoration: InputDecoration(
                                 border: OutlineInputBorder(),
+                                labelText: 'Finish time',
                                 hintText: 'Finish time',
                                 hintStyle: TextStyle(
                                   color:
@@ -1270,6 +1272,7 @@ class _EditEventState extends State<EditEvent> {
                                   Theme.of(context).textTheme.caption.color,
                               decoration: InputDecoration(
                                 border: OutlineInputBorder(),
+                                labelText: "Registration last date",
                                 hintText: 'Registration last date',
                                 hintStyle: TextStyle(
                                   color:

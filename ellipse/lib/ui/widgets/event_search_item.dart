@@ -17,24 +17,11 @@ class EventSearchItem extends StatelessWidget {
             height: 50,
             width: 50,
             child: ClipRRect(
-                child: FadeInImage(
-              image: NetworkImage("${Url.URL}/api/image?id=${image}"),
-              placeholder: AssetImage('assets/icons/loading.gif'),
-            )
-                /* CachedNetworkImage(
-                imageUrl: "${Url.URL}/api/image?id=${image}",
-                placeholder: (context, url) => Container(
-                  width: 50,
-                  height: 50,
-                  child: Icon(
-                    Icons.image,
-                    size: 20,
-                  ),
-                ),
-                errorWidget: (context, url, error) => new Icon(Icons.error),
+              child: FadeInImage(
+                image: NetworkImage("${Url.URL}/api/image?id=$image"),
+                placeholder: AssetImage('assets/icons/loading.gif'),
               ),
-              */
-                ),
+            ),
           ),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

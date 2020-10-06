@@ -1,4 +1,8 @@
-import 'package:dio/dio.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/index.dart';
@@ -8,27 +12,26 @@ import 'index.dart';
 
 class NotificationsRepository extends BaseRepository {
   List<Notifications> allNotifications;
-  //String token = "", id = "", email = "";
 
   @override
   Future<void> loadData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     loadPref();
-    //token = prefs.getString("token");
-    //id = prefs.getString("id");
-    //email = prefs.getString("email");
+
     try {
       print("Started Loading notifications");
       // Receives the data and parse it
-      final Response<List> response =
-          await Dio().get("${Url.URL}/api/get_notifications",
-              options: Options(
-                headers: {"Authorization": "Bearer $prefToken"},
-              ));
-      print(response.data);
-      allNotifications = [
-        for (final item in response.data) Notifications.fromJson(item)
-      ];
+
+      http.Response response = await http.get(
+        "${Url.URL}/api/get_notifications",
+        headers: {
+          HttpHeaders.authorizationHeader: "Bearer $prefToken",
+          HttpHeaders.contentTypeHeader: "application/json"
+        },
+      );
+      allNotifications = (json.decode(response.body) as List)
+          .map((data) => Notifications.fromJson(data))
+          .toList();
       allNotifications = allNotifications.reversed.toList();
       finishLoading();
       print("Notificationss loaded");

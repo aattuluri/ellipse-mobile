@@ -6,6 +6,7 @@ String prefId = "",
     prefToken = "",
     prefCollegeId = "",
     prefFirebaseMessagingToken = "";
+int prefNotificationsCount = 0;
 bool prefLoggedIn;
 loadPref() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -27,4 +28,9 @@ resetPref() async {
   prefs.setString("token", "");
   prefs.setString("collegeId", "");
   prefs.setString("firebaseMessagingToken", "");
+}
+
+loadNotificationsCount() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefNotificationsCount = prefs.getInt("notificationsCount");
 }

@@ -5,14 +5,15 @@ import 'package:provider/provider.dart';
 
 import 'providers/index.dart';
 import 'repositories/index.dart';
-import 'util/routes.dart';
+import 'util/index.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  FirebaseAdMob.instance
-      .initialize(appId: 'ca-app-pub-8594531953524922~3846931461');
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  FirebaseAdMob.instance
+      .initialize(appId: 'ca-app-pub-8594531953524922~3846931461');
+  sendFirebaseToken();
   runApp(App());
 }
 

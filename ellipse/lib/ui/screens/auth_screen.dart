@@ -257,11 +257,6 @@ class _SigninState extends State<Signin> {
                           child: Text(
                             "Ellipse",
                             style: TextStyle(
-                                //color: Theme.of(context)
-                                //     .textTheme
-                                //  .caption
-                                //  .color
-                                //.withOpacity(0.8),
                                 color: Theme.of(context).accentColor,
                                 fontSize: 45,
                                 fontFamily: 'Gugi',

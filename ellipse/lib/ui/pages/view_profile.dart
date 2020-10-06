@@ -18,6 +18,7 @@ class _ViewProfileState extends State<ViewProfile> {
   @override
   void initState() {
     loadPref();
+    context.read<UserDetailsRepository>().refreshData();
     super.initState();
   }
 
@@ -29,15 +30,6 @@ class _ViewProfileState extends State<ViewProfile> {
       builder: (context, model, child) => SafeArea(
         child: Scaffold(
           appBar: AppBar(
-            leading: InkWell(
-              onTap: () {
-                context.read<UserDetailsRepository>().refreshData();
-                Navigator.of(context).pop(true);
-              },
-              child: Icon(
-                Icons.arrow_back,
-              ),
-            ),
             iconTheme: Theme.of(context).iconTheme,
             elevation: 4,
             title: Text(

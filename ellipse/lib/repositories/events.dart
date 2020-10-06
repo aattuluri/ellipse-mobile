@@ -2,9 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../models/index.dart';
 import '../util/index.dart';
@@ -15,25 +14,39 @@ class EventsRepository extends BaseRepository {
   List<Events> allEvents;
   List<Events> myEvents;
   List<dynamic> registered = [];
-  // String token = "", id = "", email = "";
+  Future<File> _getLocalFile(String filename) async {
+    final dir = await getApplicationDocumentsDirectory();
+    print('${dir.path}');
+    return File('${dir.path}/$filename');
+  }
+
   @override
   Future<void> loadData() async {
     loadPref();
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    //token = prefs.getString("token");
-    //id = prefs.getString("id");
-    //email = prefs.getString("email");
     try {
       print("Started Loading events");
       // Receives the data and parse it
-      final Response<List> response = await Dio().get("${Url.URL}/api/events",
-          options: Options(
-            headers: {"Authorization": "Bearer $prefToken"},
-          ));
+      http.Response response = await http.get(
+        "${Url.URL}/api/events",
+        headers: {
+          HttpHeaders.authorizationHeader: "Bearer $prefToken",
+          HttpHeaders.contentTypeHeader: "application/json"
+        },
+      );
+      /*
+      saveItems(response.body, "events.json");
 
-      allEvents = [for (final item in response.data) Events.fromJson(item)];
-      allEvents = allEvents.reversed.toList();
+      final file = await _getLocalFile('events.json');
+      String events = await file.readAsString();
+      */
+      allEvents = (json.decode(response.body) as List)
+          .map((data) => Events.fromJson(data))
+          .toList();
+      /////////////////////////////////////////////////////////////////
+      Comparator<Events> sortByStartTime =
+          (a, b) => a.start_time.compareTo(b.start_time);
+      allEvents.sort(sortByStartTime);
+      //////////////////////////////////////////////////////////////////
       print(allEvents);
       finishLoading();
       print("Events loaded");

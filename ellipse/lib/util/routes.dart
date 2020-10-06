@@ -18,7 +18,6 @@ class Routes {
   static const signin = '/signin';
   static const my_events = '/my_events';
   static const registered_events = '/registered_events';
-  //static const my_events_info_page = '/my_events_info_page';
   static const edit_event = '/edit_event';
   static const edit_profile = '/edit_profile';
   static const view_profile = '/view_profile';
@@ -65,14 +64,6 @@ class Routes {
             settings: routeSettings,
             builder: (_) => InfoPage(index, type),
           );
-
-        /* case my_events_info_page:
-          final index = args['index'] as int;
-          return MaterialPageRoute(
-            settings: routeSettings,
-            builder: (_) => MyEventsInfoPage(index),
-          );
-          */
         case post_event:
           return MaterialPageRoute(
             settings: routeSettings,

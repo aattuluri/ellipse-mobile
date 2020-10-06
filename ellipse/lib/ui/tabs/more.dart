@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_browser/flutter_web_browser.dart';
@@ -11,7 +10,6 @@ import 'package:row_collection/row_collection.dart';
 import 'package:share/share.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../models/index.dart';
 import '../../providers/index.dart';
 import '../../repositories/index.dart';
 import '../../util/constants.dart' as Constants;
@@ -105,9 +103,9 @@ class _MoreTabState extends State<MoreTab> with TickerProviderStateMixin {
     loadPref();
     _themeIndex = context.read<ThemeProvider>().theme;
     _imageQualityIndex = context.read<ImageQualityProvider>().imageQuality;
-    setState(() {
-      view = buildMainView(context);
-    });
+    //setState(() {
+    //  view = buildMainView(context);
+    //});
 
     super.initState();
   }
@@ -118,41 +116,260 @@ class _MoreTabState extends State<MoreTab> with TickerProviderStateMixin {
       return RefreshIndicator(
         onRefresh: () => _onRefresh(context, model),
         child: SimplePage2(
-          body: Stack(
-            fit: StackFit.expand,
-            children: [
-              Positioned.fill(child: Particles(3)),
-              SafeArea(
-                child: ListView(
-                  physics: ClampingScrollPhysics(),
-                  children: <Widget>[
-                    Container(
-                      margin: EdgeInsets.only(left: 5, top: 5, bottom: 5),
-                      /*
-                      child: Center(
-                        child: Text(
-                          'Settings',
-                          style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context).textTheme.caption.color),
-                        ),
-                      ),
-                      */
+          body: SafeArea(
+            child: ListView(
+              physics: ClampingScrollPhysics(),
+              children: <Widget>[
+                Container(
+                  margin: EdgeInsets.only(left: 5, top: 5, bottom: 5),
+                  child: Center(
+                    child: Text(
+                      'Settings',
+                      style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).textTheme.caption.color),
                     ),
-                    //Separator.divider(indent: 16),
-
-                    view,
-                  ],
+                  ),
                 ),
+                //Separator.divider(indent: 16),
+                //view,
+
+                HeaderText("Preferences"),
+                ListCell.icon(
+                  icon: Icons.palette,
+                  title: "Theme",
+                  subtitle: "choose between light and dark",
+                  trailing: Icon(Icons.chevron_right),
+                  onTap: () => showDialog(
+                    context: context,
+                    builder: (context) => RoundDialog(
+                      title: "Theme",
+                      children: <Widget>[
+                        RadioCell<Themes>(
+                          title: "Dark theme",
+                          groupValue: _themeIndex,
+                          value: Themes.dark,
+                          onChanged: (value) => _changeTheme(value),
+                        ),
+                        RadioCell<Themes>(
+                          title: "Black theme",
+                          groupValue: _themeIndex,
+                          value: Themes.black,
+                          onChanged: (value) => _changeTheme(value),
+                        ),
+                        RadioCell<Themes>(
+                          title: "Light theme",
+                          groupValue: _themeIndex,
+                          value: Themes.light,
+                          onChanged: (value) => _changeTheme(value),
+                        ),
+                        RadioCell<Themes>(
+                          title: "System theme",
+                          groupValue: _themeIndex,
+                          value: Themes.system,
+                          onChanged: (value) => _changeTheme(value),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Separator.divider(indent: 72),
+                ListCell.icon(
+                  icon: Icons.notifications,
+                  title: "Notifications",
+                  subtitle: "On/Off",
+                  trailing: Icon(Icons.chevron_right),
+                  onTap: () {},
+                  //=> SystemSetting.goto(SettingTarget.NOTIFICATION),
+                ),
+                HeaderText("Account & Settings"),
+                ListCell.icon(
+                    icon: Icons.security,
+                    title: "Change Password",
+                    subtitle: "*********",
+                    trailing: Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.pushNamed(context, Routes.change_password);
+                    }),
+                /*
+          Separator.divider(indent: 72),
+          ListCell.icon(
+            icon: Icons.photo_filter,
+            title: "Image Quality",
+            subtitle: "Adjust image quality",
+            trailing: Icon(Icons.chevron_right),
+            onTap: () => showDialog(
+          context: context,
+          builder: (_) => RoundDialog(
+            title: "Image Quality",
+            children: <Widget>[
+              RadioCell<ImageQuality>(
+                title: 'Low',
+                groupValue: _imageQualityIndex,
+                value: ImageQuality.low,
+                onChanged: (value) => _changeImageQuality(value),
+              ),
+              RadioCell<ImageQuality>(
+                title: "Medium",
+                groupValue: _imageQualityIndex,
+                value: ImageQuality.medium,
+                onChanged: (value) => _changeImageQuality(value),
+              ),
+              RadioCell<ImageQuality>(
+                title: "High",
+                groupValue: _imageQualityIndex,
+                value: ImageQuality.high,
+                onChanged: (value) => _changeImageQuality(value),
               ),
             ],
+          ),
+            ),
+          ),
+          */
+                Separator.divider(indent: 72),
+                ListCell.icon(
+                  icon: Icons.account_balance,
+                  title: "Your College",
+                  subtitle: "VIT University,Vellore",
+                  trailing: Icon(Icons.chevron_right),
+                  onTap: () => showDialog(
+                    context: context,
+                    builder: (_) => RoundDialog(
+                      title: "Your College",
+                      children: <Widget>[
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              height: 10,
+                            ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Icon(
+                                  Icons.account_balance,
+                                  size: 21.0,
+                                ),
+                                SizedBox(width: 6.0),
+                                Text(
+                                  "VIT University,Vellore",
+                                  style: TextStyle(fontSize: 16.0),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 20,
+                            ),
+                            /*
+                  InkWell(
+                    onTap: () {},
+                    child: Container(
+                      height: 40.0,
+                      width: 130.0,
+                      decoration: BoxDecoration(
+                          border: Border.all(
+                            color:
+                                Theme.of(context).textTheme.caption.color,
+                          ),
+                          borderRadius: BorderRadius.circular(10.0)),
+                      child: Center(
+                        child: Text(
+                          "Change College",
+                          style: TextStyle(fontSize: 13.0),
+                        ),
+                      ),
+                    ),
+                  ),
+                  */
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+
+                HeaderText("Other"),
+                ListCell.icon(
+                    icon: Icons.info_outline,
+                    title: "Privacy Policy",
+                    subtitle: "app privacy policy",
+                    //trailing: Icon(Icons.chevron_right),
+                    onTap: () {
+                      FlutterWebBrowser.openWebPage(
+                        url: 'https://ellipseapp.com/Privacy_Policy.pdf',
+                        androidToolbarColor: Theme.of(context).primaryColor,
+                      );
+                    }),
+                Separator.divider(indent: 72),
+                ListCell.icon(
+                    icon: Icons.web,
+                    title: "Terms and conditions",
+                    subtitle: "terms and conditions",
+                    //trailing: Icon(Icons.chevron_right),
+                    onTap: () {}),
+                Separator.divider(indent: 72),
+                ListCell.icon(
+                    icon: Icons.help_outline,
+                    title: "Help & Support",
+                    subtitle: "get help & support",
+                    //trailing: Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.pushNamed(context, Routes.help_support);
+                      // HelpSupport
+                      /*FlutterWebBrowser.openWebPage(
+            url: 'mailto:gunasekhar158@gmail.com?subject=Feedback/Issue',
+            androidToolbarColor: Theme.of(context).primaryColor,
+          );*/
+                    }),
+                Separator.divider(indent: 72),
+                ListCell.icon(
+                    icon: Icons.star,
+                    title: "Rate Us",
+                    subtitle: "rate our app",
+                    //trailing: Icon(Icons.chevron_right),
+                    onTap: () {
+                      FlutterWebBrowser.openWebPage(
+                        url:
+                            'https://play.google.com/store/apps/details?id=com.guna0027.ellipse',
+                        androidToolbarColor: Theme.of(context).primaryColor,
+                      );
+                    }),
+                ListCell.icon(
+                    icon: Icons.share,
+                    title: "Share App",
+                    subtitle: "share our app",
+                    //trailing: Icon(Icons.chevron_right),
+                    onTap: () {
+                      Share.share(
+                          "https://play.google.com/store/apps/details?id=com.guna0027.ellipse");
+                    }),
+                Center(
+                  child: OutlineButton(
+                    onPressed: () {
+                      setState(() {
+                        _showDialoglogout();
+                      });
+                    },
+                    child: Text(
+                      "Logout",
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+              ],
+            ),
           ),
         ),
       );
     });
   }
 
+/*
   Widget buildMainView(BuildContext context) {
     return Consumer<UserDetailsRepository>(builder: (context, model, child) {
       final UserDetails _userdetails =
@@ -624,36 +841,7 @@ class _MoreTabState extends State<MoreTab> with TickerProviderStateMixin {
         ]);
   }
 
-  // Updates app's theme
-  Future<void> _changeTheme(Themes theme) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    // Saves new settings
-    context.read<ThemeProvider>().theme = theme;
-    prefs.setInt('theme', theme.index);
-
-    // Updates UI
-    setState(() => _themeIndex = theme);
-
-    // Hides dialog
-    Navigator.of(context).pop();
-  }
-
-  // Updates image quality setting
-  Future<void> _changeImageQuality(ImageQuality quality) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    // Saves new settings
-    context.read<ImageQualityProvider>().imageQuality = quality;
-    prefs.setInt('quality', quality.index);
-
-    // Updates UI
-    setState(() => _imageQualityIndex = quality);
-
-    // Hides dialog
-    Navigator.of(context).pop();
-  }
-}
 
 class SettingsMainViewItem extends StatelessWidget {
   final IconData icon;
@@ -703,5 +891,35 @@ class SettingsMainViewItem extends StatelessWidget {
         ),
       ),
     );
+  }
+  */
+  // Updates app's theme
+  Future<void> _changeTheme(Themes theme) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Saves new settings
+    context.read<ThemeProvider>().theme = theme;
+    prefs.setInt('theme', theme.index);
+
+    // Updates UI
+    setState(() => _themeIndex = theme);
+
+    // Hides dialog
+    Navigator.of(context).pop();
+  }
+
+  // Updates image quality setting
+  Future<void> _changeImageQuality(ImageQuality quality) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Saves new settings
+    context.read<ImageQualityProvider>().imageQuality = quality;
+    prefs.setInt('quality', quality.index);
+
+    // Updates UI
+    setState(() => _imageQualityIndex = quality);
+
+    // Hides dialog
+    Navigator.of(context).pop();
   }
 }

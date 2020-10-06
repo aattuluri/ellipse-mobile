@@ -36,7 +36,6 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
   GlobalKey<SliderMenuContainerState> _key =
       new GlobalKey<SliderMenuContainerState>();
   ScrollController scrollController;
-  //String token = "", id = "", email = "", college = "";
   String _messageText = "";
   bool message = false;
   var textController = new TextEditingController();
@@ -56,16 +55,6 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
     });
   }
 
-  /*getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-    });
-    print(id);
-  }
-*/
   @override
   void initState() {
     loadPref();

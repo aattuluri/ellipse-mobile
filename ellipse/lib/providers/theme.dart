@@ -10,7 +10,7 @@ const Themes _defaultTheme = Themes.dark;
 final Map<Themes, ThemeData> _themeData = {
   Themes.light: ThemeData(
     visualDensity: VisualDensity.adaptivePlatformDensity,
-    brightness: Brightness.light,
+    //brightness: Brightness.light,
     primaryColor: lightPrimaryColor,
     scaffoldBackgroundColor: lightBackgroundColor,
     accentColor: lightAccentColor,

@@ -270,6 +270,7 @@ class DynamicWidgetItem extends StatelessWidget {
             ),
             cursorColor: Theme.of(context).textTheme.caption.color,
             decoration: InputDecoration(
+              suffixIcon: Icon(Icons.event),
               border: OutlineInputBorder(),
               hintText: title,
               hintStyle: TextStyle(

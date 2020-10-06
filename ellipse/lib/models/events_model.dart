@@ -74,4 +74,30 @@ class Events {
         reg_last_date: DateTime.parse(r_l_time).toLocal(),
         registered: false);
   }
+
+  Map<dynamic, dynamic> toJson() => {
+        '_id': id,
+        'user_id': user_id,
+        'college_id': college_id,
+        'college_name': college_name,
+        'name': name,
+        'description': description,
+        'poster_url': imageUrl,
+        'event_type': event_type,
+        'event_mode': event_mode,
+        'reg_mode': reg_mode,
+        'fee_type': payment_type,
+        'venue': venue,
+        'requirements': requirements,
+        'tags': tags,
+        'fee': registration_fee,
+        "": platform_link,
+        'o_allowed': o_allowed,
+        'reg_fields': reg_fields,
+        'reg_link': reg_link,
+        'start_time': start_time,
+        'finish_time': finish_time,
+        'reg_last_date': reg_last_date,
+        false: registered
+      };
 }

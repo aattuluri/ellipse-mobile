@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 
 import '../../repositories/base.dart';
 import 'header_map.dart';
-import 'index.dart';
 
 /// Centered [CircularProgressIndicator] widget.
 Widget get _loadingIndicator =>
@@ -61,34 +60,6 @@ class SliverPage<T extends BaseRepository> extends StatelessWidget {
     return SliverPage(
       title: title,
       header: SizedBox(height: 0),
-      body: body,
-      actions: actions,
-    );
-  }
-
-  factory SliverPage.display({
-    @required ScrollController controller,
-    @required String title,
-    @required double opacity,
-    @required Widget counter,
-    @required List<String> slides,
-    @required List<Widget> body,
-    List<Widget> actions,
-    Map<String, String> popupMenu,
-  }) {
-    return SliverPage(
-      controller: controller,
-      title: title,
-      header: Stack(
-        alignment: Alignment.center,
-        children: <Widget>[
-          Opacity(
-            opacity: opacity,
-            child: SwiperHeader(list: slides),
-          ),
-          counter,
-        ],
-      ),
       body: body,
       actions: actions,
     );

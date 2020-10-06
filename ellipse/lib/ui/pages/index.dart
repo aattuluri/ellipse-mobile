@@ -1,10 +1,11 @@
+export '../tabs/calendar.dart';
 export 'aboutus.dart';
-export 'calendar_view.dart';
 export 'change_password.dart';
 export 'chat_page.dart';
 export 'create_registration_form.dart';
 export 'edit_event.dart';
 export 'edit_profile.dart';
+export 'filter_calendar.dart';
 export 'help_support.dart';
 export 'info_page.dart';
 export 'my_events.dart';

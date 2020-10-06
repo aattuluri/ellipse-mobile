@@ -33,7 +33,6 @@ class _ChatPageState extends State<ChatPage> {
   bool isLoading = false;
   ScrollController scrollController;
   bool message = false;
-  //String token = "", id = "", email = "", college = "";
   String _messageText = "";
   var textController = new TextEditingController();
   _SearchListState() {
@@ -57,13 +56,7 @@ class _ChatPageState extends State<ChatPage> {
       //isLoading = true;
     });
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    /*
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-    });
-*/
+
     Map<String, String> headers = {
       HttpHeaders.authorizationHeader: "Bearer $prefToken",
       HttpHeaders.contentTypeHeader: "application/json"
@@ -84,7 +77,7 @@ class _ChatPageState extends State<ChatPage> {
       String dt = item['date'].toString();
       String senderid = item['user_id'];
       String type;
-      DateTime datetime = DateTime.parse(dt).toLocal();
+      DateTime datetime = DateTime.fromMicrosecondsSinceEpoch(int.parse(dt));
       int hour = datetime.hour;
       String minute = datetime.minute.toString();
       if (minute.length == 1) {
@@ -136,9 +129,7 @@ class _ChatPageState extends State<ChatPage> {
     loadPref();
     _SearchListState();
     scrollController = ScrollController();
-
     loadMessages();
-
     SystemChannels.textInput.invokeMethod('TextInput.hide');
     setState(() {
       textController.text = "";
@@ -160,7 +151,8 @@ class _ChatPageState extends State<ChatPage> {
           String senderid = msg['user_id'];
           print(msg['message']);
           String type;
-          DateTime datetime = DateTime.parse(dt).toLocal();
+          DateTime datetime =
+              DateTime.fromMicrosecondsSinceEpoch(int.parse(dt));
           int hour = datetime.hour;
           String minute = datetime.minute.toString();
           if (minute.length == 1) {
@@ -401,8 +393,9 @@ class _ChatPageState extends State<ChatPage> {
                                 padding: const EdgeInsets.only(right: 10),
                                 child: InkWell(
                                   onTap: () {
-                                    String datetime =
-                                        DateTime.now().toUtc().toString();
+                                    String datetime = DateTime.now()
+                                        .microsecondsSinceEpoch
+                                        .toString();
                                     if (textController.text.isNotEmpty) {
                                       channel.sink.add(json.encode({
                                         'action': "send_message",

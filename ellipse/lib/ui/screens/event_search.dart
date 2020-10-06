@@ -52,6 +52,7 @@ class _EventSearchState extends State<EventSearch>
               autofocus: true,
               cursorColor: Theme.of(context).textTheme.caption.color,
               decoration: InputDecoration(
+                // border: OutlineInputBorder(),
                 hintText: 'Search...',
                 suffixIcon: InkWell(
                   onTap: () {

@@ -4,6 +4,7 @@ export 'error.dart';
 export 'event_search.dart';
 export 'filters.dart';
 export 'initialization.dart';
+export 'onBoarding.dart';
 export 'reset_password.dart';
 export 'splash_screen.dart';
 export 'start.dart';

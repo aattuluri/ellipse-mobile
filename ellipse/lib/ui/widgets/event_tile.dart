@@ -1,7 +1,7 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,11 +19,18 @@ class EventTileGeneral extends StatefulWidget {
   State createState() => new EventTileGeneralState();
 }
 
-class EventTileGeneralState extends State<EventTileGeneral> {
+class EventTileGeneralState extends State<EventTileGeneral>
+    with SingleTickerProviderStateMixin {
   @override
   void initState() {
     loadPref();
+
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -33,6 +40,100 @@ class EventTileGeneralState extends State<EventTileGeneral> {
     return Visibility(
       visible: widget.visible,
       child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+        child: InkWell(
+          onTap: () {
+            if (widget.route == "info_page") {
+              Navigator.pushNamed(context, Routes.info_page,
+                  arguments: {'index': widget.index, 'type': 'user'});
+            } else if (widget.route == "myevents_info_page") {
+              Navigator.pushNamed(
+                context,
+                Routes.info_page,
+                arguments: {'index': widget.index, 'type': 'admin'},
+              );
+            } else if (widget.route == "null") {}
+          },
+          child: Container(
+            height: 100,
+            decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(8)),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.only(left: 16),
+                    width: MediaQuery.of(context).size.width - 100,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          _event.name,
+                          style: TextStyle(fontSize: 18),
+                        ),
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Row(
+                          children: <Widget>[
+                            Icon(
+                              LineIcons.calendar_o,
+                              size: 20,
+                            ),
+                            SizedBox(
+                              width: 8,
+                            ),
+                            Text(
+                              DateFormat('MMMM dd,yyyy EEE-HH:mm')
+                                  .format(_event.start_time),
+                              style: TextStyle(fontSize: 10),
+                            )
+                          ],
+                        ),
+                        SizedBox(
+                          height: 4,
+                        ),
+                        Row(
+                          children: <Widget>[
+                            Icon(
+                              Icons.location_on,
+                              size: 20,
+                            ),
+                            SizedBox(
+                              width: 8,
+                            ),
+                            Text(
+                              _event.college_name,
+                              style: TextStyle(fontSize: 10),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                ClipRRect(
+                  borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(8),
+                      bottomRight: Radius.circular(8)),
+                  child: FadeInImage(
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
+                    fadeInDuration: Duration(milliseconds: 1000),
+                    image: NetworkImage(
+                        "${Url.URL}/api/image?id=${_event.imageUrl}"),
+                    placeholder: AssetImage('assets/icons/loading.gif'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      /* Padding(
         padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 7),
         child: InkWell(
           onTap: () {
@@ -57,10 +158,8 @@ class EventTileGeneralState extends State<EventTileGeneral> {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
               child: ConstrainedBox(
-                constraints: new BoxConstraints(
-                  minHeight: 100.0,
-                  //maxHeight: 100.0,
-                ),
+                constraints:
+                    new BoxConstraints(minHeight: 100.0, maxHeight: 100.0),
                 child: Row(
                   children: <Widget>[
                     ClipRRect(
@@ -70,8 +169,8 @@ class EventTileGeneralState extends State<EventTileGeneral> {
                           topRight: Radius.circular(8),
                           bottomRight: Radius.circular(8)),
                       child: FadeInImage(
-                        width: 100,
-                        height: 100,
+                        width: MediaQuery.of(context).size.width * 0.2,
+                        height: MediaQuery.of(context).size.width * 0.2,
                         fit: BoxFit.cover,
                         fadeInDuration: Duration(milliseconds: 1000),
                         image: NetworkImage(
@@ -79,77 +178,79 @@ class EventTileGeneralState extends State<EventTileGeneral> {
                         placeholder: AssetImage('assets/icons/loading.gif'),
                       ),
                     ),
-                    Expanded(
-                      child: Container(
-                        padding: EdgeInsets.only(left: 12),
-                        width: MediaQuery.of(context).size.width - 100,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            AutoSizeText(
-                              _event.name,
-                              style: TextStyle(
-                                  fontSize: 18, fontFamily: "ProductSans"),
-                            ),
-                            SizedBox(
-                              height: 8,
-                            ),
-                            Row(
-                              children: <Widget>[
-                                Icon(
-                                  Icons.calendar_today,
-                                  size: 20,
-                                ),
-                                SizedBox(
-                                  width: 8,
-                                ),
-                                Text(
-                                  DateFormat('MMMM dd,yyyy EEE-HH:mm')
-                                      .format(_event.start_time),
-                                  style: TextStyle(fontSize: 13),
-                                )
-                              ],
-                            ),
-                            SizedBox(
-                              height: 4,
-                            ),
-                            Row(
-                              children: <Widget>[
-                                Icon(
-                                  Icons.location_on,
-                                  size: 20,
-                                ),
-                                SizedBox(
-                                  width: 8,
-                                ),
-                                Text(
-                                  _event.college_name,
-                                  style: TextStyle(fontSize: 13),
-                                )
-                              ],
-                            ),
-                            /* Row(
-                              children: [
-                                Spacer(),
-                                Chip(
-                                  label: _event.registered == true
-                                      ? Text(
-                                          "Registered",
-                                          style: TextStyle(fontSize: 12),
-                                        )
-                                      : Text(
-                                          "Not Registered",
-                                          style: TextStyle(fontSize: 12),
-                                        ),
-                                ),
-                              ],
-                            ),
-                            */
-                          ],
-                        ),
+                    /*
+                    Container(
+                      padding: EdgeInsets.only(left: 12),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          AutoSizeText(
+                            _event.name,
+                            minFontSize: 5,
+                            style: TextStyle(
+                                fontSize: 18, fontFamily: "ProductSans"),
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Row(
+                            children: <Widget>[
+                              Icon(
+                                Icons.calendar_today,
+                                size: 20,
+                              ),
+                              SizedBox(
+                                width: 8,
+                              ),
+                              AutoSizeText(
+                                DateFormat('MMMM dd,yyyy EEE-HH:mm')
+                                    .format(_event.start_time),
+                                minFontSize: 5,
+                                style: TextStyle(fontSize: 13),
+                              )
+                            ],
+                          ),
+                          SizedBox(
+                            height: 4,
+                          ),
+                          Row(
+                            children: <Widget>[
+                              Icon(
+                                Icons.location_on,
+                                size: 20,
+                              ),
+                              SizedBox(
+                                width: 8,
+                              ),
+                              AutoSizeText(
+                                _event.college_name,
+                                minFontSize: 5,
+                                style: TextStyle(fontSize: 13),
+                              )
+                            ],
+                          ),
+                          /* Row(
+                            children: [
+                              Spacer(),
+                              Chip(
+                                label: _event.registered == true
+                                    ? Text(
+                                        "Registered",
+                                        style: TextStyle(fontSize: 12),
+                                      )
+                                    : Text(
+                                        "Not Registered",
+                                        style: TextStyle(fontSize: 12),
+                                      ),
+                              ),
+                            ],
+                          ),
+                          */
+                        ],
                       ),
                     ),
+                    */
                   ],
                 ),
               ),
@@ -157,7 +258,7 @@ class EventTileGeneralState extends State<EventTileGeneral> {
           ),
         ),
       ),
-
+*/
       /* Padding(
         padding: EdgeInsets.symmetric(
           horizontal: 0.0,
