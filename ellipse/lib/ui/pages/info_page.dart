@@ -8,7 +8,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_browser/flutter_web_browser.dart';
+import 'package:image_downloader/image_downloader.dart';
 import 'package:intl/intl.dart';
+import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
 import 'package:share/share.dart';
@@ -55,6 +57,16 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
     });
   }
 
+  download(String url, String name) async {
+    await ImageDownloader.downloadImage(
+      //"${Url.URL}/api/image?id=$url",
+      "https://flutter.dev/images/catalog-widget-placeholder.png",
+      outputMimeType: "image/jpeg",
+      destination: AndroidDestinationType.directoryDownloads
+        ..subDirectory("$name" + DateTime.now().toString()),
+    );
+  }
+
   @override
   void initState() {
     loadPref();
@@ -73,26 +85,24 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final Events _event =
         context.watch<EventsRepository>().getEvents(widget.index);
+    final UserDetails _userdetails =
+        context.watch<UserDetailsRepository>().getUserDetails(0);
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
           iconTheme: Theme.of(context).iconTheme,
           actions: [
-            InkWell(
-              onTap: () {
-                setState(() {
-                  _key.currentState.toggle();
-                });
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Icon(
+            IconButton(
+                icon: Icon(
                   Icons.menu,
-                  size: 30,
                   color: Theme.of(context).textTheme.caption.color,
+                  size: 27,
                 ),
-              ),
-            ),
+                onPressed: () {
+                  setState(() {
+                    _key.currentState.toggle();
+                  });
+                }),
           ],
           elevation: 4,
           title: Text(
@@ -144,25 +154,12 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                       SizedBox(height: 3),
                       SlideMenuItem1(
                           Icons.group, "Register", "Register to event", () {
-                        if (_event.registered == true) {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: new Text("Event Registration"),
-                                content: new Text(
-                                    "You have to already registered to this event"),
-                                actions: <Widget>[
-                                  new FlatButton(
-                                    child: new Text("Ok"),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                ],
-                              );
-                            },
-                          );
+                        if (_event.user_id == prefId) {
+                          alertDialog(context, "Event Registration",
+                              "You are admin to this event.You can not register to this event");
+                        } else if (_event.registered == true) {
+                          alertDialog(context, "Event Registration",
+                              "You have to already registered to this event");
                         } else if (_event.registered == false &&
                             _event.reg_mode == "form") {
                           setState(() {
@@ -196,20 +193,24 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                       SlideMenuItem1(Icons.announcement, "Announcements",
                           "Your Announcements", () {
                         setState(() {
-                          view = Announcements(widget.index, _event.id);
+                          view = Announcements(widget.index, _event.id, "user");
                           default_view = false;
                         });
                         _key.currentState.closeDrawer();
                       }),
+                      /*SlideMenuItem1(Icons.file_download, "Download",
+                          "Download event poster", () {
+                        download(_event.imageUrl, _event.name);
+                      }),*/
                       SlideMenuItem1(Icons.share, "Share", "Share Event", () {
                         if (Platform.isAndroid) {
-                          Share.share(
-                              "https://ellipseapp.com/un/event/${_event.id}");
+                          Share.share(_event.share_link);
                         } else if (Platform.isIOS) {}
                       }),
                       SlideMenuItem1(Icons.report, "Report", "Report", () {
                         setState(() {
-                          view = Report("Event_report", _event.id);
+                          view =
+                              Report("Event_report", _event.id, widget.index);
                           default_view = false;
                         });
                         _key.currentState.closeDrawer();
@@ -293,7 +294,8 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                       SlideMenuItem1(Icons.announcement, "Announcements",
                           "Your Announcements", () {
                         setState(() {
-                          view = Announcements(widget.index, _event.id);
+                          view =
+                              Announcements(widget.index, _event.id, "admin");
                           default_view = false;
                         });
                         _key.currentState.closeDrawer();
@@ -348,29 +350,14 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                         });
                         _key.currentState.closeDrawer();
                       }),
-                      /*
-                SlideMenuItem1(Icons.attach_email, "Send Mail",
-                    "Send mail to participants", () {}),
-                */
-                      /*
-                Container(
-                  margin: EdgeInsetsDirectional.only(
-                    start: 10.0,
-                    bottom: 10,
-                    top: 10,
-                  ),
-                  child: Text("Moderators",
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.w500,
-                      )),
-                ),
-                SizedBox(height: 3),
-                SlideMenuItem1(Icons.group, "Manage Moderators",
-                    "moderators for event", () {}),
-                SlideMenuItem1(Icons.group_add, "Add Moderator",
-                    "Add new moderator", () {}),
-                */
+                      SlideMenuItem1(LineIcons.certificate, "Certificates",
+                          "Distribute Participation\nCertificates ", () {
+                        setState(() {
+                          view = CertificatesAdmin(_event.id);
+                          default_view = false;
+                        });
+                        _key.currentState.closeDrawer();
+                      }),
                       Container(
                         margin: EdgeInsetsDirectional.only(
                           start: 10.0,
@@ -384,10 +371,6 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                             )),
                       ),
                       SizedBox(height: 3),
-                      SlideMenuItem1(Icons.share, "Share", "Share Event", () {
-                        Share.share(
-                            "https://ellipseapp.com/un/event/${_event.id}");
-                      }),
                       SlideMenuItem1(Icons.edit, "Edit Event", "Edit Event",
                           () {
                         setState(() {
@@ -396,6 +379,17 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                         });
                         _key.currentState.closeDrawer();
                       }),
+                      SlideMenuItem1(Icons.share, "Share", "Share Event", () {
+                        Share.share(_event.share_link
+                            //"https://ellipseapp.com/un/event/${_event.id}"
+                            );
+                      }),
+                      /*
+                      SlideMenuItem1(Icons.file_download, "Download",
+                          "Download event poster", () {
+                        download(_event.imageUrl, _event.name);
+                      }),
+                      */
                       /*
                 SlideMenuItem1(
                     Icons.delete, "Delete Event", "Delete Event", () {}),
@@ -590,81 +584,130 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                   ),
                                   details: _event.description,
                                 ),
-                                CardPage.body(
-                                  title: "Requirements",
-                                  body: RowLayout(children: <Widget>[
-                                    Container(),
-                                    Wrap(
-                                      alignment: WrapAlignment.center,
-                                      spacing: 10.0,
-                                      children: _event.requirements
-                                          .map(
-                                            (value) => RaisedButton(
-                                              child: Text(value),
-                                              shape: StadiumBorder(),
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .caption
-                                                  .color
-                                                  .withOpacity(0.4),
-                                              colorBrightness: Brightness.dark,
-                                              onPressed: () {},
-                                            ),
-                                          )
-                                          .toList(),
-                                    ),
-                                  ]),
-                                ),
-                                CardPage.body(
-                                  title: "Themes",
-                                  body: RowLayout(children: <Widget>[
-                                    Container(),
-                                    Wrap(
-                                      alignment: WrapAlignment.center,
-                                      spacing: 10.0,
-                                      children: _event.tags
-                                          .map(
-                                            (value) => RaisedButton(
-                                              child: Text(value),
-                                              shape: StadiumBorder(),
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .caption
-                                                  .color
-                                                  .withOpacity(0.4),
-                                              colorBrightness: Brightness.dark,
-                                              onPressed: () {},
-                                            ),
-                                          )
-                                          .toList(),
-                                    ),
-                                  ]),
-                                ),
+                                _event.requirements.isNotEmpty
+                                    ? CardPage.body(
+                                        title: "Requirements",
+                                        body: RowLayout(children: <Widget>[
+                                          Container(),
+                                          Wrap(
+                                            alignment: WrapAlignment.center,
+                                            spacing: 10.0,
+                                            children: _event.requirements
+                                                .map(
+                                                  (value) => RaisedButton(
+                                                    child: Text(value),
+                                                    shape: StadiumBorder(),
+                                                    color: Theme.of(context)
+                                                        .textTheme
+                                                        .caption
+                                                        .color
+                                                        .withOpacity(0.4),
+                                                    colorBrightness:
+                                                        Brightness.dark,
+                                                    onPressed: () {},
+                                                  ),
+                                                )
+                                                .toList(),
+                                          ),
+                                        ]),
+                                      )
+                                    : SizedBox.shrink(),
+                                _event.tags.isNotEmpty
+                                    ? CardPage.body(
+                                        title: "Themes",
+                                        body: RowLayout(children: <Widget>[
+                                          Container(),
+                                          Wrap(
+                                            alignment: WrapAlignment.center,
+                                            spacing: 10.0,
+                                            children: _event.tags
+                                                .map(
+                                                  (value) => RaisedButton(
+                                                    child: Text(value),
+                                                    shape: StadiumBorder(),
+                                                    color: Theme.of(context)
+                                                        .textTheme
+                                                        .caption
+                                                        .color
+                                                        .withOpacity(0.4),
+                                                    colorBrightness:
+                                                        Brightness.dark,
+                                                    onPressed: () {},
+                                                  ),
+                                                )
+                                                .toList(),
+                                          ),
+                                        ]),
+                                      )
+                                    : SizedBox.shrink(),
                                 CardPage.body(
                                   title: "Time Left",
                                   body: RowLayout(children: <Widget>[
-                                    LaunchCountdown(_event.start_time)
+                                    SizedBox(
+                                      width: double.infinity,
+                                    ),
+                                    if (_event.start_time
+                                            .isBefore(DateTime.now()) &&
+                                        _event.finish_time
+                                            .isAfter(DateTime.now())) ...[
+                                      RaisedButton(
+                                        child: Text("Event Started"),
+                                        shape: StadiumBorder(),
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .caption
+                                            .color
+                                            .withOpacity(0.4),
+                                        colorBrightness: Brightness.dark,
+                                        onPressed: () {},
+                                      ),
+                                    ] else if (_event.start_time
+                                            .isBefore(DateTime.now()) &&
+                                        _event.finish_time
+                                            .isBefore(DateTime.now())) ...[
+                                      RaisedButton(
+                                        child: Text("Event Finished"),
+                                        shape: StadiumBorder(),
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .caption
+                                            .color
+                                            .withOpacity(0.4),
+                                        colorBrightness: Brightness.dark,
+                                        onPressed: () {},
+                                      ),
+                                    ] else ...[
+                                      LaunchCountdown(_event.start_time)
+                                    ]
                                   ]),
                                 ),
                                 CardPage.body(
                                   title: "Important Dates",
-                                  body: RowLayout(children: <Widget>[
-                                    RowText(
-                                      "Event Start Date",
-                                      DateFormat('EEE-MMMM dd, yyyy HH:mm')
-                                          .format(_event.start_time),
+                                  body: Column(children: <Widget>[
+                                    ListTile(
+                                      title: Text("Starts at"),
+                                      subtitle: Text(
+                                        _event.start_time
+                                            .toString()
+                                            .toDate(context),
+                                      ),
                                     ),
-                                    RowText(
-                                      "Event Finish Date",
-                                      DateFormat('EEE-MMMM dd, yyyy HH:mm')
-                                          .format(_event.finish_time),
+                                    ListTile(
+                                      title: Text("Ends at"),
+                                      subtitle: Text(
+                                        _event.finish_time
+                                            .toString()
+                                            .toDate(context),
+                                      ),
                                     ),
-                                    Separator.divider(),
-                                    RowText(
-                                      "Registration Last Date",
-                                      DateFormat('EEE-MMMM dd, yyyy HH:mm')
-                                          .format(_event.reg_last_date),
-                                    )
+                                    ListTile(
+                                      title: Text("Registration Ends at"),
+                                      subtitle: Text(
+                                        _event.reg_last_date
+                                            .toString()
+                                            .toDate(context),
+                                      ),
+                                    ),
                                   ]),
                                 ),
                                 CardPage.body(
@@ -732,7 +775,22 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                             .color,
                                       ),
                                     ),
-                                    LaunchCountdown(_event.reg_last_date),
+                                    if (_event.reg_last_date
+                                        .isBefore(DateTime.now())) ...[
+                                      RaisedButton(
+                                        child: Text("Registration Closed"),
+                                        shape: StadiumBorder(),
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .caption
+                                            .color
+                                            .withOpacity(0.4),
+                                        colorBrightness: Brightness.dark,
+                                        onPressed: () {},
+                                      ),
+                                    ] else ...[
+                                      LaunchCountdown(_event.reg_last_date)
+                                    ]
                                   ]),
                                 ),
                               ],

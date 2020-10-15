@@ -3,49 +3,49 @@ import 'package:flutter/material.dart';
 class EventGridTile extends StatelessWidget {
   final String text1, text2;
   final IconData icon;
-  const EventGridTile(this.icon, this.text1, this.text2);
+  final Function onTap;
+  const EventGridTile(this.icon, this.text1, this.text2, this.onTap);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        decoration: BoxDecoration(
-            border: Border.all(
-              color: Theme.of(context).textTheme.caption.color,
-            ),
-            borderRadius: BorderRadius.circular(10.0)),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Icon(icon,
-                  size: 43,
-                  color: Theme.of(context)
-                      .textTheme
-                      .caption
-                      .color
-                      .withOpacity(0.8)),
-              SizedBox(height: 15),
-              Center(
-                child: Text(
-                  text1,
-                  style: TextStyle(
-                      fontSize: 17,
-                      color: Theme.of(context).textTheme.caption.color,
-                      fontWeight: FontWeight.w800),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          decoration: BoxDecoration(
+              border: Border.all(
+                color: Theme.of(context).textTheme.caption.color,
+              ),
+              borderRadius: BorderRadius.circular(10.0)),
+          child: Center(
+            child: Row(
+              children: [
+                Icon(icon,
+                    size: 40,
+                    color: Theme.of(context)
+                        .textTheme
+                        .caption
+                        .color
+                        .withOpacity(0.8)),
+                SizedBox(
+                  width: 10,
                 ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                text2,
-                style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).textTheme.caption.color,
-                    fontWeight: FontWeight.w800),
-              ),
-            ],
+                Center(
+                  child: Text(
+                    text1,
+                    style: TextStyle(
+                        fontSize: 17,
+                        color: Theme.of(context).textTheme.caption.color,
+                        fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        margin: EdgeInsets.all(10),
-        height: 150.0);
+      ),
+    );
   }
 }

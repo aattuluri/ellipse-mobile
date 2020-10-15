@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../repositories/index.dart';
+import '../../util/index.dart';
 import '../widgets/index.dart';
 
 Widget get _loadingIndicator =>
@@ -36,6 +37,7 @@ class CalendarTab extends StatefulWidget {
 }
 
 class _CalendarTabState extends State<CalendarTab> {
+  ScrollController _scrollControllerDay, _scrollControllerMonth;
   List<DateTime> daysList = <DateTime>[];
   List<DateTime> monthsList = <DateTime>[];
   List<int> timeList = <int>[];
@@ -80,11 +82,18 @@ class _CalendarTabState extends State<CalendarTab> {
     });
     setListOfDays(currentDate);
     setListOfMonths(currentDate);
-    print(currentYear);
-    print(currentMonth);
-    print(currentDate);
-    print(selectedmonth);
-    print(selectedday);
+    _scrollControllerDay = ScrollController();
+    _scrollControllerMonth = ScrollController();
+
+    var cmonth = DateFormat('MMM').format(DateTime(DateTime.now().month));
+    print(cmonth);
+    // double _position =  index * (_width + 2 * _horizontalPadding)
+    //   + (_selectedWidth+_horizontalPadding);
+    if (_scrollControllerMonth.hasClients) {
+      _scrollControllerMonth.animateTo(100.0,
+          duration: Duration(milliseconds: 1000), curve: Curves.ease);
+    }
+
     super.initState();
   }
 
@@ -99,22 +108,7 @@ class _CalendarTabState extends State<CalendarTab> {
               automaticallyImplyLeading: false,
               iconTheme: Theme.of(context).iconTheme,
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              elevation: 4,
-              /*
-              leading: Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Icon(
-                    Icons.close,
-                    size: 30,
-                    color: Theme.of(context).textTheme.caption.color,
-                  ),
-                ),
-              ),
-              */
+              elevation: 5,
               title: Padding(
                 padding: const EdgeInsets.only(left: 5),
                 child: new Row(
@@ -124,8 +118,7 @@ class _CalendarTabState extends State<CalendarTab> {
                     Text(
                       'Calendar',
                       style: TextStyle(
-                          color: Theme.of(context).textTheme.caption.color,
-                          fontSize: 23.0),
+                          color: Theme.of(context).textTheme.caption.color),
                     ),
                   ],
                 ),
@@ -167,6 +160,16 @@ class _CalendarTabState extends State<CalendarTab> {
                 ),
               ],
               centerTitle: true,
+            ),
+            floatingActionButton: Padding(
+              padding: const EdgeInsets.only(right: 10, bottom: 5),
+              child: FloatingActionButton(
+                backgroundColor: Theme.of(context).accentColor.withOpacity(0.8),
+                onPressed: () {
+                  Navigator.pushNamed(context, Routes.post_event);
+                },
+                child: new Icon(Icons.add, size: 40, color: Colors.black),
+              ),
             ),
             body: _selectedview == "Day"
                 ? Column(
@@ -265,8 +268,11 @@ class _CalendarTabState extends State<CalendarTab> {
                       ),
                       Container(
                         height: 60.0,
-                        child: ListView.builder(
+                        child:
+                            //////////////////////////////////////////////////////////////////
+                            ListView.builder(
                           scrollDirection: Axis.horizontal,
+                          controller: _scrollControllerDay,
                           padding: EdgeInsets.symmetric(horizontal: 5),
                           itemCount: daysList.length,
                           itemBuilder: (BuildContext context, int index) {
@@ -322,6 +328,7 @@ class _CalendarTabState extends State<CalendarTab> {
                                   );
                           },
                         ),
+                        ///////////////////////////////////////////////////////////////
                       ),
                       Padding(
                         padding: const EdgeInsets.only(top: 5, bottom: 5),
@@ -361,7 +368,7 @@ class _CalendarTabState extends State<CalendarTab> {
                                   for (var i = 0;
                                       i < model.allEvents?.length;
                                       i++)
-                                    if (model.allEvents[i].start_time
+                                    if (model.allEvents[i].finish_time
                                             .isAfter(DateTime.now()) &&
                                         model.allEvents[i].start_time.day ==
                                             selectedday.day &&
@@ -480,9 +487,12 @@ class _CalendarTabState extends State<CalendarTab> {
                           ),
                           Container(
                             height: 35.0,
-                            child: ListView.builder(
+                            child:
+                                /////////////////////////////////////////////////////////////////////
+                                ListView.builder(
                               padding: EdgeInsets.symmetric(horizontal: 5),
                               scrollDirection: Axis.horizontal,
+                              controller: _scrollControllerMonth,
                               itemCount: monthsList.length,
                               itemBuilder: (BuildContext context, int index) {
                                 return InkWell(
@@ -518,6 +528,7 @@ class _CalendarTabState extends State<CalendarTab> {
                                 );
                               },
                             ),
+                            ///////////////////////////////////////////////////////////////
                           ),
                           Padding(
                             padding: const EdgeInsets.only(top: 5, bottom: 5),
@@ -558,7 +569,7 @@ class _CalendarTabState extends State<CalendarTab> {
                                       for (var i = 0;
                                           i < model.allEvents?.length;
                                           i++)
-                                        if (model.allEvents[i].start_time
+                                        if (model.allEvents[i].finish_time
                                                 .isAfter(DateTime.now()) &&
                                             model.allEvents[i].start_time
                                                     .month ==
@@ -709,7 +720,7 @@ class _CalendarTabState extends State<CalendarTab> {
                                       for (var i = 0;
                                           i < model.allEvents?.length;
                                           i++)
-                                        if (model.allEvents[i].start_time
+                                        if (model.allEvents[i].finish_time
                                                 .isAfter(DateTime.now()) &&
                                             model.allEvents[i].start_time
                                                     .year ==

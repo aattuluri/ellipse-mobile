@@ -13,7 +13,7 @@ void main() async {
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   FirebaseAdMob.instance
       .initialize(appId: 'ca-app-pub-8594531953524922~3846931461');
-  sendFirebaseToken();
+  //getFirebaseToken(context);
   runApp(App());
 }
 
@@ -24,10 +24,10 @@ class App extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => ImageQualityProvider()),
-        //ChangeNotifierProvider(create: (_) => NotificationsProvider()),
         ChangeNotifierProvider(create: (_) => EventsRepository()),
         ChangeNotifierProvider(create: (_) => UserDetailsRepository()),
         ChangeNotifierProvider(create: (_) => NotificationsRepository()),
+        ChangeNotifierProvider(create: (_) => DataRepository()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, theme, child) => MaterialApp(

@@ -40,7 +40,7 @@ class EventTileGeneralState extends State<EventTileGeneral>
     return Visibility(
       visible: widget.visible,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: InkWell(
           onTap: () {
             if (widget.route == "info_page") {
@@ -86,8 +86,7 @@ class EventTileGeneralState extends State<EventTileGeneral>
                               width: 8,
                             ),
                             Text(
-                              DateFormat('MMMM dd,yyyy EEE-HH:mm')
-                                  .format(_event.start_time),
+                              _event.start_time.toString().toDate(context),
                               style: TextStyle(fontSize: 10),
                             )
                           ],

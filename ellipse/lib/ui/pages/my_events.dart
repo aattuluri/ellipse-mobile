@@ -36,19 +36,6 @@ class MyEvents extends StatefulWidget {
 }
 
 class _MyEventsState extends State<MyEvents> {
-  // String token = "", id = "", email = "", college_id = "";
-
-  /*getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    preferences.setString("eveid", "");
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-      college_id = preferences.getString("college_id");
-    });
-  }
-*/
   @override
   void initState() {
     loadPref();
@@ -86,7 +73,6 @@ class _MyEventsState extends State<MyEvents> {
               ? _loadingIndicator
               : ListView(
                   physics: ClampingScrollPhysics(),
-                  padding: EdgeInsets.symmetric(horizontal: 15.0),
                   scrollDirection: Axis.vertical,
                   shrinkWrap: true,
                   children: <Widget>[

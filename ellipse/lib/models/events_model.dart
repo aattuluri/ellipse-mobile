@@ -13,37 +13,41 @@ class Events {
       registration_fee,
       platform_link,
       reg_mode,
-      reg_link;
+      reg_link,
+      share_link,
+      status;
   bool registered;
   final bool o_allowed;
   final List requirements, tags, reg_fields;
-  final DateTime start_time, finish_time, reg_last_date;
+  final DateTime start_time, finish_time, reg_last_date, posted_on;
 
-  Events({
-    this.id,
-    this.user_id,
-    this.college_id,
-    this.college_name,
-    this.name,
-    this.description,
-    this.imageUrl,
-    this.event_type,
-    this.event_mode,
-    this.reg_mode,
-    this.payment_type,
-    this.venue,
-    this.requirements,
-    this.tags,
-    this.registration_fee,
-    this.platform_link,
-    this.o_allowed,
-    this.reg_link,
-    this.start_time,
-    this.finish_time,
-    this.reg_fields,
-    this.reg_last_date,
-    this.registered,
-  });
+  Events(
+      {this.id,
+      this.user_id,
+      this.college_id,
+      this.college_name,
+      this.name,
+      this.description,
+      this.imageUrl,
+      this.event_type,
+      this.event_mode,
+      this.reg_mode,
+      this.payment_type,
+      this.venue,
+      this.requirements,
+      this.tags,
+      this.registration_fee,
+      this.platform_link,
+      this.o_allowed,
+      this.reg_link,
+      this.start_time,
+      this.finish_time,
+      this.reg_fields,
+      this.reg_last_date,
+      this.registered,
+      this.share_link,
+      this.status,
+      this.posted_on});
 
   factory Events.fromJson(Map<String, dynamic> json) {
     String s_time = json['start_time'];
@@ -74,30 +78,4 @@ class Events {
         reg_last_date: DateTime.parse(r_l_time).toLocal(),
         registered: false);
   }
-
-  Map<dynamic, dynamic> toJson() => {
-        '_id': id,
-        'user_id': user_id,
-        'college_id': college_id,
-        'college_name': college_name,
-        'name': name,
-        'description': description,
-        'poster_url': imageUrl,
-        'event_type': event_type,
-        'event_mode': event_mode,
-        'reg_mode': reg_mode,
-        'fee_type': payment_type,
-        'venue': venue,
-        'requirements': requirements,
-        'tags': tags,
-        'fee': registration_fee,
-        "": platform_link,
-        'o_allowed': o_allowed,
-        'reg_fields': reg_fields,
-        'reg_link': reg_link,
-        'start_time': start_time,
-        'finish_time': finish_time,
-        'reg_last_date': reg_last_date,
-        false: registered
-      };
 }

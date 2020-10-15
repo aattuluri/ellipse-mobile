@@ -1,11 +1,14 @@
 import 'dart:async';
 
 import 'package:connectivity/connectivity.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../repositories/index.dart';
 import '../../util/index.dart';
 import '../../util/routes.dart';
 
@@ -14,7 +17,8 @@ class Initialization extends StatefulWidget {
   State<StatefulWidget> createState() => _InitializationState();
 }
 
-class _InitializationState extends State<Initialization> {
+class _InitializationState extends State<Initialization>
+    with WidgetsBindingObserver {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   Future loggedin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -47,7 +51,7 @@ class _InitializationState extends State<Initialization> {
       Navigator.pushNamed(
         context,
         Routes.start,
-        arguments: {'current_tab': 0},
+        arguments: {'current_tab': 0, 'load': true},
       );
       print("internet  available");
       return true;
@@ -61,13 +65,6 @@ class _InitializationState extends State<Initialization> {
       print("Error in connection");
       return false;
     }
-  }
-
-  @override
-  void initState() {
-    loggedin();
-    firebase();
-    super.initState();
   }
 
   firebase() {
@@ -95,6 +92,65 @@ class _InitializationState extends State<Initialization> {
         print("onResume: $message");
       },
     );
+  }
+
+  void initDynamicLinks() async {
+    FirebaseDynamicLinks.instance.onLink(
+        onSuccess: (PendingDynamicLinkData dynamicLink) async {
+      _handleDeepLink(dynamicLink);
+    }, onError: (OnLinkErrorException e) async {
+      print('onLinkError');
+      print(e.message);
+    });
+    final PendingDynamicLinkData data =
+        await FirebaseDynamicLinks.instance.getInitialLink();
+    _handleDeepLink(data);
+  }
+
+  void _handleDeepLink(PendingDynamicLinkData data) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool loggedin = (prefs.getBool('loggedIn') ?? false);
+    final Uri deepLink = data?.link;
+    if (deepLink != null && loggedin) {
+      print('_handleDeepLink | deeplink: $deepLink');
+      var isEvent = deepLink.pathSegments.contains('event');
+      var isApp = deepLink.pathSegments.contains('app');
+      print(isEvent);
+      print(isApp);
+      if (isEvent) {
+        String id = deepLink
+            .toString()
+            .trim()
+            .replaceAll("https://staging.ellipseapp.com/un/event/", "");
+        String Id = id.trim();
+        print(Id);
+        final _event = context.read<EventsRepository>().getEventIndex(Id);
+        Navigator.pushNamed(context, Routes.info_page,
+            arguments: {'index': _event, 'type': 'user'});
+      } else if (isApp) {}
+    }
+  }
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    //this.initDynamicLinks();
+    loggedin();
+    firebase();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      this.initDynamicLinks();
+    }
   }
 
   @override

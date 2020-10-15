@@ -678,17 +678,15 @@ class _CheckState extends State<Check> {
   String _college;
   String image_url;
   String designation, bio;
-  //String token = "", id = "", email = "";
   bool male = false;
   bool female = false;
-  final List<String> _designations = ["Student", "Club"];
+  final List<String> _designations = [
+    "Student",
+    "Faculty",
+    "Club",
+    "Institution"
+  ];
   next() async {
-    // SharedPreferences preferences = await SharedPreferences.getInstance();
-    //setState(() {
-    // token = preferences.getString("token");
-    // id = preferences.getString("id");
-    //email = preferences.getString("email");
-    //  });
     String gender = male ? "Male" : female ? "Female" : null;
     if (_imageFile == null ||
         prefId.isNullOrEmpty() ||
@@ -774,7 +772,7 @@ class _CheckState extends State<Check> {
         Navigator.pushNamed(
           context,
           Routes.start,
-          arguments: {'currebt_tab': 1},
+          arguments: {'current_tab': 0, 'load': true},
         );
       } else {
         print(response.body);

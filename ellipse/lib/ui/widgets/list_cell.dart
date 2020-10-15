@@ -52,7 +52,7 @@ class ListCell extends StatelessWidget {
     VoidCallback onTap,
   }) {
     return ListCell(
-      leading: Icon(icon, size: 33),
+      leading: Icon(icon),
       trailing: trailing,
       title: title,
       subtitle: subtitle,
@@ -69,13 +69,6 @@ class ListCell extends StatelessWidget {
         children: <Widget>[
           Text(
             title,
-            style: TextStyle(
-              fontSize: 16,
-              fontFamily: 'ProductSans',
-              fontWeight: FontWeight.bold,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
           ),
           if (subtitle != null) Separator.spacer(space: 4),
         ],
@@ -84,34 +77,10 @@ class ListCell extends StatelessWidget {
           ? null
           : Text(
               subtitle,
-              style: TextStyle(
-                fontSize: 15,
-                fontFamily: 'ProductSans',
-                color: Theme.of(context).textTheme.caption.color,
-              ),
             ),
       trailing: trailing,
       contentPadding: contentPadding,
       onTap: onTap,
-    );
-  }
-}
-
-/// Trailing widget which displays the number of a specific mission.
-class MissionNumber extends StatelessWidget {
-  final String number;
-
-  const MissionNumber(this.number);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      number,
-      style: TextStyle(
-        fontFamily: 'ProductSans',
-        color: Theme.of(context).textTheme.caption.color,
-      ),
-      textAlign: TextAlign.end,
     );
   }
 }

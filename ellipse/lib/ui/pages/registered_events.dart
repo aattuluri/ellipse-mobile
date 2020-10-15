@@ -103,7 +103,6 @@ class _RegisteredEventsState extends State<RegisteredEvents> {
           */
               ListView(
                   physics: ClampingScrollPhysics(),
-                  padding: EdgeInsets.symmetric(horizontal: 15.0),
                   scrollDirection: Axis.vertical,
                   shrinkWrap: true,
                   children: <Widget>[

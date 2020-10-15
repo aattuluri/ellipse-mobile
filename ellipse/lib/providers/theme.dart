@@ -5,7 +5,7 @@ import '../util/colors.dart';
 
 enum Themes { light, dark, black, system }
 
-const Themes _defaultTheme = Themes.dark;
+const Themes _defaultTheme = Themes.black;
 
 final Map<Themes, ThemeData> _themeData = {
   Themes.light: ThemeData(
@@ -45,7 +45,7 @@ final Map<Themes, ThemeData> _themeData = {
     accentColor: blackAccentColor,
     canvasColor: blackBackgroundColor,
     scaffoldBackgroundColor: blackBackgroundColor,
-    cardColor: darkBackgroundColor,
+    cardColor: blackCardColor,
     dividerColor: blackDividerColor,
     dialogBackgroundColor: darkCardColor,
     popupMenuTheme: PopupMenuThemeData(

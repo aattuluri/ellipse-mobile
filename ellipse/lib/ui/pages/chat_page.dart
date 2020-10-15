@@ -77,7 +77,9 @@ class _ChatPageState extends State<ChatPage> {
       String dt = item['date'].toString();
       String senderid = item['user_id'];
       String type;
-      DateTime datetime = DateTime.fromMicrosecondsSinceEpoch(int.parse(dt));
+      DateTime datetime = DateTime.parse(dt).toLocal();
+      //DateTime datetime =
+      //   DateTime.fromMicrosecondsSinceEpoch(int.parse(dt));
       int hour = datetime.hour;
       String minute = datetime.minute.toString();
       if (minute.length == 1) {
@@ -151,8 +153,9 @@ class _ChatPageState extends State<ChatPage> {
           String senderid = msg['user_id'];
           print(msg['message']);
           String type;
-          DateTime datetime =
-              DateTime.fromMicrosecondsSinceEpoch(int.parse(dt));
+          DateTime datetime = DateTime.parse(dt).toLocal();
+          //DateTime datetime =
+          //   DateTime.fromMicrosecondsSinceEpoch(int.parse(dt));
           int hour = datetime.hour;
           String minute = datetime.minute.toString();
           if (minute.length == 1) {
@@ -288,62 +291,65 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     final UserDetails _userdetails =
         context.watch<UserDetailsRepository>().getUserDetails(0);
-    return SafeArea(
-      child: isLoading
-          ? SafeArea(
-              child: Scaffold(
-                body: Align(
-                  alignment: Alignment.center,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Center(child: CircularProgressIndicator()),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Text(
-                        "Loading Messages....",
-                        style: TextStyle(
-                            color: Theme.of(context).textTheme.caption.color,
-                            fontSize: 30.0,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ],
+    return isLoading
+        ? Container(
+            height: double.infinity,
+            width: double.infinity,
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: Align(
+              alignment: Alignment.center,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Center(child: CircularProgressIndicator()),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    "Loading Messages....",
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.caption.color,
+                        fontSize: 30.0,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+          )
+        : Container(
+            height: double.infinity,
+            width: double.infinity,
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: Stack(
+              children: <Widget>[
+                Container(
+                  child: ListView.builder(
+                    itemCount: chatMessage.length,
+                    controller: scrollController,
+                    shrinkWrap: true,
+                    padding: EdgeInsets.only(top: 5, bottom: 60),
+                    scrollDirection: Axis.vertical,
+                    itemBuilder: (context, index) {
+                      return ChatBubble(
+                        chatMessage: chatMessage[index],
+                      );
+                    },
                   ),
                 ),
-              ),
-            )
-          : Scaffold(
-              body: Stack(
-                children: <Widget>[
-                  Container(
-                    child: ListView.builder(
-                      itemCount: chatMessage.length,
-                      controller: scrollController,
-                      shrinkWrap: true,
-                      padding: EdgeInsets.only(top: 5, bottom: 60),
-                      scrollDirection: Axis.vertical,
-                      itemBuilder: (context, index) {
-                        return ChatBubble(
-                          chatMessage: chatMessage[index],
-                        );
-                      },
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      height: 65,
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      child: Column(
-                        children: [
-                          Divider(
-                            thickness: 2,
-                          ),
-                          Row(
-                            children: <Widget>[
-                              /*
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    height: 65,
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    child: Column(
+                      children: [
+                        Divider(
+                          thickness: 2,
+                        ),
+                        Row(
+                          children: <Widget>[
+                            /*
                         Padding(
                           padding: const EdgeInsets.only(left: 15, right: 10),
                           child: InkWell(
@@ -363,73 +369,72 @@ class _ChatPageState extends State<ChatPage> {
                           ),
                         ),
                         */
-                              SizedBox(
-                                width: 15,
+                            SizedBox(
+                              width: 15,
+                            ),
+                            Expanded(
+                              child: TextField(
+                                autocorrect: false,
+                                autofocus: false,
+                                cursorColor:
+                                    Theme.of(context).textTheme.caption.color,
+                                textInputAction: TextInputAction.unspecified,
+                                keyboardType: TextInputType.multiline,
+                                enabled: true,
+                                controller: textController,
+                                style: TextStyle(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    fontSize: 20),
+                                decoration: InputDecoration.collapsed(
+                                  hintText: 'Type here.....',
+                                ),
+                                textCapitalization:
+                                    TextCapitalization.sentences,
                               ),
-                              Expanded(
-                                child: TextField(
-                                  autocorrect: false,
-                                  autofocus: false,
-                                  cursorColor:
-                                      Theme.of(context).textTheme.caption.color,
-                                  textInputAction: TextInputAction.unspecified,
-                                  keyboardType: TextInputType.multiline,
-                                  enabled: true,
-                                  controller: textController,
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .caption
-                                          .color,
-                                      fontSize: 20),
-                                  decoration: InputDecoration.collapsed(
-                                    hintText: 'Type here.....',
-                                  ),
-                                  textCapitalization:
-                                      TextCapitalization.sentences,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: InkWell(
+                                onTap: () {
+                                  String datetime = DateTime.now()
+                                      .toIso8601String()
+                                      .toString();
+                                  if (textController.text.isNotEmpty) {
+                                    channel.sink.add(json.encode({
+                                      'action': "send_message",
+                                      'event_id': widget.event_id,
+                                      'msg': {
+                                        'id': prefId + datetime,
+                                        'user_id': prefId,
+                                        'user_name': _userdetails.name,
+                                        'user_pic': _userdetails.profile_pic,
+                                        'message': textController.text,
+                                        'date': datetime
+                                      }
+                                    }));
+                                    setState(() {
+                                      textController.text = "";
+                                    });
+                                  } else {}
+                                },
+                                child: Icon(
+                                  Icons.send,
+                                  size: 35,
                                 ),
                               ),
-                              Padding(
-                                padding: const EdgeInsets.only(right: 10),
-                                child: InkWell(
-                                  onTap: () {
-                                    String datetime = DateTime.now()
-                                        .microsecondsSinceEpoch
-                                        .toString();
-                                    if (textController.text.isNotEmpty) {
-                                      channel.sink.add(json.encode({
-                                        'action': "send_message",
-                                        'event_id': widget.event_id,
-                                        'msg': {
-                                          'id': prefId + datetime,
-                                          'user_id': prefId,
-                                          'user_name': _userdetails.name,
-                                          'user_pic': _userdetails.profile_pic,
-                                          'message': textController.text,
-                                          'date': datetime
-                                        }
-                                      }));
-                                      setState(() {
-                                        textController.text = "";
-                                      });
-                                    } else {}
-                                  },
-                                  child: Icon(
-                                    Icons.send,
-                                    size: 35,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  )
-                ],
-              ),
+                  ),
+                )
+              ],
             ),
-    );
+          );
   }
 }
 

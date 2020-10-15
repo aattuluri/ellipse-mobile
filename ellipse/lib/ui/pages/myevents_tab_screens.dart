@@ -6,7 +6,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/index.dart';
@@ -34,8 +33,12 @@ class _TimelineState extends State<Timeline> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final Events _event =
         context.watch<EventsRepository>().getEvents(widget.index);
-    return Scaffold(
-      body: Center(
+    return Center(
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 10),
+        height: double.infinity,
+        width: double.infinity,
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -62,8 +65,7 @@ class _TimelineState extends State<Timeline> with TickerProviderStateMixin {
                       height: 5,
                     ),
                     Text(
-                      DateFormat('MMMM dd,yyyy\nEEE,HH:mm')
-                          .format(_event.reg_last_date),
+                      _event.reg_last_date.toString().toDate(context),
                       style: TextStyle(fontSize: 12),
                     )
                   ],
@@ -92,8 +94,7 @@ class _TimelineState extends State<Timeline> with TickerProviderStateMixin {
                       height: 5,
                     ),
                     Text(
-                      DateFormat('MMMM dd,yyyy\nEEE,HH:mm')
-                          .format(_event.start_time),
+                      _event.start_time.toString().toDate(context),
                       style: TextStyle(fontSize: 12),
                     )
                   ],
@@ -122,8 +123,7 @@ class _TimelineState extends State<Timeline> with TickerProviderStateMixin {
                       height: 5,
                     ),
                     Text(
-                      DateFormat('MMMM dd,yyyy\nEEE,HH:mm')
-                          .format(_event.finish_time),
+                      _event.finish_time.toString().toDate(context),
                       style: TextStyle(fontSize: 12),
                     )
                   ],
@@ -139,8 +139,8 @@ class _TimelineState extends State<Timeline> with TickerProviderStateMixin {
 
 class Announcements extends StatefulWidget {
   final int index;
-  final String id;
-  const Announcements(this.index, this.id);
+  final String id, type;
+  const Announcements(this.index, this.id, this.type);
   @override
   _AnnouncementsState createState() => _AnnouncementsState();
 }
@@ -169,6 +169,26 @@ class _AnnouncementsState extends State<Announcements>
     }
   }
 
+  deleteAnnouncement(String id, String eventId) async {
+    http.Response response = await http.post(
+      '${Url.URL}/api/event/delete_announcement?id=$id&event_id=$eventId',
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $prefToken'
+      },
+      body: jsonEncode(<String, dynamic>{}),
+    );
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+    if (response.statusCode == 200) {
+      setState(() {
+        _fetch_announcements();
+      });
+    } else {
+      print(response.body);
+    }
+  }
+
   @override
   void initState() {
     loadPref();
@@ -183,12 +203,16 @@ class _AnnouncementsState extends State<Announcements>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder<List<AnnouncementsModel>>(
+    return Container(
+      height: double.infinity,
+      width: double.infinity,
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: FutureBuilder<List<AnnouncementsModel>>(
         future: _fetch_announcements(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            List<AnnouncementsModel> data = snapshot.data;
+            List<AnnouncementsModel> announcements = snapshot.data;
+            List<AnnouncementsModel> data = announcements;
             return ListView.builder(
                 itemCount: data.length,
                 itemBuilder: (context, index) {
@@ -214,7 +238,7 @@ class _AnnouncementsState extends State<Announcements>
                           width: 5.0,
                         ),
                         Container(
-                          child: Icon(Icons.speaker_phone, size: 23),
+                          child: Icon(Icons.speaker_notes, size: 23),
                         ),
                         SizedBox(
                           width: 15.0,
@@ -241,8 +265,7 @@ class _AnnouncementsState extends State<Announcements>
                             Padding(
                               padding: const EdgeInsets.only(top: 5),
                               child: Text(
-                                DateFormat('EEE-MMMM dd, yyyy HH:mm')
-                                    .format(_time),
+                                _time.toString().toDate(context),
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontFamily: 'ProductSans',
@@ -256,12 +279,35 @@ class _AnnouncementsState extends State<Announcements>
                           ],
                         ),
                         Spacer(),
-                        Padding(
-                          padding: const EdgeInsets.only(right: 5),
-                          child: InkWell(
-                              onTap: () {},
-                              child: Icon(Icons.more_vert, size: 25)),
-                        )
+                        widget.type == "admin"
+                            ? Padding(
+                                padding: const EdgeInsets.only(right: 5),
+                                child: InkWell(
+                                    onTap: () {
+                                      generalSheet(
+                                        context,
+                                        title: data[index].title,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          children: [
+                                            _item(
+                                              Icons.delete_outline,
+                                              "Delete",
+                                              () {
+                                                Navigator.of(context).pop(true);
+                                                deleteAnnouncement(
+                                                    data[index].id, widget.id);
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                    child: Icon(Icons.more_vert, size: 25)),
+                              )
+                            : SizedBox.shrink()
                       ],
                     ),
                   );
@@ -278,6 +324,18 @@ class _AnnouncementsState extends State<Announcements>
       ),
     );
   }
+
+  Widget _item(IconData icon, String name, Function onTap) => ListTile(
+        onTap: onTap,
+        contentPadding: EdgeInsets.symmetric(horizontal: 30),
+        leading: Icon(
+          icon,
+        ),
+        title: Text(
+          name,
+          maxLines: 1,
+        ),
+      );
 }
 
 class AddAnnouncement extends StatefulWidget {
@@ -310,7 +368,7 @@ class _AddAnnouncementState extends State<AddAnnouncement>
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
     if (response.statusCode == 200) {
-      Navigator.pushNamed(context, Routes.info_page,
+      Navigator.pushReplacementNamed(context, Routes.info_page,
           arguments: {'index': widget.index, 'type': 'admin'});
     } else {
       print(response.body);
@@ -333,8 +391,11 @@ class _AddAnnouncementState extends State<AddAnnouncement>
   Widget build(BuildContext context) {
     final Events _event =
         context.watch<EventsRepository>().getEvents(widget.index);
-    return Scaffold(
-      body: SingleChildScrollView(
+    return Container(
+      height: double.infinity,
+      width: double.infinity,
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Column(
@@ -455,59 +516,64 @@ class _RegisteredParticipantsState extends State<RegisteredParticipants>
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      reverse: true,
-      itemBuilder: (context, index) {
-        return Container(
-          margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-          padding: EdgeInsets.all(10.0),
-          width: MediaQuery.of(context).size.width,
-          //height: 120.0,
-          decoration: BoxDecoration(
-            color: Theme.of(context).textTheme.caption.color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              SizedBox(
-                width: 15.0,
-              ),
-              Container(
-                child: Icon(Icons.speaker_phone, size: 23),
-              ),
-              SizedBox(
-                width: 15.0,
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    "Event Start Time",
-                    style:
-                        TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(
-                    height: 10.0,
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.7,
-                    child: Text(
-                      "July 20,2020 ggggggg grdddddddddddd edd essssssssssssssss esrrrrrrrrrrr ershhhhhhhhhhhhh",
-                      style: TextStyle(fontSize: 15.0),
+    return Container(
+      height: double.infinity,
+      width: double.infinity,
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: ListView.builder(
+        reverse: true,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+            padding: EdgeInsets.all(10.0),
+            width: MediaQuery.of(context).size.width,
+            //height: 120.0,
+            decoration: BoxDecoration(
+              color: Theme.of(context).textTheme.caption.color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                SizedBox(
+                  width: 15.0,
+                ),
+                Container(
+                  child: Icon(Icons.speaker_phone, size: 23),
+                ),
+                SizedBox(
+                  width: 15.0,
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      "Event Start Time",
+                      style: TextStyle(
+                          fontSize: 20.0, fontWeight: FontWeight.bold),
                     ),
-                  ),
-                  SizedBox(
-                    height: 15.0,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-      itemCount: 50,
+                    SizedBox(
+                      height: 10.0,
+                    ),
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.7,
+                      child: Text(
+                        "July 20,2020 ggggggg grdddddddddddd edd essssssssssssssss esrrrrrrrrrrr ershhhhhhhhhhhhh",
+                        style: TextStyle(fontSize: 15.0),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 15.0,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+        itemCount: 50,
+      ),
     );
   }
 }

@@ -25,5 +25,5 @@ const blackPrimaryColor = Color(0xFF000000);
 //const blackAccentColor = Color(0xFFFFFFFF);
 const blackAccentColor = Color(0xFF00BDAA);
 const blackBackgroundColor = Color(0xFF000000);
-const blackCardColor = Color(0xFF000000);
+const blackCardColor = Color(0xFF171717);
 const blackDividerColor = Color(0xFF323232);

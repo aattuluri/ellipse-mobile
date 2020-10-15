@@ -27,24 +27,19 @@ class _EditProfileState extends State<EditProfile> {
   final _key = new GlobalKey<FormState>();
   bool isloading = false;
   final _picker = ImagePicker();
-  // String token = "", id = "", email = "", college_id = "";
+
   String designation;
-  final List<String> _designations = ["Student", "Club"];
+  final List<String> _designations = [
+    "Student",
+    "Faculty",
+    "Club",
+    "Institution"
+  ];
   var _nameController = new TextEditingController();
   var _emailController = new TextEditingController();
   var _usernameController = new TextEditingController();
   var _phonenoController = new TextEditingController();
   var _bioController = new TextEditingController();
-
-  /*getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-      college_id = preferences.getString("college_id");
-    });
-  }*/
 
   @override
   // To store the file provided by the image_picker

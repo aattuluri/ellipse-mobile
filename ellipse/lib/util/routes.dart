@@ -12,21 +12,25 @@ class Routes {
   static const initialization = '/initialization';
   static const connection_error = '/connection_error';
   static const start = '/start';
+  static const settings = '/settings';
   static const calendar_view = '/calendar_view';
   static const info_page = '/info_page';
   static const post_event = '/post_event';
   static const signin = '/signin';
   static const my_events = '/my_events';
+  static const certificates = '/certificates';
   static const registered_events = '/registered_events';
   static const edit_event = '/edit_event';
   static const edit_profile = '/edit_profile';
   static const view_profile = '/view_profile';
+  static const pdfView = '/pdfView';
   static const change_password = '/change_password';
   static const about_us = '/about_us';
   static const help_support = '/help_support';
 
   /// Methods that generate all routes
   static Route<dynamic> generateRoute(RouteSettings routeSettings) {
+    Animation<double> animation;
     try {
       final Map<String, dynamic> args = routeSettings.arguments;
 
@@ -48,9 +52,15 @@ class Routes {
           );
         case start:
           final current_tab = args['current_tab'] as int;
+          final load = args['load'] as bool;
           return MaterialPageRoute(
             settings: routeSettings,
-            builder: (_) => StartScreen(current_tab),
+            builder: (_) => StartScreen(current_tab, load),
+          );
+        case settings:
+          return MaterialPageRoute(
+            settings: routeSettings,
+            builder: (_) => Settings(),
           );
         case calendar_view:
           return MaterialPageRoute(
@@ -84,6 +94,11 @@ class Routes {
             settings: routeSettings,
             builder: (_) => MyEvents(),
           );
+        case certificates:
+          return MaterialPageRoute(
+            settings: routeSettings,
+            builder: (_) => Certificates(),
+          );
         case edit_event:
           final index = args['index'] as int;
           return MaterialPageRoute(
@@ -99,6 +114,13 @@ class Routes {
           return MaterialPageRoute(
             settings: routeSettings,
             builder: (_) => ViewProfile(),
+          );
+        case pdfView:
+          final title = args['title'] as String;
+          final link = args['link'] as String;
+          return MaterialPageRoute(
+            settings: routeSettings,
+            builder: (_) => PdfView(title, link),
           );
         case change_password:
           return MaterialPageRoute(

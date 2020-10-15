@@ -9,7 +9,8 @@ import '../../util/index.dart';
 
 class Report extends StatefulWidget {
   final String type, id;
-  const Report(this.type, this.id);
+  final int index;
+  const Report(this.type, this.id, this.index);
   @override
   _ReportState createState() => _ReportState();
 }
@@ -18,7 +19,7 @@ class _ReportState extends State<Report> with TickerProviderStateMixin {
   String title = "", description = "";
   bool visible = false;
 
-  add_report(String event_id, title, description) async {
+  sendReport(String event_id, title, description) async {
     http.Response response = await http.post(
       '${Url.URL}/api/event/report',
       headers: <String, String>{
@@ -34,7 +35,8 @@ class _ReportState extends State<Report> with TickerProviderStateMixin {
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
     if (response.statusCode == 200) {
-      Navigator.of(context).pop(true);
+      Navigator.pushReplacementNamed(context, Routes.info_page,
+          arguments: {'index': widget.index, 'type': 'user'});
     } else {
       print(response.body);
     }
@@ -54,66 +56,67 @@ class _ReportState extends State<Report> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextFormField(
-                  onChanged: (value) {
-                    title = value;
+    return Container(
+      height: double.infinity,
+      width: double.infinity,
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextFormField(
+                onChanged: (value) {
+                  title = value;
+                },
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.caption.color,
+                ),
+                cursorColor: Theme.of(context).textTheme.caption.color,
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(), labelText: "Title"),
+                maxLines: 1,
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              TextFormField(
+                onChanged: (value) {
+                  description = value;
+                },
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.caption.color,
+                ),
+                cursorColor: Theme.of(context).textTheme.caption.color,
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(), labelText: "Description"),
+                maxLines: 7,
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                width: 200,
+                height: 50,
+                margin: EdgeInsets.only(top: 10.0),
+                child: RaisedButton(
+                  child: Text(
+                    'Report',
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.caption.color,
+                        fontSize: 22.0,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () async {
+                    sendReport(widget.id, title, description);
                   },
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.caption.color,
-                  ),
-                  cursorColor: Theme.of(context).textTheme.caption.color,
-                  decoration: InputDecoration(
-                      border: OutlineInputBorder(), labelText: "Title"),
-                  maxLines: 1,
+                  color: Theme.of(context).cardColor,
+                  textColor: Theme.of(context).textTheme.caption.color,
                 ),
-                SizedBox(
-                  height: 20,
-                ),
-                TextFormField(
-                  onChanged: (value) {
-                    description = value;
-                  },
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.caption.color,
-                  ),
-                  cursorColor: Theme.of(context).textTheme.caption.color,
-                  decoration: InputDecoration(
-                      border: OutlineInputBorder(), labelText: "Description"),
-                  maxLines: 7,
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                Container(
-                  width: 200,
-                  height: 50,
-                  margin: EdgeInsets.only(top: 10.0),
-                  child: RaisedButton(
-                    child: Text(
-                      'Report',
-                      style: TextStyle(
-                          color: Theme.of(context).textTheme.caption.color,
-                          fontSize: 22.0,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    onPressed: () async {
-                      add_report(widget.id, title, description);
-                    },
-                    color: Theme.of(context).cardColor,
-                    textColor: Theme.of(context).textTheme.caption.color,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

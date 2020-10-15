@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:row_collection/row_collection.dart';
 
 class NotificationItem extends StatelessWidget {
-  final String title, description, time;
+  final String title, description, time, status;
   final int num;
   final Function onTap;
   const NotificationItem({
@@ -10,6 +10,7 @@ class NotificationItem extends StatelessWidget {
     @required this.description,
     @required this.time,
     @required this.num,
+    @required this.status,
     @required this.onTap,
   });
 
@@ -28,15 +29,6 @@ class NotificationItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: <Widget>[
-                  /*
-                  Text(
-                    time,
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontFamily: 'ProductSans',
-                        color: Tools.multiColors[Random().nextInt(5)]),
-                  ),
-                  */
                   SizedBox(height: 2),
                   Row(children: <Widget>[
                     Expanded(
@@ -85,13 +77,30 @@ class NotificationItem extends StatelessWidget {
                               ),
                             ],
                           ),
-                        )
+                        ),
+                        status == "seen"
+                            ? Icon(
+                                Icons.chevron_right,
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
+                              )
+                            : Chip(
+                                backgroundColor:
+                                    Theme.of(context).textTheme.caption.color,
+                                label: Text(
+                                  "New",
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .scaffoldBackgroundColor),
+                                )),
                       ]),
                     ),
-                    Icon(
+
+                    /*Icon(
                       Icons.chevron_right,
                       color: Theme.of(context).textTheme.caption.color,
                     ),
+    */
                   ]),
                   Column(
                       crossAxisAlignment: CrossAxisAlignment.center,

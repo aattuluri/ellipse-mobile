@@ -8,24 +8,12 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/index.dart';
 import '../../repositories/index.dart';
 import '../../util/index.dart';
 import '../widgets/index.dart';
 
-/*
-class DynamicWidgetItem extends StatefulWidget {
-  final String title, field;
-  final List<dynamic> options;
-  DynamicWidgetItem(this.title, this.field, this.options);
-  @override
-  State createState() => new DynamicWidgetItemState();
-}
-
-class DynamicWidgetItemState extends State<DynamicWidgetItem> {
-  */
 class DynamicWidgetItem extends StatelessWidget {
   final String title, field;
   final List<dynamic> options;
@@ -348,7 +336,6 @@ class RegistrationForm extends StatefulWidget {
 class _RegistrationFormState extends State<RegistrationForm>
     with TickerProviderStateMixin {
   String token = "", id = "", email = "", college_id = "";
-  // List<dynamic> filled_data = [];
   List<Field> form_data = [];
   String title = "", field = "", option = "";
   ScrollController scrollController;
@@ -380,14 +367,14 @@ class _RegistrationFormState extends State<RegistrationForm>
     print('Response body: ${response.body}');
     if (response.statusCode == 200) {
       context.read<EventsRepository>().refreshData();
-      Navigator.pushNamed(context, Routes.info_page,
+      Navigator.pushReplacementNamed(context, Routes.info_page,
           arguments: {'index': widget.index, 'type': 'user'});
     }
   }
 
   @override
   void initState() {
-    getPref();
+    loadPref();
     for (final item in widget.data) {
       try {
         this.setState(() => form_data.add(
@@ -415,16 +402,6 @@ class _RegistrationFormState extends State<RegistrationForm>
     super.initState();
   }
 
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-      college_id = preferences.getString("college_id");
-    });
-  }
-
   @override
   void dispose() {
     super.dispose();
@@ -436,70 +413,68 @@ class _RegistrationFormState extends State<RegistrationForm>
         context.watch<EventsRepository>().getEvents(widget.index);
     final UserDetails _userdetails =
         context.watch<UserDetailsRepository>().getUserDetails(0);
-    return SafeArea(
-      child: Scaffold(
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                child: CardPage1.body(
-                  title: "Fill Form",
-                  body: RowLayout(
-                    children: <Widget>[
-                      Container(
-                        width: double.infinity,
-                        child: ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          //physics: ClampingScrollPhysics(),
-                          itemCount: listDynamic.length,
-                          itemBuilder: (context, index) {
-                            return Column(
-                              children: [
-                                listDynamic[index],
-                                SizedBox(
-                                  width: 10,
-                                ),
-                              ],
-                            );
-                          },
-                          shrinkWrap: true,
-                          scrollDirection: Axis.vertical,
-                        ),
-                      ),
-                      Center(
-                        child: Container(
-                          width: 150,
-                          height: 50,
-                          margin: EdgeInsets.only(top: 10.0),
-                          child: RaisedButton(
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .caption
-                                  .color
-                                  .withOpacity(0.3),
-                              child: Text(
-                                'Register',
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .caption
-                                        .color,
-                                    fontSize: 22.0,
-                                    fontWeight: FontWeight.bold),
+    return Container(
+      height: double.infinity,
+      width: double.infinity,
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+              child: CardPage1.body(
+                title: "Fill Form",
+                body: RowLayout(
+                  children: <Widget>[
+                    Container(
+                      width: double.infinity,
+                      child: ListView.builder(
+                        physics: NeverScrollableScrollPhysics(),
+                        //physics: ClampingScrollPhysics(),
+                        itemCount: listDynamic.length,
+                        itemBuilder: (context, index) {
+                          return Column(
+                            children: [
+                              listDynamic[index],
+                              SizedBox(
+                                width: 10,
                               ),
-                              onPressed: () async {
-                                register(_userdetails, _event);
-                              }),
-                        ),
-                      )
-                    ],
-                  ),
+                            ],
+                          );
+                        },
+                        shrinkWrap: true,
+                        scrollDirection: Axis.vertical,
+                      ),
+                    ),
+                    Center(
+                      child: Container(
+                        width: 150,
+                        height: 50,
+                        margin: EdgeInsets.only(top: 10.0),
+                        child: RaisedButton(
+                            color: Theme.of(context)
+                                .textTheme
+                                .caption
+                                .color
+                                .withOpacity(0.3),
+                            child: Text(
+                              'Register',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).textTheme.caption.color,
+                                  fontSize: 22.0,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            onPressed: () async {
+                              register(_userdetails, _event);
+                            }),
+                      ),
+                    )
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

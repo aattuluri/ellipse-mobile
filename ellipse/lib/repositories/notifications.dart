@@ -40,6 +40,4 @@ class NotificationsRepository extends BaseRepository {
       print("error");
     }
   }
-
-  Notifications getNotifications(int index) => allNotifications[index];
 }

@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -203,13 +204,34 @@ class _PostEventState extends State<PostEvent>
         });
   }
 
+  Future<Uri> createDynamicLink(String id) async {
+    final DynamicLinkParameters parameters = DynamicLinkParameters(
+      // This should match firebase but without the username query param
+      uriPrefix: 'https://ellipseapp.page.link',
+      // This can be whatever you want for the uri, https://yourapp.com/groupinvite?username=$userName
+      link: Uri.parse('https://ellipseapp.page.link/event/?id=$id'),
+      androidParameters: AndroidParameters(
+        packageName: 'com.guna0027.ellipse',
+        minimumVersion: 1,
+      ),
+    );
+    final link = await parameters.buildUrl();
+    final ShortDynamicLink shortenedLink =
+        await DynamicLinkParameters.shortenUrl(
+      link,
+      DynamicLinkParametersOptions(
+          shortDynamicLinkPathLength: ShortDynamicLinkPathLength.unguessable),
+    );
+    return shortenedLink.shortUrl;
+  }
+
   post_event() async {
     if (_imageFile == null ||
         _nameController.text.isNullOrEmpty() ||
         _descriptionController.text.isNullOrEmpty() ||
         event_type.isNullOrEmpty() ||
-        isEmptyList(selected_requirements) ||
-        isEmptyList(selected_themes) ||
+        // isEmptyList(selected_requirements) ||
+        // isEmptyList(selected_themes) ||
         _start_timeController.text.isNullOrEmpty() ||
         _finish_timeController.text.isNullOrEmpty() ||
         _reg_last_dateController.text.isNullOrEmpty() ||
@@ -303,6 +325,7 @@ class _PostEventState extends State<PostEvent>
             setState(() {
               _imageFile = null;
             });
+            createDynamicLink(eventId);
             context.read<EventsRepository>().refreshData();
             Navigator.pushNamed(
               context,
@@ -326,9 +349,8 @@ class _PostEventState extends State<PostEvent>
   @override
   Widget build(BuildContext context) {
     if (_isUploading) {
-      return SafeArea(
-          child: Scaffold(
-              body: Align(
+      return Scaffold(
+          body: Align(
         alignment: Alignment.center,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -344,32 +366,12 @@ class _PostEventState extends State<PostEvent>
             ),
           ],
         ),
-      )));
+      ));
     } else {
-      return SafeArea(
-        child: Scaffold(
+      return Consumer<DataRepository>(
+        builder: (context, model, child) => Scaffold(
           appBar: AppBar(
             iconTheme: Theme.of(context).iconTheme,
-            /*
-                leading: Padding(
-                  padding: const EdgeInsets.only(left: 20),
-                  child: InkWell(
-                    onTap: () {
-                      // Navigator.pushNamed(
-                      //   context,
-                      //  Routes.start,
-                      //  arguments: {'currebt_tab': 2},
-                      //);
-                      Navigator.pop(context);
-                    },
-                    child: Icon(
-                      Icons.arrow_back,
-                      size: 30,
-                      color: Theme.of(context).textTheme.caption.color,
-                    ),
-                  ),
-                ),
-                */
             elevation: 4,
             title: Text(
               "Post Event",
@@ -654,7 +656,7 @@ class _PostEventState extends State<PostEvent>
                                             isExpanded: true,
                                             value: event_type,
                                             isDense: true,
-                                            items: _eventtypes
+                                            items: model.eventTypes
                                                 .map(
                                                     (value) => DropdownMenuItem(
                                                           child: Text(value),
@@ -938,7 +940,8 @@ class _PostEventState extends State<PostEvent>
                                                       Text(
                                                           "Select requirements from below list"),
                                                       Column(
-                                                        children: _requirements
+                                                        children: model
+                                                            .requirements
                                                             .map((item) {
                                                           return InkWell(
                                                             onTap: () {
@@ -998,7 +1001,7 @@ class _PostEventState extends State<PostEvent>
                                 ),
                               ),
                               CardPage1.body(
-                                title: "Themes",
+                                title: "Tags",
                                 body: RowLayout(
                                   children: <Widget>[
                                     Container(
@@ -1081,7 +1084,7 @@ class _PostEventState extends State<PostEvent>
                                           showDialog(
                                             context: context,
                                             builder: (_) => RoundDialog(
-                                              title: "Add Theme",
+                                              title: "Add Tag",
                                               children: <Widget>[
                                                 Padding(
                                                   padding: const EdgeInsets
@@ -1105,8 +1108,7 @@ class _PostEventState extends State<PostEvent>
                                                                 Icons.add,
                                                                 size: 25),
                                                           ),
-                                                          labelText:
-                                                              "Add Theme",
+                                                          labelText: "Add Tag",
                                                           hintText:
                                                               "add your own theme",
                                                         ),
@@ -1118,10 +1120,10 @@ class _PostEventState extends State<PostEvent>
                                                         height: 10,
                                                       ),
                                                       Text(
-                                                          "Select themes from below list"),
+                                                          "Select tags from below list"),
                                                       Column(
-                                                        children:
-                                                            _themes.map((item) {
+                                                        children: model.tags
+                                                            .map((item) {
                                                           return InkWell(
                                                             onTap: () {
                                                               this.setState(() =>
@@ -1486,12 +1488,17 @@ class _PostEventState extends State<PostEvent>
                                           fontSize: 18.0,
                                         ),
                                       ),
-                                      validator: (e) {
-                                        if (e == "") {
-                                          return "Please select start date";
+                                      onChanged: (value) {
+                                        if (value.isBefore(DateTime.parse(
+                                                _reg_last_dateController
+                                                    .text)) ||
+                                            value.isAfter(DateTime.parse(
+                                                _finish_timeController.text))) {
+                                          _start_timeController.clear();
+                                          alertDialog(context, "Start Date",
+                                              "Start Date should be after reg end date and before finish date ");
                                         }
                                       },
-                                      onSaved: (e) => e,
                                       controller: _start_timeController,
                                       format: format,
                                       onShowPicker:
@@ -1540,12 +1547,17 @@ class _PostEventState extends State<PostEvent>
                                           fontSize: 18.0,
                                         ),
                                       ),
-                                      validator: (e) {
-                                        if (e == "") {
-                                          return "Please select finish time";
+                                      onChanged: (value) {
+                                        if (value.isBefore(DateTime.parse(
+                                                _start_timeController.text)) ||
+                                            value.isBefore(DateTime.parse(
+                                                _reg_last_dateController
+                                                    .text))) {
+                                          _finish_timeController.clear();
+                                          alertDialog(context, "End Date",
+                                              "End Date should be after start date and reg end date");
                                         }
                                       },
-                                      onSaved: (e) => e,
                                       controller: _finish_timeController,
                                       format: format,
                                       onShowPicker:
@@ -1594,12 +1606,16 @@ class _PostEventState extends State<PostEvent>
                                           fontSize: 18.0,
                                         ),
                                       ),
-                                      validator: (e) {
-                                        if (e == "") {
-                                          return "Please select registration last date";
+                                      onChanged: (value) {
+                                        if (value.isAfter(DateTime.parse(
+                                                _start_timeController.text)) ||
+                                            value.isAfter(DateTime.parse(
+                                                _finish_timeController.text))) {
+                                          _reg_last_dateController.clear();
+                                          alertDialog(context, "Reg End Date",
+                                              "Reg End Date should be before start time and end time");
                                         }
                                       },
-                                      onSaved: (e) => e,
                                       controller: _reg_last_dateController,
                                       format: format,
                                       onShowPicker:
@@ -1616,6 +1632,7 @@ class _PostEventState extends State<PostEvent>
                                             initialTime: TimeOfDay.fromDateTime(
                                                 currentValue ?? DateTime.now()),
                                           );
+
                                           return DateTimeField.combine(
                                                   date, time)
                                               .toUtc();

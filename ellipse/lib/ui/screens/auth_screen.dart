@@ -433,17 +433,14 @@ class _SigninState extends State<Signin> {
                                     ),
                                   ),
                                   onPressed: () async {
+                                    SystemChannels.textInput
+                                        .invokeMethod('TextInput.hide');
                                     bool emailValid = RegExp(
                                             r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
                                         .hasMatch(email);
                                     if (!emailValid) {
-                                      Fluttertoast.showToast(
-                                          msg: "Enter Valid Email",
-                                          toastLength: Toast.LENGTH_SHORT,
-                                          gravity: ToastGravity.TOP,
-                                          textColor: Colors.white,
-                                          timeInSecForIosWeb: 2,
-                                          backgroundColor: Colors.black);
+                                      flutterToast(context, "Enter Valid Email",
+                                          2, ToastGravity.CENTER);
                                     } else {
                                       setState(() {
                                         isLoading = true;
@@ -567,6 +564,8 @@ class _SignupState extends State<Signup> {
     };
     http.Response response =
         await http.post("${Url.URL}/api/users/signup", body: data);
+    print(response.statusCode);
+    print(response.body);
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
       if (jsonResponse != null) {
@@ -580,12 +579,17 @@ class _SignupState extends State<Signup> {
           sharedPreferences.setBool('loggedIn', true);
         });
         Navigator.pushNamed(context, Routes.initialization);
+      } else if (response.statusCode == 401) {
+        setState(() {
+          isLoading = false;
+        });
+
+        flutterToast(context, 'Email Already Exists', 2, ToastGravity.CENTER);
       }
     } else {
       setState(() {
         isLoading = false;
       });
-      print(response.body);
     }
   }
 
@@ -1007,6 +1011,8 @@ class _SignupState extends State<Signup> {
                                       ),
                                     ),
                                     onPressed: () async {
+                                      SystemChannels.textInput
+                                          .invokeMethod('TextInput.hide');
                                       if (!email.validEmail()) {
                                         Fluttertoast.showToast(
                                             msg: "Enter Valid Email",

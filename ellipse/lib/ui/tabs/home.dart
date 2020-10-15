@@ -20,8 +20,6 @@ const TextStyle dropDownTextStyle =
 const TextStyle dropDownMenuStyle =
     TextStyle(color: Colors.black, fontSize: 16.0);
 const lightGrey = Color(0xFFF3F3F3);
-Widget get _loadingIndicator =>
-    Center(child: const CircularProgressIndicator());
 
 class IconTab {
   IconTab({
@@ -42,10 +40,10 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   final List tabs = [
     IconTab(name: "All", icon: Icons.all_inclusive),
     IconTab(name: "Registered", icon: Icons.beenhere),
-    IconTab(name: "Posted", icon: Icons.star),
+    // IconTab(name: "Posted", icon: Icons.star),
     IconTab(name: "Past", icon: Icons.access_time),
   ];
-  final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   Widget view;
   TabController tab_controller;
   GlobalKey<SliderMenuContainerState> _key =
@@ -59,7 +57,6 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   bool isFilter = false;
   bool tab_all = true;
   DateTime d;
-  final TextEditingController _searchQuery = new TextEditingController();
   List<dynamic> registered = [];
   loadRegEvents() async {
     Map<String, String> headers = {
@@ -92,7 +89,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   void initState() {
     loadPref();
     tab_controller = new TabController(
-      length: 4,
+      length: 3,
       vsync: this,
     );
     SystemChannels.textInput.invokeMethod('TextInput.hide');
@@ -111,40 +108,31 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  Widget _buildTitle(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 5),
-      child: new Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          SizedBox(width: 5),
-          Text(
-            "Ellipse",
-            style: TextStyle(
-                //color: Theme.of(context)
-                //     .textTheme
-                //  .caption
-                //  .color
-                //.withOpacity(0.8),
-                color: Theme.of(context).accentColor,
-                fontSize: 35,
-                fontFamily: 'Gugi',
-                fontWeight: FontWeight.w800),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer<EventsRepository>(
       builder: (context, model, child) => Scaffold(
         appBar: new AppBar(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          title: Text(
+            "Ellipse",
+            style: TextStyle(
+                color: Theme.of(context).accentColor,
+                fontSize: 35,
+                fontFamily: 'Gugi',
+                fontWeight: FontWeight.w800),
+          ),
           automaticallyImplyLeading: false,
-          title: _buildTitle(context),
+          /*leading: IconButton(
+              icon: Icon(
+                Icons.menu,
+                color: Theme.of(context).textTheme.caption.color,
+                size: 27,
+              ),
+              onPressed: () {
+                _scaffoldKey.currentState.openDrawer();
+              }),
+          */
           actions: [
             Row(
               children: [
@@ -235,21 +223,24 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
             }).toList(),
           ),
         ),
-        key: scaffoldKey,
-        floatingActionButton: isFilter
-            ? Container()
-            : Padding(
-                padding: const EdgeInsets.only(right: 25, bottom: 25),
-                child: FloatingActionButton(
-                  backgroundColor:
-                      Theme.of(context).accentColor.withOpacity(0.8),
-                  onPressed: () {
-                    Navigator.pushNamed(context, Routes.post_event);
-                  },
-                  child: new Icon(Icons.add_a_photo,
-                      size: 40, color: Colors.black),
-                ),
-              ),
+        key: _scaffoldKey,
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(right: 10, bottom: 5),
+          child: AnimatedOpacity(
+            opacity: isFilter ? 0.0 : 1.0,
+            duration: Duration(seconds: 1),
+            child: FloatingActionButton(
+              backgroundColor: Theme.of(context).accentColor.withOpacity(0.8),
+              onPressed: isFilter
+                  ? () {}
+                  : () {
+                      Navigator.pushNamed(context, Routes.post_event);
+                    },
+              child: new Icon(Icons.add, size: 40, color: Colors.black),
+            ),
+          ),
+        ),
+        // drawer: MenuDrawer(),
         body: model.isLoading || model.loadingFailed
             ? Container()
             : TabBarView(
@@ -883,7 +874,9 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                       },
                                       body: model.isLoading ||
                                               model.loadingFailed
-                                          ? _loadingIndicator
+                                          ? Center(
+                                              child:
+                                                  CircularProgressIndicator())
                                           : ListView(
                                               physics: ClampingScrollPhysics(),
                                               scrollDirection: Axis.vertical,
@@ -893,7 +886,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                                     i++)
                                                   if (isFilter &&
                                                       model.allEvents[i]
-                                                          .start_time
+                                                          .finish_time
                                                           .isAfter(DateTime
                                                               .now())) ...[
                                                     if (isChecked
@@ -911,7 +904,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                                                 endDate.month,
                                                                 endDate.day +
                                                                     1))
-                                                        : model.allEvents[i].start_time.isAfter(DateTime.now()) &&
+                                                        : model.allEvents[i].finish_time.isAfter(DateTime.now()) &&
                                                             model.allEvents[i]
                                                                     .start_time.day ==
                                                                 startDate.day &&
@@ -999,34 +992,9 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                                   /////////no filter
                                                   else if (!isFilter &&
                                                       model.allEvents[i]
-                                                          .start_time
+                                                          .finish_time
                                                           .isAfter(DateTime
                                                               .now())) ...[
-                                                    /* if (isSearching && tab_all) ...[
-                                                if (model.allEvents[i].name
-                                                        .toLowerCase()
-                                                        .contains(_searchText
-                                                            .toLowerCase()) &&
-                                                    model.allEvents[i]
-                                                        .start_time
-                                                        .isAfter(DateTime
-                                                            .now())) ...[
-                                                  EventSearchItem(
-                                                      model.allEvents[i]
-                                                          .imageUrl,
-                                                      model.allEvents[i].name,
-                                                      () {
-                                                    Navigator.pushNamed(
-                                                        context,
-                                                        Routes.info_page,
-                                                        arguments: {
-                                                          'index': i,
-                                                          'type': 'user'
-                                                        });
-                                                  })
-                                                ]
-                                              ] else
-                                                */
                                                     EventTileGeneral(
                                                         true, i, "info_page")
 
@@ -1063,7 +1031,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                     ],
                   ),
                   ///////////////////////////////Tab3//////////////////////////////////////
-                  ListView(
+                  /*ListView(
                     physics: ClampingScrollPhysics(),
                     scrollDirection: Axis.vertical,
                     shrinkWrap: true,
@@ -1075,7 +1043,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                         ],
                     ],
                   ),
-
+*/
                   ///////////////////////////////Tab4//////////////////////////////////////
                   ListView(
                     physics: ClampingScrollPhysics(),
@@ -1087,7 +1055,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                   ? 6
                                   : model.allEvents.length);
                           i++)
-                        if (model.allEvents[i].start_time
+                        if (model.allEvents[i].finish_time
                             .isBefore(DateTime.now())) ...[
                           EventTileGeneral(true, i, "null")
                         ]

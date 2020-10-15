@@ -1,6 +1,8 @@
 /*
 keytool -genkey -v -keystore c:\Users\gunas\key.jks -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias key
+keytool -list -v -keystore debug.keystore -alias androiddebugkey
 
+_handleDeepLink | deeplink: https://www.compound.com/post?title=This+is+my+first+post
 
 #key.properties
 storePassword=ellipse@
@@ -63,5 +65,5 @@ For iOS, to build and release there is no configuration. Just follow the instruc
 
 
 
-https://us-central1-ellipse-e2428.cloudfunctions.net/sendNotification?token=et2_2bh9SFmaPEyuRRTCqA:APA91bEtttMGcLeiFs7nJf2fA9mrE6YQNIiddXKgLMcRtmWxKuRtH3RggdlUL0q2mMIwTwT314D5V4a7KkcovWTy3c9lOzgei9RGgH71IkgjNYadROMmLwfkvw57pk23eqldM5kUtLQV&title=sfdef&message=segfr
+https://us-central1-ellipse-e2428.cloudfunctions.net/sendNotification?token=dMdgIai6QdORMuRgvxCN-2:APA91bHDeXoFeEZHivVttFzbBVbyj2jOJVbMx2Y2YJC4Qa94r8b4RoH4EO0LeNku2MXFgH_vM-RM6y0zL0JxdvVIALWp-qdzo68Ix7Wy5ERJXdzFC44lOwRFnqZAkGXoyVRUmM7VrMc3&title=sfdef&message=segfr
 */
