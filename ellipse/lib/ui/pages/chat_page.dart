@@ -4,6 +4,7 @@ import 'dart:core';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:Ellipse/ui/widgets/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -292,31 +293,7 @@ class _ChatPageState extends State<ChatPage> {
     final UserDetails _userdetails =
         context.watch<UserDetailsRepository>().getUserDetails(0);
     return isLoading
-        ? Container(
-            height: double.infinity,
-            width: double.infinity,
-            color: Theme.of(context).scaffoldBackgroundColor,
-            child: Align(
-              alignment: Alignment.center,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(child: CircularProgressIndicator()),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text(
-                    "Loading Messages....",
-                    style: TextStyle(
-                        color: Theme.of(context).textTheme.caption.color,
-                        fontSize: 30.0,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-          )
+        ? LoaderCircular(0.4)
         : Container(
             height: double.infinity,
             width: double.infinity,

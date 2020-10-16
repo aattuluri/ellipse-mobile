@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:Ellipse/ui/widgets/loading.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -165,7 +166,9 @@ class _StartScreenState extends State<StartScreen> {
                       model4.isLoading ||
                       model4.loadingFailed ||
                       ischecking
-                  ? Scaffold(
+                  ? LoaderCircular(0.5)
+                  // Loading("Loading")
+                  /*Scaffold(
                       body: Align(
                         alignment: Alignment.center,
                         child: Column(
@@ -198,7 +201,7 @@ class _StartScreenState extends State<StartScreen> {
                           ],
                         ),
                       ),
-                    )
+                    )*/
                   :
                   ////////////////////////////
                   Scaffold(

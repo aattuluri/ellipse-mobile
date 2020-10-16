@@ -84,9 +84,7 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final Events _event =
-        context.watch<EventsRepository>().getEvents(widget.index);
-    final UserDetails _userdetails =
-        context.watch<UserDetailsRepository>().getUserDetails(0);
+        context.watch<EventsRepository>().getEvent(widget.index);
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -353,7 +351,7 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                       SlideMenuItem1(LineIcons.certificate, "Certificates",
                           "Distribute Participation\nCertificates ", () {
                         setState(() {
-                          view = CertificatesAdmin(_event.id);
+                          view = CertificatesAdmin(_event.id.toString());
                           default_view = false;
                         });
                         _key.currentState.closeDrawer();

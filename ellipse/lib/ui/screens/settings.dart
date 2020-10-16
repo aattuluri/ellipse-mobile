@@ -13,9 +13,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../providers/index.dart';
 import '../../repositories/index.dart';
-import '../../util/constants.dart' as Constants;
 import '../../util/index.dart';
 import '../widgets/index.dart';
+import 'index.dart';
 
 class Settings extends StatefulWidget {
   const Settings({Key key}) : super(key: key);
@@ -37,9 +37,6 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
     };
     var response =
         await http.post("${Url.URL}/api/users/logout", headers: headers);
-    setState(() {
-      preferences.setBool(Constants.CHECKED, false);
-    });
   }
 
   void _showDialoglogout() {
@@ -60,12 +57,7 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
             logout();
             SharedPreferences sharedPreferences =
                 await SharedPreferences.getInstance();
-            setState(() {
-              sharedPreferences.setString("token", "");
-              sharedPreferences.setString("id", "");
-              sharedPreferences.setString("email", "");
-              sharedPreferences.setBool(Constants.LOGGED_IN, false);
-            });
+            resetPref();
             Navigator.pushNamed(context, Routes.signin);
           },
         ),
@@ -256,7 +248,14 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
               SizedBox(
                 height: 5,
               ),
-
+              ListCell.icon(
+                  icon: Icons.share,
+                  title: "Test",
+                  subtitle: "Test",
+                  onTap: () async {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => TestScreen()));
+                  }),
               /*ListCell.icon(
                   icon: Icons.share,
                   title: "Test",

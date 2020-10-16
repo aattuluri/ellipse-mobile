@@ -36,7 +36,7 @@ class EventTileGeneralState extends State<EventTileGeneral>
   @override
   Widget build(BuildContext context) {
     final Events _event =
-        context.watch<EventsRepository>().getEvents(widget.index);
+        context.watch<EventsRepository>().getEvent(widget.index);
     return Visibility(
       visible: widget.visible,
       child: Padding(
@@ -451,7 +451,7 @@ class EventTileCalendarState extends State<EventTileCalendar> {
   @override
   Widget build(BuildContext context) {
     final Events _event =
-        context.watch<EventsRepository>().getEvents(widget.index);
+        context.watch<EventsRepository>().getEvent(widget.index);
     return Row(
       children: [
         Container(

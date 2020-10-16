@@ -19,17 +19,7 @@ class ChangePassword extends StatefulWidget {
 class _ChangePasswordState extends State<ChangePassword>
     with TickerProviderStateMixin {
   bool isloading = false;
-  // String token = "", id = "", email = "";
   String opassword = "", npassword = "";
-  /*
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-    });
-  }*/
 
   forgot_password() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();

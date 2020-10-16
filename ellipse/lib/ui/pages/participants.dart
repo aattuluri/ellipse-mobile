@@ -56,35 +56,14 @@ class _ParticipantsState extends State<Participants>
   @override
   Widget build(BuildContext context) {
     return isloading
-        ? Container(
-            height: double.infinity,
-            width: double.infinity,
-            color: Theme.of(context).scaffoldBackgroundColor,
-            child: Align(
-              alignment: Alignment.center,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(child: CircularProgressIndicator()),
-                  Text(
-                    "Fetching Details....",
-                    style: TextStyle(
-                        color: Theme.of(context).textTheme.caption.color,
-                        fontSize: 30.0,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-          )
+        ? LoaderCircular(0.4)
         : participants.isEmpty
             ? Container(
                 height: double.infinity,
                 width: double.infinity,
                 color: Theme.of(context).scaffoldBackgroundColor,
-                child: EmptyData('No Participants',
-                    "No participants registered", LineIcons.users),
+                child: EmptyData(
+                    'No Participants\nRegistered', "", LineIcons.users),
               )
             : Container(
                 height: double.infinity,

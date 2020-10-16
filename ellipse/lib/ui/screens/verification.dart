@@ -11,7 +11,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../util/constants.dart' as Constants;
 import '../../util/index.dart';
 import '../screens/index.dart';
 
@@ -293,12 +292,7 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
               onPressed: () async {
                 SharedPreferences preferences =
                     await SharedPreferences.getInstance();
-                setState(() {
-                  preferences.setString("token", "");
-                  preferences.setString("id", "");
-                  preferences.setString("email", "");
-                  preferences.setBool(Constants.LOGGED_IN, false);
-                });
+                resetPref();
                 Navigator.pushNamed(context, Routes.signin);
               },
             ),
@@ -687,7 +681,11 @@ class _CheckState extends State<Check> {
     "Institution"
   ];
   next() async {
-    String gender = male ? "Male" : female ? "Female" : null;
+    String gender = male
+        ? "Male"
+        : female
+            ? "Female"
+            : null;
     if (_imageFile == null ||
         prefId.isNullOrEmpty() ||
         _college.isNullOrEmpty() ||

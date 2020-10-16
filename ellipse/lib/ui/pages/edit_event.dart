@@ -270,7 +270,7 @@ class _EditEventState extends State<EditEvent> {
   @override
   Widget build(BuildContext context) {
     final Events _event =
-        context.watch<EventsRepository>().getEvents(widget.index);
+        context.watch<EventsRepository>().getEvent(widget.index);
     _nameController = TextEditingController(text: _event.name);
     _descriptionController =
         new TextEditingController(text: _event.description);
@@ -295,28 +295,7 @@ class _EditEventState extends State<EditEvent> {
     this.setState(() => selected_themes = _event.tags);
 
     return _isUploading
-        ? Container(
-            height: double.infinity,
-            width: double.infinity,
-            color: Theme.of(context).scaffoldBackgroundColor,
-            child: Align(
-              alignment: Alignment.center,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(child: CircularProgressIndicator()),
-                  Text(
-                    "Updating Event....",
-                    style: TextStyle(
-                        color: Theme.of(context).textTheme.caption.color,
-                        fontSize: 30.0,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-          )
+        ? LoaderCircular(0.4)
         : Consumer<DataRepository>(
             builder: (context, model, child) => Container(
               height: double.infinity,
@@ -1240,7 +1219,8 @@ class _EditEventState extends State<EditEvent> {
                                       initialTime: TimeOfDay.fromDateTime(
                                           currentValue ?? DateTime.now()),
                                     );
-                                    return DateTimeField.combine(date, time);
+                                    return DateTimeField.combine(date, time)
+                                        .toUtc();
                                   } else {
                                     return currentValue;
                                   }

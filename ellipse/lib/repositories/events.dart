@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 
 import '../models/index.dart';
 import '../util/index.dart';
@@ -12,14 +11,7 @@ import 'index.dart';
 
 class EventsRepository extends BaseRepository {
   List<Events> allEvents;
-  List<Events> myEvents;
-  List<dynamic> registered = [];
-  Future<File> _getLocalFile(String filename) async {
-    final dir = await getApplicationDocumentsDirectory();
-    print('${dir.path}');
-    return File('${dir.path}/$filename');
-  }
-
+  List<Registrations> allRegistrations;
   @override
   Future<void> loadData() async {
     loadPref();
@@ -33,28 +25,17 @@ class EventsRepository extends BaseRepository {
           HttpHeaders.contentTypeHeader: "application/json"
         },
       );
-      /*
-      saveItems(response.body, "events.json");
-
-      final file = await _getLocalFile('events.json');
-      String events = await file.readAsString();
-      */
       allEvents = (json.decode(response.body) as List)
           .map((data) => Events.fromJson(data))
           .toList();
-      /////////////////////////////////////////////////////////////////
       Comparator<Events> sortByStartTime =
           (a, b) => a.start_time.compareTo(b.start_time);
       allEvents.sort(sortByStartTime);
-      //////////////////////////////////////////////////////////////////
       print(allEvents);
-      finishLoading();
       print("Events loaded");
-    } catch (_) {
-      receivedError();
-    }
-    /////Get Registered Events/////
-    try {
+
+      //////////////////////////////////////////////////////////////////
+
       print("Started Loading Registered events");
       Map<String, String> headers = {
         HttpHeaders.authorizationHeader: "Bearer $prefToken",
@@ -65,27 +46,27 @@ class EventsRepository extends BaseRepository {
           headers: headers);
       print('Response status: ${response1.statusCode}');
       print('Response body: ${response1.body}');
-      if (response1.statusCode == 200) {
-        registered = json.decode(response1.body);
-        print("Registered Events loaded");
-      } else {
-        throw Exception('Failed to load data');
-      }
-      if (registered.isNotEmpty) {
+      allRegistrations = (json.decode(response1.body) as List)
+          .map((data1) => Registrations.fromJson(data1))
+          .toList();
+      print(allRegistrations);
+      print("Registrations loaded");
+      if (allRegistrations.isNotEmpty) {
         for (var i = 0; i < allEvents.length; i++) {
-          for (var j = 0; j < registered.length; j++) {
-            if (registered[j]['event_id'] == allEvents[i].id) {
+          for (var j = 0; j < allRegistrations.length; j++) {
+            if (allRegistrations[j].event_id == allEvents[i].id) {
               allEvents[i].registered = true;
             }
           }
         }
       }
+      finishLoading();
     } catch (_) {
       receivedError();
     }
   }
 
-  Events getEvents(int index) {
+  Events getEvent(int index) {
     return allEvents[index];
   }
 

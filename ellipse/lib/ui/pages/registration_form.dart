@@ -335,7 +335,6 @@ class RegistrationForm extends StatefulWidget {
 
 class _RegistrationFormState extends State<RegistrationForm>
     with TickerProviderStateMixin {
-  String token = "", id = "", email = "", college_id = "";
   List<Field> form_data = [];
   String title = "", field = "", option = "";
   ScrollController scrollController;
@@ -359,7 +358,7 @@ class _RegistrationFormState extends State<RegistrationForm>
       '${Url.URL}/api/event/register?id=${event.id}',
       headers: <String, String>{
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token'
+        'Authorization': 'Bearer $prefToken'
       },
       body: jsonEncode(<String, Object>{'data': data}),
     );
@@ -410,7 +409,7 @@ class _RegistrationFormState extends State<RegistrationForm>
   @override
   Widget build(BuildContext context) {
     final Events _event =
-        context.watch<EventsRepository>().getEvents(widget.index);
+        context.watch<EventsRepository>().getEvent(widget.index);
     final UserDetails _userdetails =
         context.watch<UserDetailsRepository>().getUserDetails(0);
     return Container(

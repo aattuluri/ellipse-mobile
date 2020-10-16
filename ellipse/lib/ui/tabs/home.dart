@@ -1,10 +1,6 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
@@ -57,26 +53,6 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   bool isFilter = false;
   bool tab_all = true;
   DateTime d;
-  List<dynamic> registered = [];
-  loadRegEvents() async {
-    Map<String, String> headers = {
-      HttpHeaders.authorizationHeader: "Bearer $prefToken",
-      HttpHeaders.contentTypeHeader: "application/json"
-    };
-    var response = await http.get(
-        "${Url.URL}/api/user/registeredEvents?id=$prefId",
-        headers: headers);
-    print('Response status: ${response.statusCode}');
-    //print('Response body: ${response.body}');
-    if (response.statusCode == 200) {
-      setState(() {
-        registered = json.decode(response.body);
-      });
-    } else {
-      throw Exception('Failed to load data');
-    }
-  }
-
   List<String> filters_list = [];
   bool mycollege = true;
   bool allcolleges = false;
@@ -93,7 +69,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
       vsync: this,
     );
     SystemChannels.textInput.invokeMethod('TextInput.hide');
-    loadRegEvents();
+
     animationController = AnimationController(
         duration: const Duration(milliseconds: 1000), vsync: this);
     setState(() {
@@ -1014,22 +990,29 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                   ),
                   ///////////////////////////////Tab2//////////////////////////////////////
 
-                  ListView(
-                    physics: ClampingScrollPhysics(),
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    children: <Widget>[
-                      for (var i = 0; i < model.allEvents.length; i++) ...[
-                        for (var j = 0; j < registered.length; j++) ...[
-                          if (registered[j]['user_id'] == prefId &&
-                              registered[j]['event_id'] ==
-                                  model.allEvents[i].id) ...[
-                            EventTileGeneral(true, i, "info_page")
-                          ]
-                        ]
-                      ]
-                    ],
-                  ),
+                  model.allRegistrations.isEmpty
+                      ? EmptyData("No Registered\nEvents", "", Icons.event_busy)
+                      : ListView(
+                          physics: ClampingScrollPhysics(),
+                          scrollDirection: Axis.vertical,
+                          shrinkWrap: true,
+                          children: <Widget>[
+                            for (var i = 0;
+                                i < model.allEvents.length;
+                                i++) ...[
+                              for (var j = 0;
+                                  j < model.allRegistrations.length;
+                                  j++) ...[
+                                if (model.allRegistrations[j].user_id ==
+                                        prefId &&
+                                    model.allRegistrations[j].event_id ==
+                                        model.allEvents[i].id) ...[
+                                  EventTileGeneral(true, i, "info_page")
+                                ]
+                              ]
+                            ]
+                          ],
+                        ),
                   ///////////////////////////////Tab3//////////////////////////////////////
                   /*ListView(
                     physics: ClampingScrollPhysics(),

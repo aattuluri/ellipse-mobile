@@ -32,7 +32,7 @@ class _TimelineState extends State<Timeline> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final Events _event =
-        context.watch<EventsRepository>().getEvents(widget.index);
+        context.watch<EventsRepository>().getEvent(widget.index);
     return Center(
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 10),
@@ -315,11 +315,7 @@ class _AnnouncementsState extends State<Announcements>
           } else if (snapshot.hasError) {
             return Text("${snapshot.error}");
           }
-          return Center(
-              child: Container(
-                  width: MediaQuery.of(context).size.width * 0.2,
-                  height: MediaQuery.of(context).size.width * 0.2,
-                  child: CircularProgressIndicator()));
+          return LoaderCircular(0.4);
         },
       ),
     );
@@ -390,7 +386,7 @@ class _AddAnnouncementState extends State<AddAnnouncement>
   @override
   Widget build(BuildContext context) {
     final Events _event =
-        context.watch<EventsRepository>().getEvents(widget.index);
+        context.watch<EventsRepository>().getEvent(widget.index);
     return Container(
       height: double.infinity,
       width: double.infinity,

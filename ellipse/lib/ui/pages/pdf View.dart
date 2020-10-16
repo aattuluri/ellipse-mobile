@@ -1,3 +1,4 @@
+import 'package:Ellipse/ui/widgets/loading.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf_flutter/pdf_flutter.dart';
 
@@ -35,7 +36,7 @@ class _PdfViewState extends State<PdfView> {
       ),
       body: PDF.network(
         '${widget.link}',
-        placeHolder: Image.asset('assets/icons/loading.gif'),
+        placeHolder: Loading("Loading"),
         height: double.infinity,
         width: double.infinity,
       ),

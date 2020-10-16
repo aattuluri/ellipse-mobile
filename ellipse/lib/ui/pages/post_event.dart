@@ -349,24 +349,7 @@ class _PostEventState extends State<PostEvent>
   @override
   Widget build(BuildContext context) {
     if (_isUploading) {
-      return Scaffold(
-          body: Align(
-        alignment: Alignment.center,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Center(child: CircularProgressIndicator()),
-            Text(
-              "Uploading Event....",
-              style: TextStyle(
-                  color: Theme.of(context).textTheme.caption.color,
-                  fontSize: 30.0,
-                  fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ));
+      return LoaderCircular(0.4);
     } else {
       return Consumer<DataRepository>(
         builder: (context, model, child) => Scaffold(

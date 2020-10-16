@@ -73,6 +73,8 @@ class Events {
         o_allowed: json['o_allowed'],
         reg_fields: json['reg_fields'],
         reg_link: json['reg_link'],
+        status: json['status'],
+        share_link: json['share_link'],
         start_time: DateTime.parse(s_time).toLocal(),
         finish_time: DateTime.parse(f_time).toLocal(),
         reg_last_date: DateTime.parse(r_l_time).toLocal(),

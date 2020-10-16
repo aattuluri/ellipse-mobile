@@ -82,7 +82,7 @@ class Routes {
         case signin:
           return MaterialPageRoute(
             settings: routeSettings,
-            builder: (_) => Signin(),
+            builder: (_) => SignIn(),
           );
         case registered_events:
           return MaterialPageRoute(

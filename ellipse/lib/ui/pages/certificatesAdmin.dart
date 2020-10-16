@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:Ellipse/ui/widgets/loading.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -73,6 +74,38 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
     });
   }
 
+  publish() async {
+    String event_id = widget.event_id.trim().toString();
+    if (selectedParticipants.isEmpty) {
+      alertDialog(context, "Publish", "Participants not selected");
+    } else {
+      print("Eventid");
+      print("$event_id");
+      setState(() {
+        isloading = true;
+      });
+      http.Response response = await http.post(
+        '${Url.URL}/api/event/generate_certificates',
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $prefToken'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'eventId': '$event_id',
+          'participants': selectedParticipants,
+        }),
+      );
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+      if (response.statusCode == 200) {
+        this.setState(() => participants.clear());
+        this.setState(() => pending.clear());
+        this.setState(() => published.clear());
+        loadRegisteredEvents();
+      }
+    }
+  }
+
   @override
   void initState() {
     loadPref();
@@ -87,35 +120,14 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
   @override
   Widget build(BuildContext context) {
     return isloading
-        ? Container(
-            height: double.infinity,
-            width: double.infinity,
-            color: Theme.of(context).scaffoldBackgroundColor,
-            child: Align(
-              alignment: Alignment.center,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(child: CircularProgressIndicator()),
-                  Text(
-                    "Fetching Details....",
-                    style: TextStyle(
-                        color: Theme.of(context).textTheme.caption.color,
-                        fontSize: 30.0,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-          )
+        ? LoaderCircular(0.4)
         : participants.isEmpty
             ? Container(
                 height: double.infinity,
                 width: double.infinity,
                 color: Theme.of(context).scaffoldBackgroundColor,
-                child: EmptyData('No Participants',
-                    "No participants registered", LineIcons.users),
+                child: EmptyData(
+                    'No Participants\nRegistered', "", LineIcons.users),
               )
             : Scaffold(
                 appBar: AppBar(
@@ -193,7 +205,7 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                             Map<String, dynamic> data =
                                                 pending[i]['data'];
                                             String email =
-                                                data["Email"].toString();
+                                                data["Email"].toString().trim();
                                             String id = pending[i]['user_id'];
                                             this.setState(() =>
                                                 selectedParticipants
@@ -239,11 +251,7 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                         setState(() {
                                           selectAll = false;
                                         });
-                                        this.setState(
-                                            () => participants.clear());
-                                        this.setState(() => pending.clear());
-                                        this.setState(() => published.clear());
-                                        loadRegisteredEvents();
+                                        publish();
                                       },
                                       textColor: Colors.black,
                                       color: Theme.of(context).accentColor,
@@ -276,7 +284,7 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                         onTap: () {
                                           String id = pending[index]['user_id'];
                                           String email =
-                                              data["Email"].toString();
+                                              data["Email"].toString().trim();
                                           if (selectedParticipants
                                               .contains(email)) {
                                             this.setState(() =>

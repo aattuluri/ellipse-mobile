@@ -15,6 +15,7 @@ import 'package:row_collection/row_collection.dart';
 import '../../models/index.dart';
 import '../../repositories/index.dart';
 import '../../util/index.dart';
+import '../widgets/index.dart';
 
 class EditProfile extends StatefulWidget {
   const EditProfile({Key key}) : super(key: key);
@@ -24,6 +25,7 @@ class EditProfile extends StatefulWidget {
 }
 
 class _EditProfileState extends State<EditProfile> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final _key = new GlobalKey<FormState>();
   bool isloading = false;
   final _picker = ImagePicker();
@@ -200,6 +202,12 @@ class _EditProfileState extends State<EditProfile> {
           });
           context.read<UserDetailsRepository>().refreshData();
           Navigator.of(context).pop(true);
+          /*
+          _scaffoldKey.currentState.showSnackBar(SnackBar(
+            content: Text("Profile Updated"),
+            duration: Duration(seconds: 2),
+          ));
+          */
         }
       } else {
         setState(() {
@@ -229,326 +237,297 @@ class _EditProfileState extends State<EditProfile> {
     _bioController = new TextEditingController(text: _userdetails.bio);
 
     return _isUploading
-        ? SafeArea(
-            child: Scaffold(
-                body: Align(
-            alignment: Alignment.center,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Center(child: CircularProgressIndicator()),
-                Text(
-                  "Updating profile....",
-                  style: TextStyle(
-                      color: Theme.of(context).textTheme.caption.color,
-                      fontSize: 30.0,
-                      fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          )))
-        : SafeArea(
-            child: Scaffold(
-              appBar: AppBar(
-                iconTheme: Theme.of(context).iconTheme,
-                elevation: 4,
-                title: Text(
-                  "Edit Profile",
-                  style: TextStyle(
-                      color: Theme.of(context).textTheme.caption.color,
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold),
-                ),
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                actions: [],
-                centerTitle: true,
+        ? LoaderCircular(0.4)
+        : Scaffold(
+            appBar: AppBar(
+              iconTheme: Theme.of(context).iconTheme,
+              elevation: 4,
+              title: Text(
+                "Edit Profile",
+                style: TextStyle(
+                    color: Theme.of(context).textTheme.caption.color,
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold),
               ),
-              body: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: RowLayout(children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10, bottom: 5),
-                          child: Row(
-                            children: <Widget>[
-                              SizedBox(width: 10.0),
-                              _imageFile != null
-                                  ? Container(
-                                      width: 80.0,
-                                      height: 80.0,
-                                      child: CircleAvatar(
-                                        radius: 40,
-                                        backgroundColor: Colors.grey,
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(540),
-                                          child: Container(
-                                            height: 73,
-                                            width: 73,
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(80.0),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                    blurRadius: 3.0,
-                                                    offset: Offset(0, 4.0),
-                                                    color: Colors.black38),
-                                              ],
-                                              image: DecorationImage(
-                                                image: FileImage(
-                                                  _imageFile,
-                                                ),
-                                                fit: BoxFit.cover,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              actions: [],
+              centerTitle: true,
+            ),
+            body: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: RowLayout(children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10, bottom: 5),
+                        child: Row(
+                          children: <Widget>[
+                            SizedBox(width: 10.0),
+                            _imageFile != null
+                                ? Container(
+                                    width: 80.0,
+                                    height: 80.0,
+                                    child: CircleAvatar(
+                                      radius: 40,
+                                      backgroundColor: Colors.grey,
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(540),
+                                        child: Container(
+                                          height: 73,
+                                          width: 73,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(80.0),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                  blurRadius: 3.0,
+                                                  offset: Offset(0, 4.0),
+                                                  color: Colors.black38),
+                                            ],
+                                            image: DecorationImage(
+                                              image: FileImage(
+                                                _imageFile,
                                               ),
+                                              fit: BoxFit.cover,
                                             ),
                                           ),
                                         ),
                                       ),
-                                    )
-                                  : Container(
-                                      width: 80.0,
-                                      height: 80.0,
-                                      child: CircleAvatar(
-                                        radius: 40,
-                                        backgroundColor: Colors.grey,
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(540),
-                                          child: InkWell(
-                                            onTap: () {
-                                              showDialog(
-                                                context: context,
-                                                builder: (_) => Container(
-                                                  color: Theme.of(context)
-                                                      .scaffoldBackgroundColor
-                                                      .withOpacity(0.7),
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                        Radius.circular(10.0),
-                                                      ),
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .center,
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          FadeInImage(
-                                                            image: NetworkImage(
-                                                                "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
-                                                            placeholder: AssetImage(
-                                                                'assets/icons/loading.gif'),
-                                                          ),
-                                                          SizedBox(height: 10),
-                                                          FloatingActionButton(
-                                                            backgroundColor:
-                                                                Theme.of(
-                                                                        context)
-                                                                    .accentColor,
-                                                            onPressed: () {
-                                                              Navigator.pop(
-                                                                  context);
-                                                            },
-                                                            tooltip: 'Close',
-                                                            child: Icon(
-                                                                Icons.close,
-                                                                size: 30),
-                                                          ),
-                                                        ],
-                                                      ),
+                                    ),
+                                  )
+                                : Container(
+                                    width: 80.0,
+                                    height: 80.0,
+                                    child: CircleAvatar(
+                                      radius: 40,
+                                      backgroundColor: Colors.grey,
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(540),
+                                        child: InkWell(
+                                          onTap: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (_) => Container(
+                                                color: Theme.of(context)
+                                                    .scaffoldBackgroundColor
+                                                    .withOpacity(0.7),
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.all(
+                                                      Radius.circular(10.0),
+                                                    ),
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        FadeInImage(
+                                                          image: NetworkImage(
+                                                              "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                                          placeholder: AssetImage(
+                                                              'assets/icons/loading.gif'),
+                                                        ),
+                                                        SizedBox(height: 10),
+                                                        FloatingActionButton(
+                                                          backgroundColor:
+                                                              Theme.of(context)
+                                                                  .accentColor,
+                                                          onPressed: () {
+                                                            Navigator.pop(
+                                                                context);
+                                                          },
+                                                          tooltip: 'Close',
+                                                          child: Icon(
+                                                              Icons.close,
+                                                              size: 30),
+                                                        ),
+                                                      ],
                                                     ),
                                                   ),
                                                 ),
-                                              );
-                                            },
-                                            child: Container(
-                                              height: 73,
-                                              width: 73,
-                                              child: FadeInImage(
-                                                image: NetworkImage(
-                                                    "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
-                                                placeholder: AssetImage(
-                                                    'assets/icons/loading.gif'),
                                               ),
+                                            );
+                                          },
+                                          child: Container(
+                                            height: 73,
+                                            width: 73,
+                                            child: FadeInImage(
+                                              image: NetworkImage(
+                                                  "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                              placeholder: AssetImage(
+                                                  'assets/icons/loading.gif'),
                                             ),
                                           ),
                                         ),
-                                      )),
-                              SizedBox(width: 10.0),
-                              OutlineButton(
-                                onPressed: () {
-                                  _openImagePickerModal(context);
-                                },
-                                borderSide: BorderSide(
+                                      ),
+                                    )),
+                            SizedBox(width: 10.0),
+                            OutlineButton(
+                              onPressed: () {
+                                _openImagePickerModal(context);
+                              },
+                              borderSide: BorderSide(
+                                  color:
+                                      Theme.of(context).textTheme.caption.color,
+                                  width: 1.0),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: <Widget>[
+                                  Icon(
+                                    Icons.add_a_photo,
                                     color: Theme.of(context)
                                         .textTheme
                                         .caption
                                         .color,
-                                    width: 1.0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: <Widget>[
-                                    Icon(
-                                      Icons.add_a_photo,
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .caption
-                                          .color,
-                                    ),
-                                    SizedBox(
-                                      width: 5.0,
-                                    ),
-                                    AutoSizeText(
-                                      'Change Profile Pic',
-                                      style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                  SizedBox(
+                                    width: 5.0,
+                                  ),
+                                  AutoSizeText(
+                                    'Change Profile Pic',
+                                    style: TextStyle(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .caption
+                                            .color),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                        TextFormField(
-                          controller: _usernameController,
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.caption.color,
-                          ),
-                          cursorColor:
-                              Theme.of(context).textTheme.caption.color,
-                          decoration: InputDecoration(
-                              border: OutlineInputBorder(),
-                              labelText: "Userame"),
-                          maxLines: 1,
-                        ),
-                        TextFormField(
-                          controller: _nameController,
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.caption.color,
-                          ),
-                          cursorColor:
-                              Theme.of(context).textTheme.caption.color,
-                          decoration: InputDecoration(
-                              border: OutlineInputBorder(), labelText: "Name"),
-                          maxLines: 1,
-                        ),
-                        TextFormField(
-                          enabled: false,
-                          controller: _emailController,
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.caption.color,
-                          ),
-                          cursorColor:
-                              Theme.of(context).textTheme.caption.color,
-                          decoration: InputDecoration(
-                              border: OutlineInputBorder(), labelText: "Email"),
-                          maxLines: 1,
-                        ),
-                        /*
-                        TextFormField(
-                          controller: _phonenoController,
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.caption.color,
-                          ),
-                          cursorColor:
-                              Theme.of(context).textTheme.caption.color,
-                          decoration: InputDecoration(
-                              border: OutlineInputBorder(),
-                              labelText: "Mobile Number"),
-                          maxLines: 1,
-                        ),
-                        */
-                        TextFormField(
-                          controller: _bioController,
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.caption.color,
-                          ),
-                          cursorColor:
-                              Theme.of(context).textTheme.caption.color,
-                          decoration: InputDecoration(
-                              border: OutlineInputBorder(), labelText: "Bio"),
-                          maxLines: 6,
-                        ),
-                        FormField(
-                          builder: (FormFieldState state) {
-                            return InputDecorator(
-                              decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: "Designation"),
-                              child: new DropdownButtonHideUnderline(
-                                child: new DropdownButton(
-                                  hint: Text(_userdetails.designation),
-                                  isExpanded: true,
-                                  value: designation,
-                                  isDense: true,
-                                  items: _designations
-                                      .map((value) => DropdownMenuItem(
-                                            child: Text(value),
-                                            value: value,
-                                          ))
-                                      .toList(),
-                                  onChanged: (newValue) {
-                                    setState(() {
-                                      designation = newValue;
-                                      state.didChange(newValue);
-                                    });
-                                  },
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ]),
-                    ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Center(
-                      child: Container(
-                          width: 200,
-                          height: 50,
-                          margin: EdgeInsets.only(top: 10.0),
-                          child: RaisedButton(
-                            color: Theme.of(context)
-                                .textTheme
-                                .caption
-                                .color
-                                .withOpacity(0.3),
-                            onPressed: () {
-                              String des = designation == null
-                                  ? _userdetails.designation
-                                  : designation;
-                              edit_profile(_userdetails.gender, des);
-                            },
-                            child: Text(
-                              'Save',
-                              style: TextStyle(
-                                  color:
-                                      Theme.of(context).textTheme.caption.color,
-                                  fontSize: 22.0,
-                                  fontWeight: FontWeight.bold),
                             ),
-                          )),
+                          ],
+                        ),
+                      ),
+                      TextFormField(
+                        controller: _usernameController,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.caption.color,
+                        ),
+                        cursorColor: Theme.of(context).textTheme.caption.color,
+                        decoration: InputDecoration(
+                            border: OutlineInputBorder(), labelText: "Userame"),
+                        maxLines: 1,
+                      ),
+                      TextFormField(
+                        controller: _nameController,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.caption.color,
+                        ),
+                        cursorColor: Theme.of(context).textTheme.caption.color,
+                        decoration: InputDecoration(
+                            border: OutlineInputBorder(), labelText: "Name"),
+                        maxLines: 1,
+                      ),
+                      TextFormField(
+                        enabled: false,
+                        controller: _emailController,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.caption.color,
+                        ),
+                        cursorColor: Theme.of(context).textTheme.caption.color,
+                        decoration: InputDecoration(
+                            border: OutlineInputBorder(), labelText: "Email"),
+                        maxLines: 1,
+                      ),
+                      /*
+                    TextFormField(
+                      controller: _phonenoController,
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.caption.color,
+                      ),
+                      cursorColor:
+                          Theme.of(context).textTheme.caption.color,
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: "Mobile Number"),
+                      maxLines: 1,
                     ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                  ],
-                ),
+                    */
+                      TextFormField(
+                        controller: _bioController,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.caption.color,
+                        ),
+                        cursorColor: Theme.of(context).textTheme.caption.color,
+                        decoration: InputDecoration(
+                            border: OutlineInputBorder(), labelText: "Bio"),
+                        maxLines: 6,
+                      ),
+                      FormField(
+                        builder: (FormFieldState state) {
+                          return InputDecorator(
+                            decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: "Designation"),
+                            child: new DropdownButtonHideUnderline(
+                              child: new DropdownButton(
+                                hint: Text(_userdetails.designation),
+                                isExpanded: true,
+                                value: designation,
+                                isDense: true,
+                                items: _designations
+                                    .map((value) => DropdownMenuItem(
+                                          child: Text(value),
+                                          value: value,
+                                        ))
+                                    .toList(),
+                                onChanged: (newValue) {
+                                  setState(() {
+                                    designation = newValue;
+                                    state.didChange(newValue);
+                                  });
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ]),
+                  ),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Center(
+                    child: Container(
+                        width: 200,
+                        height: 50,
+                        margin: EdgeInsets.only(top: 10.0),
+                        child: RaisedButton(
+                          color: Theme.of(context)
+                              .textTheme
+                              .caption
+                              .color
+                              .withOpacity(0.3),
+                          onPressed: () {
+                            String des = designation == null
+                                ? _userdetails.designation
+                                : designation;
+                            edit_profile(_userdetails.gender, des);
+                          },
+                          child: Text(
+                            'Save',
+                            style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
+                                fontSize: 22.0,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        )),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                ],
               ),
             ),
           );
