@@ -114,12 +114,18 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
               children: [
                 IconButton(
                     icon: Icon(
-                      Icons.autorenew,
+                      LineIcons.refresh,
                       color: Theme.of(context).textTheme.caption.color,
                       size: 27,
                     ),
                     onPressed: () {
                       context.read<EventsRepository>().refreshData();
+                      Scaffold.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Events Refreshed"),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
                     }),
                 if (tab_all) ...[
                   IconButton(
@@ -861,6 +867,14 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                                     i < model.allEvents.length;
                                                     i++)
                                                   if (isFilter &&
+                                                      (model.allEvents[i]
+                                                              .o_allowed ||
+                                                          model.allEvents[i]
+                                                                  .college_id ==
+                                                              prefCollegeId) &&
+                                                      model.allEvents[i]
+                                                              .status ==
+                                                          "active" &&
                                                       model.allEvents[i]
                                                           .finish_time
                                                           .isAfter(DateTime
@@ -967,14 +981,20 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                                   //////////////////////////////filter///////////////////////////////////////
                                                   /////////no filter
                                                   else if (!isFilter &&
+                                                      (model.allEvents[i]
+                                                              .o_allowed ||
+                                                          model.allEvents[i]
+                                                                  .college_id ==
+                                                              prefCollegeId) &&
+                                                      model.allEvents[i]
+                                                              .status ==
+                                                          "active" &&
                                                       model.allEvents[i]
                                                           .finish_time
                                                           .isAfter(DateTime
                                                               .now())) ...[
                                                     EventTileGeneral(
                                                         true, i, "info_page")
-
-                                                    /* ]*/
                                                   ],
                                               ],
                                             ),

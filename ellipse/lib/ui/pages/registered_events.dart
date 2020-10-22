@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../repositories/index.dart';
@@ -42,12 +43,18 @@ class _RegisteredEventsState extends State<RegisteredEvents> {
             actions: [
               IconButton(
                   icon: Icon(
-                    Icons.refresh,
+                    LineIcons.refresh,
                     color: Theme.of(context).textTheme.caption.color,
                     size: 27,
                   ),
                   onPressed: () {
-                    //getPref();
+                    context.read<EventsRepository>().refreshData();
+                    Scaffold.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Events Refreshed"),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
                   }),
             ],
             centerTitle: true,

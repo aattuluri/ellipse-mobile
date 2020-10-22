@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/index.dart';
 import '../ui/pages/index.dart';
 import '../ui/screens/index.dart';
 
@@ -8,6 +9,7 @@ import '../ui/screens/index.dart';
 class Routes {
   // Static route names
   static const generalRoute = '/';
+  static const intro = '/intro';
   static const splash_screen = '/splash_screeen';
   static const initialization = '/initialization';
   static const connection_error = '/connection_error';
@@ -40,6 +42,11 @@ class Routes {
             settings: routeSettings,
             builder: (_) => Initialization(),
           );
+        case intro:
+          return MaterialPageRoute(
+            settings: routeSettings,
+            builder: (_) => Intro(),
+          );
         case splash_screen:
           return MaterialPageRoute(
             settings: routeSettings,
@@ -52,10 +59,9 @@ class Routes {
           );
         case start:
           final current_tab = args['current_tab'] as int;
-          final load = args['load'] as bool;
           return MaterialPageRoute(
             settings: routeSettings,
-            builder: (_) => StartScreen(current_tab, load),
+            builder: (_) => StartScreen(current_tab),
           );
         case settings:
           return MaterialPageRoute(
@@ -70,9 +76,10 @@ class Routes {
         case info_page:
           final index = args['index'] as int;
           final type = args['type'] as String;
+          final event_ = args['event_'] as Events;
           return MaterialPageRoute(
             settings: routeSettings,
-            builder: (_) => InfoPage(index, type),
+            builder: (_) => InfoPage(index, type, event_),
           );
         case post_event:
           return MaterialPageRoute(

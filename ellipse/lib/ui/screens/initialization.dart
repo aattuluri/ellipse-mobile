@@ -31,28 +31,23 @@ class _InitializationState extends State<Initialization>
       //  context,
       // MaterialPageRoute(builder: (context) => OnBoarding()),
       // );
-      Navigator.pushNamed(context, Routes.splash_screen);
+      //Navigator.pushNamed(context, Routes.splash_screen);
+      Navigator.pushNamed(context, Routes.intro);
     }
   }
 
   check_connectivity() async {
     var connectivityResult = await (Connectivity().checkConnectivity());
-    if (connectivityResult == ConnectivityResult.mobile) {
+    if (connectivityResult == ConnectivityResult.mobile ||
+        connectivityResult == ConnectivityResult.wifi) {
       // I am connected to a mobile network.
+      //Navigator.pushNamed(context, Routes.intro);
       Navigator.pushNamed(
         context,
         Routes.start,
         arguments: {'current_tab': 0},
       );
-      print("internet  available");
-      return true;
-    } else if (connectivityResult == ConnectivityResult.wifi) {
-      // I am connected to a wifi network.
-      Navigator.pushNamed(
-        context,
-        Routes.start,
-        arguments: {'current_tab': 0, 'load': true},
-      );
+
       print("internet  available");
       return true;
     } else if (connectivityResult == ConnectivityResult.none) {
@@ -131,9 +126,12 @@ class _InitializationState extends State<Initialization>
     }
   }
 
+  get() async {}
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
+    get();
     //this.initDynamicLinks();
     loggedin();
     firebase();

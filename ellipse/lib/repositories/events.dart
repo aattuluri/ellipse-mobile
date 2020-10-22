@@ -10,14 +10,13 @@ import 'base.dart';
 import 'index.dart';
 
 class EventsRepository extends BaseRepository {
-  List<Events> allEvents;
-  List<Registrations> allRegistrations;
+  List<Events> allEvents = [];
+  List<Registrations> allRegistrations = [];
   @override
   Future<void> loadData() async {
     loadPref();
     try {
       print("Started Loading events");
-      // Receives the data and parse it
       http.Response response = await http.get(
         "${Url.URL}/api/events",
         headers: {
@@ -25,6 +24,7 @@ class EventsRepository extends BaseRepository {
           HttpHeaders.contentTypeHeader: "application/json"
         },
       );
+      print(json.decode(response.body).toString());
       allEvents = (json.decode(response.body) as List)
           .map((data) => Events.fromJson(data))
           .toList();
@@ -33,7 +33,12 @@ class EventsRepository extends BaseRepository {
       allEvents.sort(sortByStartTime);
       print(allEvents);
       print("Events loaded");
-
+      /////////////////
+      for (var i = 0; i < allEvents.length; i++) {
+        if (allEvents[i].user_id == prefId) {
+          allEvents[i].moderator = true;
+        }
+      }
       //////////////////////////////////////////////////////////////////
 
       print("Started Loading Registered events");
@@ -51,6 +56,7 @@ class EventsRepository extends BaseRepository {
           .toList();
       print(allRegistrations);
       print("Registrations loaded");
+/*
       if (allRegistrations.isNotEmpty) {
         for (var i = 0; i < allEvents.length; i++) {
           for (var j = 0; j < allRegistrations.length; j++) {
@@ -60,8 +66,10 @@ class EventsRepository extends BaseRepository {
           }
         }
       }
+      */
       finishLoading();
     } catch (_) {
+      print("ErrorErrorErrorErrorErrorErrorErrorErrorError");
       receivedError();
     }
   }

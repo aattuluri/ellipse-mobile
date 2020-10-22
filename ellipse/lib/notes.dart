@@ -1,4 +1,13 @@
 /*
+final unixTime =
+        (DateTime.now().millisecondsSinceEpoch / 1000).round().toString();
+FlareActor(
+                    'assets/splash.flr',
+                    alignment: Alignment.center,
+                    animation: 'logo',
+                    fit: BoxFit.cover,
+                  )),
+
 keytool -genkey -v -keystore c:\Users\gunas\key.jks -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias key
 keytool -list -v -keystore debug.keystore -alias androiddebugkey
 
@@ -39,7 +48,7 @@ flutter build appbundle
 
 #build apk
 flutter build apk --split-per-abi
-
+flutter build apk --target-platform android-arm,android-arm64,android-x64 --split-per-abif
 #build web app
 flutter channel dev  (in terminal)
 flutter create .  (creates necessary files for web app)

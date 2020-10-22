@@ -8,7 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_browser/flutter_web_browser.dart';
-import 'package:image_downloader/image_downloader.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
@@ -25,8 +25,8 @@ import '../widgets/index.dart';
 class InfoPage extends StatefulWidget {
   final int index;
   final String type;
-
-  const InfoPage(this.index, this.type);
+  final Events event_;
+  const InfoPage(this.index, this.type, this.event_);
   @override
   _InfoPageState createState() => _InfoPageState();
 }
@@ -34,7 +34,7 @@ class InfoPage extends StatefulWidget {
 class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
   bool default_view = true;
   Widget view;
-  List<String> favourites = [];
+  Map<String, dynamic> organizedBy;
   GlobalKey<SliderMenuContainerState> _key =
       new GlobalKey<SliderMenuContainerState>();
   ScrollController scrollController;
@@ -57,7 +57,7 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
     });
   }
 
-  download(String url, String name) async {
+  /*download(String url, String name) async {
     await ImageDownloader.downloadImage(
       //"${Url.URL}/api/image?id=$url",
       "https://flutter.dev/images/catalog-widget-placeholder.png",
@@ -66,11 +66,34 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
         ..subDirectory("$name" + DateTime.now().toString()),
     );
   }
+*/
+  getOrganizerInfo() async {
+    Events eve = widget.event_;
+    String eId = eve.id;
+    String uId = eve.user_id;
+    print(eve.toString());
+    http.Response response2 = await http.get(
+      "${Url.URL}/api/event/get_organizer_details?eventId=$eId&userId =$uId",
+      headers: {
+        HttpHeaders.authorizationHeader: "Bearer $prefToken",
+        HttpHeaders.contentTypeHeader: "application/json"
+      },
+    );
+    if (response2.statusCode == 200) {
+      print('Response status: ${response2.statusCode}');
+      print('Response body: ${response2.body}');
+    }
+
+    //List<dynamic> jsonResponse = json.decode(response2.body) as List;
+    //setState(() {
+    // orgInfo = jsonResponse;
+    //});
+  }
 
   @override
   void initState() {
     loadPref();
-    print(widget.index);
+    getOrganizerInfo();
     super.initState();
     _SearchListState();
     scrollController = ScrollController();
@@ -152,7 +175,7 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                       SizedBox(height: 3),
                       SlideMenuItem1(
                           Icons.group, "Register", "Register to event", () {
-                        if (_event.user_id == prefId) {
+                        if (_event.moderator) {
                           alertDialog(context, "Event Registration",
                               "You are admin to this event.You can not register to this event");
                         } else if (_event.registered == true) {
@@ -474,8 +497,11 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                             physics: BouncingScrollPhysics(),
                             child: RowLayout.cards(
                               children: <Widget>[
+                                SizedBox(width: 20),
                                 Container(
                                   child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
                                     children: <Widget>[
                                       Container(
                                         decoration: BoxDecoration(
@@ -511,7 +537,7 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                           ],
                                         ),
                                       ),
-                                      SizedBox(width: 12),
+                                      SizedBox(width: 10),
                                       Spacer(),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
@@ -553,6 +579,7 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                           ],
                                         ),
                                       ),
+                                      SizedBox(width: 10),
                                     ],
                                   ),
                                 ),
@@ -581,6 +608,177 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                     ],
                                   ),
                                   details: _event.description,
+                                ),
+                                (!_event.registered && !_event.moderator)
+                                    ? Container(
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 10),
+                                        padding: const EdgeInsets.only(
+                                            left: 10.0, right: 10.0),
+                                        child: new Row(
+                                          children: <Widget>[
+                                            new Expanded(
+                                              child: FlatButton(
+                                                shape:
+                                                    new RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            new BorderRadius
+                                                                    .circular(
+                                                                30.0)),
+                                                splashColor: Theme.of(context)
+                                                    .scaffoldBackgroundColor
+                                                    .withOpacity(0.6),
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .caption
+                                                    .color
+                                                    .withOpacity(0.5),
+                                                child: Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(vertical: 15),
+                                                  child: new Row(
+                                                    children: <Widget>[
+                                                      new Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                    .only(
+                                                                left: 20.0),
+                                                        child: Text(
+                                                          "Register Here",
+                                                          style: TextStyle(
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .scaffoldBackgroundColor),
+                                                        ),
+                                                      ),
+                                                      new Expanded(
+                                                        child: Container(),
+                                                      ),
+                                                      new Transform.translate(
+                                                        offset:
+                                                            Offset(15.0, 0.0),
+                                                        child: new Container(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                      .only(
+                                                                  right: 15),
+                                                          child: Icon(
+                                                            Icons.arrow_forward,
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .scaffoldBackgroundColor,
+                                                          ),
+                                                        ),
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                                onPressed: () async {
+                                                  if (_event.moderator) {
+                                                    alertDialog(
+                                                        context,
+                                                        "Event Registration",
+                                                        "You are admin to this event.You can not register to this event");
+                                                  } else if (_event
+                                                          .registered ==
+                                                      true) {
+                                                    alertDialog(
+                                                        context,
+                                                        "Event Registration",
+                                                        "You have to already registered to this event");
+                                                  } else if (_event
+                                                              .registered ==
+                                                          false &&
+                                                      _event.reg_mode ==
+                                                          "form") {
+                                                    setState(() {
+                                                      view = RegistrationForm(
+                                                          widget.index,
+                                                          _event.reg_fields);
+                                                      default_view = false;
+                                                    });
+
+                                                    _key.currentState
+                                                        .closeDrawer();
+                                                  } else if (_event.reg_mode ==
+                                                      "link") {
+                                                    String link =
+                                                        _event.reg_link;
+                                                    FlutterWebBrowser
+                                                        .openWebPage(
+                                                      url: '$link',
+                                                      androidToolbarColor:
+                                                          Theme.of(context)
+                                                              .primaryColor,
+                                                    );
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : SizedBox.shrink(),
+                                CardPage.body(
+                                  title: "Event Details",
+                                  body: RowLayout(children: <Widget>[
+                                    RowText(
+                                      "Event Type",
+                                      _event.event_type,
+                                    ),
+                                    RowText(
+                                      "Mode",
+                                      _event.event_mode,
+                                    ),
+                                    RowText(
+                                      "Event Cost",
+                                      _event.payment_type,
+                                    ),
+                                    _event.payment_type == "Paid"
+                                        ? RowText(
+                                            "Registration Fee",
+                                            _event.registration_fee,
+                                          )
+                                        : SizedBox.shrink(),
+                                    _event.o_allowed == true
+                                        ? RowText(
+                                            "Other college students",
+                                            "Allowed",
+                                          )
+                                        : RowText(
+                                            "Other college students",
+                                            "Not Allowed",
+                                          )
+                                  ]),
+                                ),
+                                CardPage.body(
+                                  title: "Important Dates",
+                                  body: Column(children: <Widget>[
+                                    ListTile(
+                                      title: Text("Registration Ends at"),
+                                      subtitle: Text(
+                                        _event.reg_last_date
+                                            .toString()
+                                            .toDate(context),
+                                      ),
+                                    ),
+                                    ListTile(
+                                      title: Text("Starts at"),
+                                      subtitle: Text(
+                                        _event.start_time
+                                            .toString()
+                                            .toDate(context),
+                                      ),
+                                    ),
+                                    ListTile(
+                                      title: Text("Ends at"),
+                                      subtitle: Text(
+                                        _event.finish_time
+                                            .toString()
+                                            .toDate(context),
+                                      ),
+                                    ),
+                                  ]),
                                 ),
                                 _event.requirements.isNotEmpty
                                     ? CardPage.body(
@@ -612,7 +810,7 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                     : SizedBox.shrink(),
                                 _event.tags.isNotEmpty
                                     ? CardPage.body(
-                                        title: "Themes",
+                                        title: "Tags",
                                         body: RowLayout(children: <Widget>[
                                           Container(),
                                           Wrap(
@@ -680,67 +878,16 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                   ]),
                                 ),
                                 CardPage.body(
-                                  title: "Important Dates",
-                                  body: Column(children: <Widget>[
-                                    ListTile(
-                                      title: Text("Starts at"),
-                                      subtitle: Text(
-                                        _event.start_time
-                                            .toString()
-                                            .toDate(context),
-                                      ),
-                                    ),
-                                    ListTile(
-                                      title: Text("Ends at"),
-                                      subtitle: Text(
-                                        _event.finish_time
-                                            .toString()
-                                            .toDate(context),
-                                      ),
-                                    ),
-                                    ListTile(
-                                      title: Text("Registration Ends at"),
-                                      subtitle: Text(
-                                        _event.reg_last_date
-                                            .toString()
-                                            .toDate(context),
-                                      ),
-                                    ),
-                                  ]),
-                                ),
-                                CardPage.body(
-                                  title: "Event Details",
+                                  title: "About ${_event.name}",
                                   body: RowLayout(children: <Widget>[
-                                    RowText(
-                                      "Event Type",
-                                      _event.event_type,
+                                    Container(
+                                      width: double.infinity,
+                                      height: 0,
                                     ),
-                                    RowText(
-                                      "Mode",
-                                      _event.event_mode,
-                                    ),
-                                    RowText(
-                                      "Event Cost",
-                                      _event.payment_type,
-                                    ),
-                                    _event.payment_type == "Paid"
-                                        ? RowText(
-                                            "Registration Fee",
-                                            _event.registration_fee,
-                                          )
-                                        : SizedBox.shrink(),
-                                    _event.o_allowed == true
-                                        ? RowText(
-                                            "Other college students",
-                                            "Allowed",
-                                          )
-                                        : RowText(
-                                            "Other college students",
-                                            "Not Allowed",
-                                          )
+                                    TextExpand(_event.about),
                                   ]),
                                 ),
-                                CardPage.body(
+                                /*CardPage.body(
                                   title: " Event Registration",
                                   body: RowLayout(children: <Widget>[
                                     _event.reg_mode == "link"
@@ -762,7 +909,7 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                     _event.reg_link == null
                                         ? Container()
                                         : Separator.divider(),
-                                    Text(
+                                     Text(
                                       "Time left to Register",
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
@@ -789,7 +936,73 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                     ] else ...[
                                       LaunchCountdown(_event.reg_last_date)
                                     ]
+
                                   ]),
+                                ),
+                                */
+                                CardPage.body(
+                                  title: "Organized By",
+                                  body: RowLayout(
+                                    children: <Widget>[
+                                      Container(
+                                        width: double.infinity,
+                                        height: 0,
+                                      ),
+
+                                      /*Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10),
+                                        child: Row(
+                                          children: <Widget>[
+                                            SizedBox(width: 10.0),
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(540),
+                                              child: InkWell(
+                                                onTap: () {
+                                                  Navigator.pushNamed(context,
+                                                      Routes.view_profile);
+                                                },
+                                                child: Container(
+                                                  height: 55,
+                                                  width: 55,
+                                                  child: FadeInImage(
+                                                    image: NetworkImage(
+                                                        "${Url.URL}/api/image?id=$orgInfo['profile_pic']"),
+                                                    placeholder: AssetImage(
+                                                        'assets/icons/loading.gif'),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(width: 20.0),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: <Widget>[
+                                                AutoSizeText(
+                                                  "orgInfo[0]",
+                                                  style: TextStyle(
+                                                      fontSize: 18.0,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                SizedBox(height: 10.0),
+                                                AutoSizeText(
+                                                  "orgInfo[0]",
+                                                  style: TextStyle(
+                                                      fontSize: 10.0,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                      */
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),

@@ -11,7 +11,7 @@ import 'base.dart';
 import 'index.dart';
 
 class NotificationsRepository extends BaseRepository {
-  List<Notifications> allNotifications;
+  List<Notifications> allNotifications = [];
 
   @override
   Future<void> loadData() async {

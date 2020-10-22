@@ -4,8 +4,8 @@ import 'package:Ellipse/ui/widgets/loading.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -20,6 +20,7 @@ class SignIn extends StatefulWidget {
 
 class _SignInState extends State<SignIn> {
   final _formKey = GlobalKey<FormState>();
+  List<String> errors = [];
   String email, password;
   bool isLoading = false;
   bool _secureText = true;
@@ -31,37 +32,48 @@ class _SignInState extends State<SignIn> {
 
   signIn(String email, pass) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    Map data = {'email': email, 'password': pass};
-    http.Response response =
-        await http.post("${Url.URL}/api/users/login", body: data);
-    if (response.statusCode == 200) {
-      SystemChannels.textInput.invokeMethod('TextInput.hide');
-      var jsonResponse = json.decode(response.body);
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-      if (jsonResponse != null) {
-        setState(() {
-          sharedPreferences.setString("email", jsonResponse['useremail']);
-          sharedPreferences.setString("token", jsonResponse['token']);
-          sharedPreferences.setString("id", jsonResponse['userid']);
-        });
+    Map data1 = {'email': email};
+    http.Response response1 =
+        await http.post("${Url.URL}/api/check_email_exists", body: data1);
+    if (response1.statusCode == 200) {
+      Map data2 = {'email': email, 'password': pass};
+      http.Response response2 =
+          await http.post("${Url.URL}/api/users/login", body: data2);
+      if (response2.statusCode == 200) {
+        SystemChannels.textInput.invokeMethod('TextInput.hide');
+        var jsonResponse = json.decode(response2.body);
+        print('Response status: ${response2.statusCode}');
+        print('Response body: ${response2.body}');
+        if (jsonResponse != null) {
+          setState(() {
+            sharedPreferences.setString("email", jsonResponse['useremail']);
+            sharedPreferences.setString("token", jsonResponse['token']);
+            sharedPreferences.setString("id", jsonResponse['userid']);
+          });
 
-        Navigator.pushNamed(context, Routes.initialization);
+          Navigator.pushNamed(context, Routes.initialization);
+          setState(() {
+            sharedPreferences.setBool('loggedIn', true);
+            isLoading = false;
+          });
+        }
+      } else {
         setState(() {
-          sharedPreferences.setBool('loggedIn', true);
           isLoading = false;
         });
+        alertDialog(context, "Login", "Invalid Password");
       }
     } else {
       setState(() {
         isLoading = false;
       });
-      print("Error in Signin");
+      alertDialog(context, "Login", "Email does not exist");
     }
   }
 
   @override
   void initState() {
+    this.setState(() => errors.clear());
     SystemChannels.textInput.invokeMethod('TextInput.hide');
     resetPref();
     super.initState();
@@ -76,9 +88,9 @@ class _SignInState extends State<SignIn> {
         },
         child: Scaffold(
           body: isLoading
-              ? LoaderCircular(0.5)
+              ? LoaderCircular(0.25, "Signing")
               : Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  padding: EdgeInsets.symmetric(horizontal: 10),
                   child: SingleChildScrollView(
                     child: Form(
                       key: _formKey,
@@ -87,7 +99,39 @@ class _SignInState extends State<SignIn> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: <Widget>[
                           SizedBox(
-                            height: 30,
+                            height: 10,
+                          ),
+                          InkWell(
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                Routes.intro,
+                              );
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: 10),
+                              child: Row(
+                                children: <Widget>[
+                                  Container(
+                                    padding: EdgeInsets.only(
+                                        left: 0, top: 10, bottom: 10),
+                                    child: Icon(Icons.keyboard_arrow_left,
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .caption
+                                            .color),
+                                  ),
+                                  Text('Intro',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .caption
+                                              .color))
+                                ],
+                              ),
+                            ),
                           ),
                           SizedBox(height: 10),
                           Center(
@@ -142,9 +186,13 @@ class _SignInState extends State<SignIn> {
                                     onChanged: (value) {},
                                     validator: (value) {
                                       if (value.isEmpty) {
-                                        return "Email field cannot be empty";
+                                        this.setState(() => errors.add(
+                                            "Email field cannot be empty"));
+                                        // return "Email field cannot be empty";
                                       } else if (!value.validEmail()) {
-                                        return "Enter valid email";
+                                        this.setState(() =>
+                                            errors.add("Enter valid email"));
+                                        //return "Enter valid email";
                                       }
                                       return null;
                                     },
@@ -201,9 +249,13 @@ class _SignInState extends State<SignIn> {
                                     onChanged: (value) {},
                                     validator: (value) {
                                       if (value.isEmpty) {
-                                        return "Password field cannot be empty";
+                                        this.setState(() => errors.add(
+                                            "Password field cannot be empty"));
+                                        //return "Password field cannot be empty";
                                       } else if (value.toString().length < 6) {
-                                        return "Password length should be \natleast 6 characters";
+                                        this.setState(() => errors.add(
+                                            "Password length should be \natleast 6 characters"));
+                                        //return "Password length should be \natleast 6 characters";
                                       }
                                       return null;
                                     },
@@ -285,13 +337,28 @@ class _SignInState extends State<SignIn> {
                                     ),
                                     onPressed: () async {
                                       if (_formKey.currentState.validate()) {
-                                        _formKey.currentState.save();
-                                        SystemChannels.textInput
-                                            .invokeMethod('TextInput.hide');
-                                        setState(() {
-                                          isLoading = true;
-                                        });
-                                        signIn(email.trim(), password.trim());
+                                        if (errors.isEmpty) {
+                                          _formKey.currentState.save();
+                                          SystemChannels.textInput
+                                              .invokeMethod('TextInput.hide');
+                                          setState(() {
+                                            isLoading = true;
+                                          });
+                                          signIn(email.trim(), password.trim());
+                                        } else if (errors.isNotEmpty) {
+                                          String error = "";
+                                          for (var i = 0;
+                                              i < errors.length;
+                                              i++) {
+                                            error = error +
+                                                (i != 0 ? "\n" : "") +
+                                                "-" +
+                                                errors[i].toString();
+                                          }
+                                          alertDialog(context, "Login", error);
+
+                                          this.setState(() => errors.clear());
+                                        }
                                       }
                                     },
                                   ),
@@ -368,6 +435,7 @@ class Signup extends StatefulWidget {
 
 class _SignupState extends State<Signup> {
   final _formKey = GlobalKey<FormState>();
+  List<String> errors = [];
   bool isLoading = false;
   String name, username, email, password, cpassword;
   bool _secureText1 = true;
@@ -387,46 +455,65 @@ class _SignupState extends State<Signup> {
 
   signUp(String name, username, email, pass) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    Map data = {
-      'name': name,
-      'username': username,
-      'email': email,
-      'password': pass
-    };
-    http.Response response =
-        await http.post("${Url.URL}/api/users/signup", body: data);
-    print(response.statusCode);
-    print(response.body);
-    if (response.statusCode == 200) {
-      var jsonResponse = json.decode(response.body);
-      if (jsonResponse != null) {
-        setState(() {
-          sharedPreferences.setString("email", jsonResponse['useremail']);
-          sharedPreferences.setString("token", jsonResponse['token']);
-          sharedPreferences.setString("id", jsonResponse['userid']);
-          sharedPreferences.setBool('loggedIn', true);
-        });
+    Map data1 = {'email': email};
+    Map data2 = {'username': username};
+    http.Response response1 =
+        await http.post("${Url.URL}/api/check_email_exists", body: data1);
+    http.Response response2 =
+        await http.post("${Url.URL}/api/check_username", body: data2);
+    if (response1.statusCode == 201 && response2.statusCode == 401) {
+      Map data3 = {
+        'name': name,
+        'username': username,
+        'email': email,
+        'password': pass
+      };
+      http.Response response3 =
+          await http.post("${Url.URL}/api/users/signup", body: data3);
+      print(response3.statusCode);
+      print(response3.body);
+      if (response3.statusCode == 200) {
+        var jsonResponse = json.decode(response3.body);
+        if (jsonResponse != null) {
+          setState(() {
+            sharedPreferences.setString("email", jsonResponse['useremail']);
+            sharedPreferences.setString("token", jsonResponse['token']);
+            sharedPreferences.setString("id", jsonResponse['userid']);
+            sharedPreferences.setBool('loggedIn', true);
+          });
+          setState(() {
+            isLoading = false;
+          });
+
+          Navigator.pushNamed(context, Routes.initialization);
+        }
+      } else {
         setState(() {
           isLoading = false;
         });
-
-        Navigator.pushNamed(context, Routes.initialization);
-      } else if (response.statusCode == 401) {
-        setState(() {
-          isLoading = false;
-        });
-
-        flutterToast(context, 'Email Already Exists', 2, ToastGravity.CENTER);
       }
-    } else {
+    } else if (response1.statusCode == 200 && response2.statusCode == 401) {
       setState(() {
         isLoading = false;
       });
-    }
+      alertDialog(context, "Sign Up", "Email already exists");
+    } else if (response1.statusCode == 201 && response2.statusCode == 200) {
+      setState(() {
+        isLoading = false;
+      });
+      alertDialog(context, "Sign Up", "Username already exists");
+    } else if (response1.statusCode == 200 && response2.statusCode == 200) {
+      setState(() {
+        isLoading = false;
+      });
+      alertDialog(context, "Sign Up",
+          "-Eamil already exists\n-Username already exixts");
+    } else {}
   }
 
   @override
   void initState() {
+    this.setState(() => errors.clear());
     SystemChannels.textInput.invokeMethod('TextInput.hide');
     resetPref();
     super.initState();
@@ -441,9 +528,9 @@ class _SignupState extends State<Signup> {
         },
         child: Scaffold(
           body: isLoading
-              ? LoaderCircular(0.5)
+              ? LoaderCircular(0.25, "Registering")
               : Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  padding: EdgeInsets.symmetric(horizontal: 10),
                   child: SingleChildScrollView(
                     child: Form(
                       key: _formKey,
@@ -508,9 +595,13 @@ class _SignupState extends State<Signup> {
                                     onChanged: (value) {},
                                     validator: (value) {
                                       if (value.isEmpty) {
-                                        return "Name field cannot be empty";
+                                        this.setState(() => errors
+                                            .add("Name field cannot be empty"));
+                                        //return "Name field cannot be empty";
                                       } else if (!value.validAlpha()) {
-                                        return "Name should only contain alphabets";
+                                        this.setState(() => errors.add(
+                                            "Name should only contain alphabets"));
+                                        //return "Name should only contain alphabets";
                                       }
                                       return null;
                                     },
@@ -567,9 +658,13 @@ class _SignupState extends State<Signup> {
                                     onChanged: (value) {},
                                     validator: (value) {
                                       if (value.isEmpty) {
-                                        return "Username field cannot be empty";
+                                        this.setState(() => errors.add(
+                                            "Username field cannot be empty"));
+                                        //return "Username field cannot be empty";
                                       } else if (!value.validAlphaNumeric()) {
-                                        return "Username should only contain alphabets and numbers";
+                                        this.setState(() => errors.add(
+                                            "Username should only contain alphabets and numbers"));
+                                        //return "Username should only contain alphabets and numbers";
                                       }
                                       return null;
                                     },
@@ -626,9 +721,13 @@ class _SignupState extends State<Signup> {
                                     onChanged: (value) {},
                                     validator: (value) {
                                       if (value.isEmpty) {
-                                        return "Email field cannot be empty";
+                                        this.setState(() => errors.add(
+                                            "Email field cannot be empty"));
+                                        //return "Email field cannot be empty";
                                       } else if (!value.validEmail()) {
-                                        return "Enter valid email";
+                                        this.setState(() =>
+                                            errors.add("Enter valid email"));
+                                        //return "Enter valid email";
                                       }
                                       return null;
                                     },
@@ -685,9 +784,13 @@ class _SignupState extends State<Signup> {
                                     onChanged: (value) {},
                                     validator: (value) {
                                       if (value.isEmpty) {
-                                        return "Password field cannot be empty";
+                                        this.setState(() => errors.add(
+                                            "Password field cannot be empty"));
+                                        //return "Password field cannot be empty";
                                       } else if (value.toString().length < 6) {
-                                        return "Password length should be \natleast 6 characters";
+                                        this.setState(() => errors.add(
+                                            "Password length should be \natleast 6 characters"));
+                                        //return "Password length should be \natleast 6 characters";
                                       }
                                       return null;
                                     },
@@ -755,9 +858,13 @@ class _SignupState extends State<Signup> {
                                     onChanged: (value) {},
                                     validator: (value) {
                                       if (value.isEmpty) {
-                                        return "Password field cannot be empty";
+                                        this.setState(() => errors.add(
+                                            "Password field cannot be empty"));
+                                        //return "Password field cannot be empty";
                                       } else if (value.toString().length < 6) {
-                                        return "Password length should be \natleast 6 characters";
+                                        this.setState(() => errors.add(
+                                            "Password length should be \natleast 6 characters"));
+                                        //return "Password length should be \natleast 6 characters";
                                       }
                                       return null;
                                     },
@@ -776,7 +883,7 @@ class _SignupState extends State<Signup> {
                                                 .color),
                                       ),
                                       border: InputBorder.none,
-                                      hintText: 'Enter your password',
+                                      hintText: 'Retype your password',
                                       hintStyle: TextStyle(color: Colors.grey),
                                     ),
                                   ),
@@ -845,18 +952,36 @@ class _SignupState extends State<Signup> {
                                         onPressed: () async {
                                           if (_formKey.currentState
                                               .validate()) {
-                                            _formKey.currentState.save();
-                                            SystemChannels.textInput
-                                                .invokeMethod('TextInput.hide');
-                                            setState(() {
-                                              isLoading = true;
-                                            });
-                                            signUp(
-                                              name.trim(),
-                                              username.trim(),
-                                              email.trim(),
-                                              password.trim(),
-                                            );
+                                            if (errors.isEmpty) {
+                                              _formKey.currentState.save();
+                                              SystemChannels.textInput
+                                                  .invokeMethod(
+                                                      'TextInput.hide');
+                                              setState(() {
+                                                isLoading = true;
+                                              });
+                                              signUp(
+                                                name.trim(),
+                                                username.trim(),
+                                                email.trim(),
+                                                password.trim(),
+                                              );
+                                            } else if (errors.isNotEmpty) {
+                                              String error = "";
+                                              for (var i = 0;
+                                                  i < errors.length;
+                                                  i++) {
+                                                error = error +
+                                                    (i != 0 ? "\n" : "") +
+                                                    "-" +
+                                                    errors[i].toString();
+                                              }
+                                              alertDialog(
+                                                  context, "Sign Up", error);
+
+                                              this.setState(
+                                                  () => errors.clear());
+                                            }
                                           }
                                         }),
                                   ),

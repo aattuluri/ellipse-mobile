@@ -4,9 +4,13 @@ import 'dart:io';
 import 'package:Ellipse/ui/widgets/loading.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:http/http.dart' as http;
 import 'package:line_icons/line_icons.dart';
+import 'package:provider/provider.dart';
 
+import '../../models/index.dart';
+import '../../repositories/index.dart';
 import '../../util/index.dart';
 import '../widgets/index.dart';
 
@@ -32,7 +36,9 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
   final List tabs = [
     IconTab(name: "Pending", icon: Icons.pending),
     IconTab(name: "Published", icon: Icons.publish),
+    IconTab(name: "Dashboard", icon: Icons.dashboard),
   ];
+  String certTitle = "";
   TabController tab_controller;
   bool expanded = false;
   bool selectAll = false;
@@ -41,38 +47,6 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
   List<dynamic> pending = [];
   List<dynamic> published = [];
   List<String> selectedParticipants = [];
-  loadRegisteredEvents() async {
-    setState(() {
-      isloading = true;
-    });
-    Map<String, String> headers = {
-      HttpHeaders.authorizationHeader: "Bearer $prefToken",
-      HttpHeaders.contentTypeHeader: "application/json"
-    };
-    String event_id = widget.event_id.trim().toString();
-    var response = await http.get(
-        "${Url.URL}/api/event/registeredEvents?id=$event_id",
-        headers: headers);
-    print('Response status: ${response.statusCode}');
-    if (response.statusCode == 200) {
-      setState(() {
-        participants = json.decode(response.body);
-      });
-      for (var i = 0; i < participants.length; i++) {
-        Map<String, dynamic> data = participants[i]['data'];
-        if (participants[i]['certificate_status'] == "not_generated") {
-          pending.add(participants[i]);
-        } else if (participants[i]['certificate_status'] == "generated") {
-          published.add(participants[i]);
-        } else {}
-      }
-    } else {
-      throw Exception('Failed to load data');
-    }
-    setState(() {
-      isloading = false;
-    });
-  }
 
   publish() async {
     String event_id = widget.event_id.trim().toString();
@@ -98,11 +72,70 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
       if (response.statusCode == 200) {
-        this.setState(() => participants.clear());
-        this.setState(() => pending.clear());
-        this.setState(() => published.clear());
+        //this.setState(() => participants.clear());
+        //this.setState(() => pending.clear());
+        //this.setState(() => published.clear());
         loadRegisteredEvents();
       }
+    }
+  }
+
+  loadRegisteredEvents() async {
+    setState(() {
+      isloading = true;
+    });
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Bearer $prefToken",
+      HttpHeaders.contentTypeHeader: "application/json"
+    };
+    String event_id = widget.event_id.trim().toString();
+    var response = await http.get(
+        "${Url.URL}/api/event/registeredEvents?id=$event_id",
+        headers: headers);
+    print('Response status: ${response.statusCode}');
+    if (response.statusCode == 200) {
+      setState(() {
+        participants = json.decode(response.body);
+      });
+      for (var i = 0; i < participants.length; i++) {
+        Map<String, dynamic> data = participants[i]['data'];
+        if (participants[i]['certificate_status'] == "not_generated") {
+          this.setState(() => pending.add(participants[i]));
+        } else if (participants[i]['certificate_status'] == "generated") {
+          this.setState(() => published.add(participants[i]));
+        } else {}
+      }
+    } else {
+      throw Exception('Failed to load data');
+    }
+    setState(() {
+      isloading = false;
+    });
+  }
+
+  updateCertDetails(String id, String title) async {
+    setState(() {
+      isloading = true;
+    });
+    http.Response response = await http.post(
+      '${Url.URL}/api/event/update_certificate_title',
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $prefToken'
+      },
+      body: jsonEncode(<dynamic, dynamic>{
+        'eventId': id,
+        'title': title,
+      }),
+    );
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+    if (response.statusCode == 200) {
+      context.read<EventsRepository>().refreshData();
+      setState(() {
+        isloading = false;
+      });
+      tab_controller.animateTo(0);
     }
   }
 
@@ -110,7 +143,7 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
   void initState() {
     loadPref();
     tab_controller = new TabController(
-      length: 2,
+      length: 3,
       vsync: this,
     );
     loadRegisteredEvents();
@@ -119,8 +152,14 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
 
   @override
   Widget build(BuildContext context) {
+    final eventIndex =
+        context.watch<EventsRepository>().getEventIndex(widget.event_id);
+    final Events _event =
+        context.watch<EventsRepository>().getEvent(eventIndex);
+
+    Map<String, dynamic> certificateDetails = _event.certificate;
     return isloading
-        ? LoaderCircular(0.4)
+        ? LoaderCircular(0.25, "Loading")
         : participants.isEmpty
             ? Container(
                 height: double.infinity,
@@ -136,7 +175,7 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                   flexibleSpace: TabBar(
                     onTap: (tab) {},
                     controller: tab_controller,
-                    //isScrollable: true,
+                    isScrollable: true,
                     tabs: tabs.map((tab) {
                       return Tab(
                         child: Row(
@@ -250,7 +289,11 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                       onPressed: () {
                                         setState(() {
                                           selectAll = false;
+                                          participants = [];
+                                          pending = [];
+                                          published = [];
                                         });
+
                                         publish();
                                       },
                                       textColor: Colors.black,
@@ -406,6 +449,71 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                 ],
                               );
                             }),
+                    ////////////////////////////////Tab 3//////////////////////////////////////
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      child: ListView(
+                        scrollDirection: Axis.vertical,
+                        physics: ClampingScrollPhysics(),
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            child: Text(
+                              "Title",
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 16.0),
+                            ),
+                          ),
+                          TextFormField(
+                            onChanged: (value) {
+                              setState(() {
+                                certTitle = value;
+                              });
+                            },
+                            style: TextStyle(
+                              color: Theme.of(context).textTheme.caption.color,
+                            ),
+                            cursorColor:
+                                Theme.of(context).textTheme.caption.color,
+                            decoration: InputDecoration(
+                                hintText: certificateDetails['title'],
+                                border: OutlineInputBorder(),
+                                labelText: certificateDetails['title']),
+                            maxLines: 1,
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Center(
+                            child: Container(
+                              width: MediaQuery.of(context).size.width * 0.9,
+                              child: FadeInImage(
+                                  fit: BoxFit.cover,
+                                  fadeInDuration: Duration(milliseconds: 1000),
+                                  image: NetworkImage(
+                                      "https://staging.ellipseapp.com/static/media/certificate_sample.987b5a91.png"),
+                                  placeholder:
+                                      AssetImage('assets/icons/loading.gif')),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Center(
+                            child: OutlineButton(
+                              onPressed: () {
+                                updateCertDetails(_event.id,
+                                    certTitle == "" ? _event.name : certTitle);
+                              },
+                              child: Text(
+                                "Update",
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               );

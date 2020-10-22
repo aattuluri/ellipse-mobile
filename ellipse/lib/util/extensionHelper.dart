@@ -35,9 +35,9 @@ extension DateFormatter on String {
     }
     if (hour > 12) {
       hour = hour - 12;
-      type = "pm";
+      type = "PM";
     } else {
-      type = "am";
+      type = "AM";
     }
     String shour = hour.toString();
     if (shour.length == 1) {
@@ -46,9 +46,9 @@ extension DateFormatter on String {
       shour = "$shour";
     }
     DateTime Date = DateTime(year, month, day, weekday);
-    String D = DateFormat('dd MMMM yyyy,EEE').format(Date);
-
-    String fullDate = D + "-" "$shour:$minute $type".toString();
+    String D = DateFormat('dd MMMM yyyy').format(Date);
+    String fullDate = D + " " "$shour:$minute $type".toString();
+    //String fullDate = D + "-" "$shour:$minute $type".toString();
     return fullDate;
   }
 }

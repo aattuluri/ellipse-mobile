@@ -146,6 +146,7 @@ class _PostEventState extends State<PostEvent>
   }
 
   var _nameController = new TextEditingController();
+  var _aboutController = new TextEditingController();
   var _descriptionController = new TextEditingController();
   var _start_timeController = new TextEditingController();
   var _finish_timeController = new TextEditingController();
@@ -229,6 +230,7 @@ class _PostEventState extends State<PostEvent>
     if (_imageFile == null ||
         _nameController.text.isNullOrEmpty() ||
         _descriptionController.text.isNullOrEmpty() ||
+        _aboutController.text.isNullOrEmpty() ||
         event_type.isNullOrEmpty() ||
         // isEmptyList(selected_requirements) ||
         // isEmptyList(selected_themes) ||
@@ -272,7 +274,7 @@ class _PostEventState extends State<PostEvent>
           "college_id": "$_college",
           "name": _nameController.text,
           "description": _descriptionController.text,
-          "about": _descriptionController.text,
+          "about": _aboutController.text,
           "event_type": "$event_type",
           "event_mode": "$event_mode",
           "fee_type": "$payment_type",
@@ -349,7 +351,7 @@ class _PostEventState extends State<PostEvent>
   @override
   Widget build(BuildContext context) {
     if (_isUploading) {
-      return LoaderCircular(0.4);
+      return LoaderCircular(0.25, "Uploading");
     } else {
       return Consumer<DataRepository>(
         builder: (context, model, child) => Scaffold(
@@ -492,7 +494,7 @@ class _PostEventState extends State<PostEvent>
                           padding: const EdgeInsets.all(15.0),
                           child: Column(
                             children: <Widget>[
-                              CardPage1.body(
+                              CardPage.body(
                                 title: "Event Poster",
                                 body: RowLayout(
                                   children: <Widget>[
@@ -578,7 +580,7 @@ class _PostEventState extends State<PostEvent>
                           padding: const EdgeInsets.all(15.0),
                           child: Column(
                             children: <Widget>[
-                              CardPage1.body(
+                              CardPage.body(
                                 title: "Event Details",
                                 body: RowLayout(children: <Widget>[
                                   TextFormField(
@@ -588,12 +590,6 @@ class _PostEventState extends State<PostEvent>
                                           .caption
                                           .color,
                                     ),
-                                    validator: (e) {
-                                      if (e.isEmpty) {
-                                        return "Please enter name";
-                                      }
-                                    },
-                                    onSaved: (e) => e,
                                     controller: _nameController,
                                     cursorColor: Theme.of(context)
                                         .textTheme
@@ -611,12 +607,23 @@ class _PostEventState extends State<PostEvent>
                                           .caption
                                           .color,
                                     ),
-                                    validator: (e) {
-                                      if (e.isEmpty) {
-                                        return "Please enter description";
-                                      }
-                                    },
-                                    onSaved: (e) => e,
+                                    controller: _aboutController,
+                                    cursorColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    decoration: InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        labelText: "About"),
+                                    maxLines: 6,
+                                  ),
+                                  TextFormField(
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color,
+                                    ),
                                     controller: _descriptionController,
                                     cursorColor: Theme.of(context)
                                         .textTheme
@@ -690,7 +697,7 @@ class _PostEventState extends State<PostEvent>
                                   ),
                                 ]),
                               ),
-                              CardPage1.body(
+                              CardPage.body(
                                 body: RowLayout(children: <Widget>[
                                   Text(
                                     'Other college students allowed?',
@@ -799,7 +806,7 @@ class _PostEventState extends State<PostEvent>
                           padding: const EdgeInsets.all(15.0),
                           child: Column(
                             children: <Widget>[
-                              CardPage1.body(
+                              CardPage.body(
                                 title: "Requirements",
                                 body: RowLayout(
                                   children: <Widget>[
@@ -983,7 +990,7 @@ class _PostEventState extends State<PostEvent>
                                   ],
                                 ),
                               ),
-                              CardPage1.body(
+                              CardPage.body(
                                 title: "Tags",
                                 body: RowLayout(
                                   children: <Widget>[
@@ -1164,7 +1171,7 @@ class _PostEventState extends State<PostEvent>
                                   ],
                                 ),
                               ),
-                              CardPage1.body(
+                              CardPage.body(
                                 title: "Mode",
                                 body: RowLayout(children: <Widget>[
                                   Row(
@@ -1263,7 +1270,7 @@ class _PostEventState extends State<PostEvent>
                                 ]),
                               ),
                               offline
-                                  ? CardPage1.body(
+                                  ? CardPage.body(
                                       title: "Venue",
                                       body: RowLayout(children: <Widget>[
                                         TextFormField(
@@ -1287,7 +1294,7 @@ class _PostEventState extends State<PostEvent>
                                       ]),
                                     )
                                   : online
-                                      ? CardPage1.body(
+                                      ? CardPage.body(
                                           title: "Platform",
                                           body: RowLayout(children: <Widget>[
                                             TextFormField(
@@ -1312,7 +1319,7 @@ class _PostEventState extends State<PostEvent>
                                           ]),
                                         )
                                       : Container(),
-                              CardPage1.body(
+                              CardPage.body(
                                 title: "Payment",
                                 body: RowLayout(children: <Widget>[
                                   Row(
@@ -1443,7 +1450,7 @@ class _PostEventState extends State<PostEvent>
                           padding: const EdgeInsets.all(15.0),
                           child: Column(
                             children: <Widget>[
-                              CardPage1.body(
+                              CardPage.body(
                                 title: "Date and Time Details",
                                 body: RowLayout(
                                   children: <Widget>[
@@ -1627,7 +1634,7 @@ class _PostEventState extends State<PostEvent>
                                   ],
                                 ),
                               ),
-                              CardPage1.body(
+                              CardPage.body(
                                 body: RowLayout(children: <Widget>[
                                   Text(
                                     'Event Registration Mode',
@@ -1739,7 +1746,7 @@ class _PostEventState extends State<PostEvent>
                                 ]),
                               ),
                               link
-                                  ? CardPage1.body(
+                                  ? CardPage.body(
                                       title: "Event Registration Link",
                                       body: RowLayout(children: <Widget>[
                                         TextFormField(
@@ -1775,7 +1782,7 @@ class _PostEventState extends State<PostEvent>
                                     )
                                   : Container(),
                               form
-                                  ? CardPage1.body(
+                                  ? CardPage.body(
                                       title: "Event Registration Form",
                                       body: RowLayout(children: <Widget>[
                                         Container(

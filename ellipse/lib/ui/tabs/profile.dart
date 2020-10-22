@@ -166,20 +166,7 @@ class _ProfileTabState extends State<ProfileTab> with TickerProviderStateMixin {
             }),
             ProfileViewItem(LineIcons.certificate, 'Certificates', true,
                 () async {
-              //  'http://staging.ellipseapp.com:4000/api/image?id=f7f28f1ef5ea02fe0743064e585fc9f4'
-              //.launchUrl;
-              /* FlutterWebBrowser.openWebPage(
-                url:
-                    'http://staging.ellipseapp.com:4000/api/image?id=f7f28f1ef5ea02fe0743064e585fc9f4',
-                androidToolbarColor: Theme.of(context).primaryColor,
-              );*/
               Navigator.pushNamed(context, Routes.certificates);
-              /* Navigator.pushNamed(context, Routes.pdfView, arguments: {
-                'title': "certificate",
-                'link':
-                    'http://staging.ellipseapp.com:4000/api/image?id=f7f28f1ef5ea02fe0743064e585fc9f4'
-              });
-*/
             }),
           ],
         ),

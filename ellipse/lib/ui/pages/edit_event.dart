@@ -34,7 +34,7 @@ class _EditEventState extends State<EditEvent> {
   final List<String> _themes = ["Coding", "Writing"];
   List<dynamic> selected_requirements = [];
   List<dynamic> selected_themes = [];
-  bool o_allowed;
+  bool o_allowed = null;
   String event_mode = "";
   String payment_type = "";
   String _college;
@@ -74,6 +74,7 @@ class _EditEventState extends State<EditEvent> {
 
   var _nameController = new TextEditingController();
   var _descriptionController = new TextEditingController();
+  var _aboutController = new TextEditingController();
   var _start_timeController = new TextEditingController();
   var _finish_timeController = new TextEditingController();
   var _event_typeController = new TextEditingController();
@@ -137,6 +138,7 @@ class _EditEventState extends State<EditEvent> {
   edit_event(String id, bool o_allowed_) async {
     if (_nameController.text.isNullOrEmpty() ||
         _descriptionController.text.isNullOrEmpty() ||
+        _aboutController.text.isNullOrEmpty() ||
         //isEmptyList(selected_requirements) ||
         //isEmptyList(selected_themes) ||
         _start_timeController.text.isNullOrEmpty() ||
@@ -167,6 +169,7 @@ class _EditEventState extends State<EditEvent> {
       String p_t =
           payment_type != "" ? payment_type : _payment_typeController.text;
       String e_t = event_type == null ? _event_typeController.text : event_type;
+      bool o_a = o_allowed == null ? o_allowed_ : o_allowed;
       var response = await http.post(
         '${Url.URL}/api/updateevent',
         headers: <String, String>{
@@ -184,9 +187,9 @@ class _EditEventState extends State<EditEvent> {
           "event_type": "$e_t",
           "reg_link": _reg_linkController.text,
           "fee": _registration_feeController.text,
-          "about": _descriptionController.text,
+          "about": _aboutController.text,
           "fee_type": "$p_t",
-          "o_allowed": o_allowed_,
+          "o_allowed": o_a,
           "requirements": selected_requirements,
           "tags": selected_themes,
           'venue_type': _venueController.text,
@@ -274,6 +277,7 @@ class _EditEventState extends State<EditEvent> {
     _nameController = TextEditingController(text: _event.name);
     _descriptionController =
         new TextEditingController(text: _event.description);
+    _aboutController = new TextEditingController(text: _event.about);
     _event_typeController = new TextEditingController(text: _event.event_type);
     _start_timeController =
         new TextEditingController(text: _event.start_time.toString());
@@ -295,7 +299,7 @@ class _EditEventState extends State<EditEvent> {
     this.setState(() => selected_themes = _event.tags);
 
     return _isUploading
-        ? LoaderCircular(0.4)
+        ? LoaderCircular(0.25, "Uploading")
         : Consumer<DataRepository>(
             builder: (context, model, child) => Container(
               height: double.infinity,
@@ -308,7 +312,7 @@ class _EditEventState extends State<EditEvent> {
                     padding: const EdgeInsets.symmetric(horizontal: 5),
                     child: Column(
                       children: [
-                        CardPage1.body(
+                        CardPage.body(
                           title: "Event Poster",
                           body: RowLayout(
                             children: <Widget>[
@@ -368,7 +372,7 @@ class _EditEventState extends State<EditEvent> {
                             ],
                           ),
                         ),
-                        CardPage1.body(
+                        CardPage.body(
                           title: "Event Details",
                           body: RowLayout(children: <Widget>[
                             TextFormField(
@@ -376,12 +380,6 @@ class _EditEventState extends State<EditEvent> {
                                 color:
                                     Theme.of(context).textTheme.caption.color,
                               ),
-                              validator: (e) {
-                                if (e.isEmpty) {
-                                  return "Please enter name";
-                                }
-                              },
-                              onSaved: (e) => e,
                               controller: _nameController,
                               cursorColor:
                                   Theme.of(context).textTheme.caption.color,
@@ -395,12 +393,19 @@ class _EditEventState extends State<EditEvent> {
                                 color:
                                     Theme.of(context).textTheme.caption.color,
                               ),
-                              validator: (e) {
-                                if (e.isEmpty) {
-                                  return "Please enter description";
-                                }
-                              },
-                              onSaved: (e) => e,
+                              controller: _aboutController,
+                              cursorColor:
+                                  Theme.of(context).textTheme.caption.color,
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: "About"),
+                              maxLines: 6,
+                            ),
+                            TextFormField(
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
+                              ),
                               controller: _descriptionController,
                               cursorColor:
                                   Theme.of(context).textTheme.caption.color,
@@ -471,7 +476,7 @@ class _EditEventState extends State<EditEvent> {
                             ),
                           ]),
                         ),
-                        CardPage1.body(
+                        CardPage.body(
                           body: RowLayout(children: <Widget>[
                             Text(
                               'Other college students allowed?',
@@ -496,11 +501,13 @@ class _EditEventState extends State<EditEvent> {
                                           Theme.of(context).primaryColor,
                                       focusColor:
                                           Theme.of(context).primaryColor,
-                                      value: _event.o_allowed == true
-                                          ? true
-                                          : false,
+                                      value: o_allowed == null
+                                          ? _event.o_allowed
+                                          : o_allowed,
                                       onChanged: (value) {
-                                        setState(() {});
+                                        setState(() {
+                                          o_allowed = true;
+                                        });
                                       },
                                       activeColor: Theme.of(context)
                                           .textTheme
@@ -533,9 +540,9 @@ class _EditEventState extends State<EditEvent> {
                                           Theme.of(context).primaryColor,
                                       focusColor:
                                           Theme.of(context).primaryColor,
-                                      value: _event.o_allowed == true
-                                          ? false
-                                          : true,
+                                      value: o_allowed == null
+                                          ? !_event.o_allowed
+                                          : !o_allowed,
                                       onChanged: (value) {
                                         setState(() {
                                           o_allowed = false;
@@ -568,7 +575,7 @@ class _EditEventState extends State<EditEvent> {
                             ),
                           ]),
                         ),
-                        CardPage1.body(
+                        CardPage.body(
                           title: "Requirements",
                           body: RowLayout(
                             children: <Widget>[
@@ -739,7 +746,7 @@ class _EditEventState extends State<EditEvent> {
                             ],
                           ),
                         ),
-                        CardPage1.body(
+                        CardPage.body(
                           title: "Tags",
                           body: RowLayout(
                             children: <Widget>[
@@ -908,7 +915,7 @@ class _EditEventState extends State<EditEvent> {
                             ],
                           ),
                         ),
-                        CardPage1.body(
+                        CardPage.body(
                           title: "Mode",
                           body: RowLayout(children: <Widget>[
                             Row(
@@ -1004,7 +1011,7 @@ class _EditEventState extends State<EditEvent> {
                         (event_mode == "" &&
                                     _event_modeController.text == "Offline") ||
                                 (event_mode == "Offline")
-                            ? CardPage1.body(
+                            ? CardPage.body(
                                 title: "Venue",
                                 body: RowLayout(children: <Widget>[
                                   TextFormField(
@@ -1031,7 +1038,7 @@ class _EditEventState extends State<EditEvent> {
                                         _event_modeController.text ==
                                             "Offline") ||
                                     (event_mode == "Online")
-                                ? CardPage1.body(
+                                ? CardPage.body(
                                     title: "Platform",
                                     body: RowLayout(children: <Widget>[
                                       TextFormField(
@@ -1055,7 +1062,7 @@ class _EditEventState extends State<EditEvent> {
                                     ]),
                                   )
                                 : Container(),
-                        CardPage1.body(
+                        CardPage.body(
                           title: "Payment",
                           body: RowLayout(children: <Widget>[
                             Row(
@@ -1171,7 +1178,7 @@ class _EditEventState extends State<EditEvent> {
                                 : Container(),
                           ]),
                         ),
-                        CardPage1.body(
+                        CardPage.body(
                           title: "Date and Time Details",
                           body: RowLayout(
                             children: <Widget>[
@@ -1330,7 +1337,7 @@ class _EditEventState extends State<EditEvent> {
                           ),
                         ),
                         _event.reg_mode == "link"
-                            ? CardPage1.body(
+                            ? CardPage.body(
                                 title: "Event Registration Link",
                                 body: RowLayout(children: <Widget>[
                                   TextFormField(

@@ -32,17 +32,7 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
 
   TextEditingController currController = new TextEditingController();
 
-  //String token = "", id = "", email = "", verification_email = "";
   bool email_sent = false;
-
-  /* getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      email = preferences.getString("email");
-      id = preferences.getString("id");
-      token = preferences.getString("token");
-    });
-  }*/
 
   void matchOtp_reset_password() async {
     String otp = controller1.text +
@@ -116,7 +106,6 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
   @override
   void initState() {
     loadPref();
-    //getPref();
     super.initState();
     currController = controller1;
   }
@@ -770,7 +759,7 @@ class _CheckState extends State<Check> {
         Navigator.pushNamed(
           context,
           Routes.start,
-          arguments: {'current_tab': 0, 'load': true},
+          arguments: {'current_tab': 0},
         );
       } else {
         print(response.body);

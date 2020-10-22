@@ -4,6 +4,7 @@ class Events {
       college_id,
       college_name,
       name,
+      about,
       description,
       imageUrl,
       event_type,
@@ -16,9 +17,10 @@ class Events {
       reg_link,
       share_link,
       status;
-  bool registered;
-  final bool o_allowed;
-  final List requirements, tags, reg_fields;
+  bool moderator;
+  final Object certificate;
+  final bool o_allowed, registered;
+  final List requirements, tags, reg_fields, moderators;
   final DateTime start_time, finish_time, reg_last_date, posted_on;
 
   Events(
@@ -27,6 +29,7 @@ class Events {
       this.college_id,
       this.college_name,
       this.name,
+      this.about,
       this.description,
       this.imageUrl,
       this.event_type,
@@ -45,8 +48,11 @@ class Events {
       this.reg_fields,
       this.reg_last_date,
       this.registered,
+      this.certificate,
       this.share_link,
       this.status,
+      this.moderator,
+      this.moderators,
       this.posted_on});
 
   factory Events.fromJson(Map<String, dynamic> json) {
@@ -59,8 +65,10 @@ class Events {
         college_id: json['college_id'],
         college_name: json['college_name'],
         name: json['name'],
+        about: json['about'],
         description: json['description'],
         imageUrl: json['poster_url'],
+        moderators: json['moderators'],
         event_type: json['event_type'],
         event_mode: json['event_mode'],
         reg_mode: json['reg_mode'],
@@ -74,10 +82,12 @@ class Events {
         reg_fields: json['reg_fields'],
         reg_link: json['reg_link'],
         status: json['status'],
+        certificate: json['certificate'],
         share_link: json['share_link'],
+        registered: json['registered'],
         start_time: DateTime.parse(s_time).toLocal(),
         finish_time: DateTime.parse(f_time).toLocal(),
         reg_last_date: DateTime.parse(r_l_time).toLocal(),
-        registered: false);
+        moderator: false);
   }
 }

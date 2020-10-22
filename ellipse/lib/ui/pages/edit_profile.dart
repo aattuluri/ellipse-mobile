@@ -186,6 +186,7 @@ class _EditProfileState extends State<EditProfile> {
             final streamedResponse = await imageUploadRequest.send();
             final response1 = await http.Response.fromStream(streamedResponse);
             if (response1.statusCode == 200) {
+              context.read<UserDetailsRepository>().refreshData();
               Navigator.of(context).pop(true);
               setState(() {
                 _isUploading = false;
@@ -202,12 +203,6 @@ class _EditProfileState extends State<EditProfile> {
           });
           context.read<UserDetailsRepository>().refreshData();
           Navigator.of(context).pop(true);
-          /*
-          _scaffoldKey.currentState.showSnackBar(SnackBar(
-            content: Text("Profile Updated"),
-            duration: Duration(seconds: 2),
-          ));
-          */
         }
       } else {
         setState(() {
@@ -237,7 +232,7 @@ class _EditProfileState extends State<EditProfile> {
     _bioController = new TextEditingController(text: _userdetails.bio);
 
     return _isUploading
-        ? LoaderCircular(0.4)
+        ? LoaderCircular(0.25, "Uploading")
         : Scaffold(
             appBar: AppBar(
               iconTheme: Theme.of(context).iconTheme,

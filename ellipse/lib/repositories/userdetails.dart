@@ -11,7 +11,7 @@ import 'base.dart';
 import 'index.dart';
 
 class UserDetailsRepository extends BaseRepository {
-  List<UserDetails> allUserDetails;
+  List<UserDetails> allUserDetails = [];
   @override
   Future<void> loadData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

@@ -10,7 +10,7 @@ import 'base.dart';
 import 'index.dart';
 
 class DataRepository extends BaseRepository {
-  List<Data1> allData1;
+  List<Data1> allData1 = [];
   List<String> requirements = [];
   List<String> tags = [];
   List<String> eventTypes = [];
@@ -45,7 +45,9 @@ class DataRepository extends BaseRepository {
           eventTypes.add(title);
         } else {}
       }
-
+      requirements = requirements.toSet().toList();
+      tags = tags.toSet().toList();
+      eventTypes = eventTypes.toSet().toList();
       print("Data loaded");
     } catch (_) {
       receivedError();

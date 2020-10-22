@@ -703,7 +703,7 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                child: CardPage1.body(
+                child: CardPage.body(
                   title: "Choose below fields if you need",
                   body: RowLayout(children: <Widget>[
                     Wrap(
@@ -779,7 +779,7 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                child: CardPage1.body(
+                child: CardPage.body(
                   title: "Form",
                   body: RowLayout(
                     children: <Widget>[

@@ -4,12 +4,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class LoaderCircular extends StatefulWidget {
+  final String text;
   final double value;
   final Color color1;
   final Color color2;
   final Color color3;
 
-  LoaderCircular(this.value,
+  LoaderCircular(this.value, this.text,
       {this.color1 = Colors.deepOrangeAccent,
       this.color2 = Colors.yellow,
       this.color3 = Colors.lightGreen});
@@ -61,38 +62,48 @@ class _LoaderCircularState extends State<LoaderCircular>
     return Scaffold(
       body: Center(
         child: Container(
-          child: Stack(
-            children: <Widget>[
-              new RotationTransition(
-                turns: animation1,
-                child: CustomPaint(
-                  painter: Arc1Painter(widget.color1),
-                  child: Container(
-                    width: s,
-                    height: s,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                children: <Widget>[
+                  new RotationTransition(
+                    turns: animation1,
+                    child: CustomPaint(
+                      painter: Arc1Painter(widget.color1),
+                      child: Container(
+                        width: s,
+                        height: s,
+                      ),
+                    ),
                   ),
-                ),
+                  new RotationTransition(
+                    turns: animation2,
+                    child: CustomPaint(
+                      painter: Arc2Painter(widget.color2),
+                      child: Container(
+                        width: s,
+                        height: s,
+                      ),
+                    ),
+                  ),
+                  new RotationTransition(
+                    turns: animation3,
+                    child: CustomPaint(
+                      painter: Arc3Painter(widget.color3),
+                      child: Container(
+                        width: s,
+                        height: s,
+                      ),
+                    ),
+                  )
+                ],
               ),
-              new RotationTransition(
-                turns: animation2,
-                child: CustomPaint(
-                  painter: Arc2Painter(widget.color2),
-                  child: Container(
-                    width: s,
-                    height: s,
-                  ),
-                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Text(widget.text),
               ),
-              new RotationTransition(
-                turns: animation3,
-                child: CustomPaint(
-                  painter: Arc3Painter(widget.color3),
-                  child: Container(
-                    width: s,
-                    height: s,
-                  ),
-                ),
-              )
             ],
           ),
         ),

@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../util/index.dart';
 import '../../util/routes.dart';
 import '../screens/index.dart';
+import '../widgets/index.dart';
 
 class ResetPassword extends StatefulWidget {
   final String type;
@@ -36,7 +37,7 @@ class _ResetPasswordState extends State<ResetPassword> {
   }
 
   reset_password() async {
-    if (password.isNullOrEmpty() && password.validLength(5)) {
+    if (password.isNullOrEmpty() && password.validLength(6)) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -91,10 +92,6 @@ class _ResetPasswordState extends State<ResetPassword> {
             key: _key,
             child: Stack(
               children: <Widget>[
-                Positioned(
-                    top: 10,
-                    right: -MediaQuery.of(context).size.width * .4,
-                    child: Container()),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 20),
                   child: SingleChildScrollView(
@@ -274,20 +271,36 @@ class _ResetPasswordState extends State<ResetPassword> {
                                               ),
                                             ),
                                             onPressed: () async {
-                                              SharedPreferences
-                                                  sharedPreferences =
-                                                  await SharedPreferences
-                                                      .getInstance();
-                                              sharedPreferences.setString(
-                                                  "verification_email", email);
-                                              var route = new MaterialPageRoute(
-                                                builder:
-                                                    (BuildContext context) =>
-                                                        OtpPageEmailVerify(
-                                                            email.trim(),
-                                                            "reset_password"),
-                                              );
-                                              Navigator.of(context).push(route);
+                                              Map data = {'email': email};
+                                              http.Response response =
+                                                  await http.post(
+                                                      "${Url.URL}/api/check_email_exists",
+                                                      body: data);
+                                              if (response.statusCode == 200) {
+                                                SharedPreferences
+                                                    sharedPreferences =
+                                                    await SharedPreferences
+                                                        .getInstance();
+                                                sharedPreferences.setString(
+                                                    "verification_email",
+                                                    email);
+                                                var route =
+                                                    new MaterialPageRoute(
+                                                  builder:
+                                                      (BuildContext context) =>
+                                                          OtpPageEmailVerify(
+                                                              email.trim(),
+                                                              "reset_password"),
+                                                );
+                                                Navigator.of(context)
+                                                    .push(route);
+                                              } else if (response.statusCode ==
+                                                  201) {
+                                                alertDialog(
+                                                    context,
+                                                    "Reset Password",
+                                                    "Email does not exist");
+                                              }
                                             },
                                           ),
                                         ),

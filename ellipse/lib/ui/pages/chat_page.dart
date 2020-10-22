@@ -14,8 +14,6 @@ import 'package:meta/meta.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/io.dart';
-import 'package:web_socket_channel/status.dart' as status;
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../../models/index.dart';
 import '../../repositories/index.dart';
@@ -30,7 +28,7 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  WebSocketChannel channel;
+  IOWebSocketChannel channel;
   bool isLoading = false;
   ScrollController scrollController;
   bool message = false;
@@ -137,7 +135,15 @@ class _ChatPageState extends State<ChatPage> {
     setState(() {
       textController.text = "";
     });
-    channel = IOWebSocketChannel.connect('${Url.WEBSOCKET_URL}');
+    /*
+      Map headers = new Map<String,dynamic>();
+    headers["XXXXXX"] = "XXXX";
+    headers["XXXXXX"] = "13";
+    headers["Origin"] = "XXXXXX";
+    headers["Authorization"] = "XXXXXX";
+   */
+    channel = IOWebSocketChannel.connect('${Url.WEBSOCKET_URL}',
+        headers: {'X-Client-Version': prefId});
     channel.stream.listen((data) {
       var response = json.decode(data);
       String action = response['action'];
@@ -211,7 +217,7 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   void dispose() {
-    channel.sink.close(status.goingAway);
+    channel.sink.close();
     super.dispose();
   }
 
@@ -293,7 +299,7 @@ class _ChatPageState extends State<ChatPage> {
     final UserDetails _userdetails =
         context.watch<UserDetailsRepository>().getUserDetails(0);
     return isLoading
-        ? LoaderCircular(0.4)
+        ? LoaderCircular(0.25, "Loading")
         : Container(
             height: double.infinity,
             width: double.infinity,

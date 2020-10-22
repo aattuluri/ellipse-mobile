@@ -56,7 +56,7 @@ class _ParticipantsState extends State<Participants>
   @override
   Widget build(BuildContext context) {
     return isloading
-        ? LoaderCircular(0.4)
+        ? LoaderCircular(0.25, "Loading")
         : participants.isEmpty
             ? Container(
                 height: double.infinity,

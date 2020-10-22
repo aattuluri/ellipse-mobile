@@ -1,0 +1,236 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../util/index.dart';
+
+class Intro extends StatefulWidget {
+  @override
+  _IntroState createState() => _IntroState();
+}
+
+class _IntroState extends State<Intro> {
+  int currentPage = 0;
+  PageController _pageController;
+
+  @override
+  void initState() {
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    _pageController = new PageController(
+      initialPage: 0,
+      keepPage: true,
+    );
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+    return WillPopScope(
+      onWillPop: () async {
+        return false;
+      },
+      child: SafeArea(
+        child: Scaffold(
+          body: Container(
+            height: h,
+            child: Column(
+              children: [
+                Container(
+                  height: h * 0.10,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 5),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        FlatButton(
+                          onPressed: () {
+                            if (currentPage == 0) {
+                            } else {
+                              _pageController.animateToPage(currentPage - 1,
+                                  duration: Duration(milliseconds: 200),
+                                  curve: Curves.linear);
+                            }
+                          },
+                          child: Text(
+                            "back",
+                          ),
+                        ),
+                        FlatButton(
+                          onPressed: () async {
+                            SharedPreferences prefs =
+                                await SharedPreferences.getInstance();
+                            bool loggedin =
+                                (prefs.getBool('loggedIn') ?? false);
+                            if (loggedin) {
+                              Navigator.pushNamed(
+                                context,
+                                Routes.start,
+                                arguments: {'current_tab': 0},
+                              );
+                            } else {
+                              Navigator.pushNamed(context, Routes.signin);
+                            }
+                          },
+                          child: Text(
+                            "skip",
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Container(),
+                ),
+                Container(
+                  height: h * 0.60,
+                  child: PageView(
+                    controller: _pageController,
+                    children: [
+                      onBoardPage(
+                          "event.svg", "All your college events at one place"),
+                      onBoardPage("add.svg",
+                          "Post your events and manage events easily"),
+                      onBoardPage("certificate.svg",
+                          "Easy to manage registration forms and certificates"),
+                      onBoardPage(
+                          "dashboard.svg", "Feature rich dashboard for admins"),
+                    ],
+                    onPageChanged: (value) => {setCurrentPage(value)},
+                  ),
+                ),
+                Expanded(
+                  child: Container(),
+                ),
+                Container(
+                  height: h * 0.05,
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children:
+                          List.generate(4, (index) => getIndicator(index))),
+                ),
+                Expanded(
+                  child: Container(),
+                ),
+                Container(
+                  height: h * 0.15,
+                  child: GestureDetector(
+                    onTap: () async {
+                      print(currentPage);
+                      if (currentPage == 3) {
+                        SharedPreferences prefs =
+                            await SharedPreferences.getInstance();
+                        bool loggedin = (prefs.getBool('loggedIn') ?? false);
+                        if (loggedin) {
+                          Navigator.pushNamed(
+                            context,
+                            Routes.start,
+                            arguments: {'current_tab': 0},
+                          );
+                        } else {
+                          Navigator.pushNamed(context, Routes.signin);
+                        }
+                      } else {
+                        _pageController.animateToPage(currentPage + 1,
+                            duration: Duration(milliseconds: 200),
+                            curve: Curves.linear);
+                      }
+                    },
+                    child: Container(
+                      height: w * 0.15,
+                      width: w * 0.15,
+                      decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Theme.of(context).accentColor),
+                      child: Icon(
+                        Icons.arrow_forward,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  setCurrentPage(int value) {
+    setState(() {
+      currentPage = value;
+    });
+  }
+
+  AnimatedContainer getIndicator(int pageNo) {
+    return AnimatedContainer(
+        duration: Duration(milliseconds: 100),
+        height: 10,
+        width: (currentPage == pageNo) ? 20 : 10,
+        margin: EdgeInsets.symmetric(horizontal: 5),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(5)),
+            color: (currentPage == pageNo)
+                ? Theme.of(context).accentColor
+                : Theme.of(context).textTheme.caption.color.withOpacity(0.6)));
+  }
+
+  Column onBoardPage(String filename, String title) {
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: SvgPicture.asset(
+            'assets/svg/$filename',
+            colorBlendMode: BlendMode.srcATop,
+            alignment: Alignment.center,
+            width: w * 0.65,
+            //height: w * 0.65,
+          ),
+          /* FlareActor(
+            'assets/flares/$filename.svg',
+            alignment: Alignment.center,
+            animation: 'logo',
+            fit: BoxFit.cover,
+          ),
+          */
+        ),
+        /* Icon(
+            icon,
+            size: 50,
+            color: Theme.of(context).textTheme.bodyText1.color,
+          ),
+          */
+
+        Container(
+          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.comfortaa(
+                fontSize: 30, fontWeight: FontWeight.w500),
+          ),
+        ),
+        /*Container(
+          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 40),
+          child: Text(
+            "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text",
+            style: TextStyle(fontSize: 16, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+        )*/
+      ],
+    );
+  }
+}

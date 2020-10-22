@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../repositories/index.dart';
@@ -18,8 +19,8 @@ class NotificationsTab extends StatefulWidget {
 class _NotificationsTabState extends State<NotificationsTab> {
   @override
   void initState() {
-    updateSeenNotifications(context);
     context.read<NotificationsRepository>().refreshData();
+    updateSeenNotifications(context);
     super.initState();
   }
 
@@ -45,12 +46,18 @@ class _NotificationsTabState extends State<NotificationsTab> {
             actions: [
               IconButton(
                   icon: Icon(
-                    Icons.autorenew,
+                    LineIcons.refresh,
                     color: Theme.of(context).textTheme.caption.color,
                     size: 27,
                   ),
                   onPressed: () {
                     context.read<NotificationsRepository>().refreshData();
+                    Scaffold.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Notifications Refreshed"),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
                   }),
             ],
             automaticallyImplyLeading: false,
@@ -81,7 +88,7 @@ class _NotificationsTabState extends State<NotificationsTab> {
                                 status: model.allNotifications[i].status,
                                 onTap: () {
                                   final _event = context
-                                      .read<EventsRepository>()
+                                      .watch<EventsRepository>()
                                       .getEventIndex(
                                           model.allNotifications[i].event_id);
 

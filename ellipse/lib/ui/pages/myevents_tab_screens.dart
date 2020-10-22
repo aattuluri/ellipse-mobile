@@ -203,6 +203,8 @@ class _AnnouncementsState extends State<Announcements>
 
   @override
   Widget build(BuildContext context) {
+    final Events _event =
+        context.watch<EventsRepository>().getEvent(widget.index);
     return Container(
       height: double.infinity,
       width: double.infinity,
@@ -217,105 +219,114 @@ class _AnnouncementsState extends State<Announcements>
                 itemCount: data.length,
                 itemBuilder: (context, index) {
                   final _time = DateTime.parse(data[index].time);
-                  return Container(
-                    margin:
-                        EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-                    padding: EdgeInsets.all(10.0),
-                    width: MediaQuery.of(context).size.width,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .textTheme
-                          .caption
-                          .color
-                          .withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        SizedBox(
-                          width: 5.0,
-                        ),
-                        Container(
-                          child: Icon(Icons.speaker_notes, size: 23),
-                        ),
-                        SizedBox(
-                          width: 15.0,
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              data[index].title,
-                              style: TextStyle(
-                                  fontSize: 20.0, fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(
-                              height: 10.0,
-                            ),
-                            Container(
-                              width: MediaQuery.of(context).size.width * 0.7,
-                              child: Text(
-                                data[index].description,
-                                style: TextStyle(fontSize: 15.0),
+                  return data[index].visible == false &&
+                          _event.registered == false &&
+                          !_event.moderator
+                      ? SizedBox.shrink()
+                      : Container(
+                          margin: EdgeInsets.symmetric(
+                              vertical: 10.0, horizontal: 10.0),
+                          padding: EdgeInsets.all(10.0),
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .textTheme
+                                .caption
+                                .color
+                                .withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              SizedBox(
+                                width: 5.0,
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 5),
-                              child: Text(
-                                _time.toString().toDate(context),
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontFamily: 'ProductSans',
-                                  //color: Tools.multiColors[Random().nextInt(5)]
-                                ),
+                              Container(
+                                child: Icon(Icons.speaker_notes, size: 23),
                               ),
-                            ),
-                            SizedBox(
-                              height: 15.0,
-                            ),
-                          ],
-                        ),
-                        Spacer(),
-                        widget.type == "admin"
-                            ? Padding(
-                                padding: const EdgeInsets.only(right: 5),
-                                child: InkWell(
-                                    onTap: () {
-                                      generalSheet(
-                                        context,
-                                        title: data[index].title,
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          children: [
-                                            _item(
-                                              Icons.delete_outline,
-                                              "Delete",
-                                              () {
-                                                Navigator.of(context).pop(true);
-                                                deleteAnnouncement(
-                                                    data[index].id, widget.id);
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                    child: Icon(Icons.more_vert, size: 25)),
-                              )
-                            : SizedBox.shrink()
-                      ],
-                    ),
-                  );
+                              SizedBox(
+                                width: 15.0,
+                              ),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    data[index].title,
+                                    style: TextStyle(
+                                        fontSize: 20.0,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  SizedBox(
+                                    height: 10.0,
+                                  ),
+                                  Container(
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.7,
+                                    child: Text(
+                                      data[index].description,
+                                      style: TextStyle(fontSize: 15.0),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 5),
+                                    child: Text(
+                                      _time.toString().toDate(context),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontFamily: 'ProductSans',
+                                        //color: Tools.multiColors[Random().nextInt(5)]
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 15.0,
+                                  ),
+                                ],
+                              ),
+                              Spacer(),
+                              widget.type == "admin"
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(right: 5),
+                                      child: InkWell(
+                                          onTap: () {
+                                            generalSheet(
+                                              context,
+                                              title: data[index].title,
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                children: [
+                                                  _item(
+                                                    Icons.delete_outline,
+                                                    "Delete",
+                                                    () {
+                                                      Navigator.of(context)
+                                                          .pop(true);
+                                                      deleteAnnouncement(
+                                                          data[index].id,
+                                                          widget.id);
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                          child:
+                                              Icon(Icons.more_vert, size: 25)),
+                                    )
+                                  : SizedBox.shrink()
+                            ],
+                          ),
+                        );
                 });
           } else if (snapshot.hasError) {
             return Text("${snapshot.error}");
           }
-          return LoaderCircular(0.4);
+          return LoaderCircular(0.25, "Loading");
         },
       ),
     );

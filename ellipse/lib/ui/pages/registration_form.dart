@@ -343,7 +343,6 @@ class _RegistrationFormState extends State<RegistrationForm>
 
   register(UserDetails userdetails, Events event) async {
     data["Name"] = userdetails.name.toString();
-    data["Userame"] = userdetails.username.toString();
     data["Email"] = userdetails.email.toString();
     data["College"] = userdetails.college_name.toString();
     listDynamic.forEach((widget) {
@@ -421,7 +420,7 @@ class _RegistrationFormState extends State<RegistrationForm>
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-              child: CardPage1.body(
+              child: CardPage.body(
                 title: "Fill Form",
                 body: RowLayout(
                   children: <Widget>[

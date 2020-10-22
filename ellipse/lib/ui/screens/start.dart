@@ -20,8 +20,7 @@ import '../widgets/index.dart';
 
 class StartScreen extends StatefulWidget {
   final int current_tab;
-  final bool load;
-  StartScreen(this.current_tab, this.load);
+  StartScreen(this.current_tab);
   @override
   State<StatefulWidget> createState() => _StartScreenState();
 }
@@ -100,6 +99,10 @@ class _StartScreenState extends State<StartScreen> {
           body: jsonEncode(<dynamic, dynamic>{'token': '$deviceToken'}),
         );
       });
+      context.read<UserDetailsRepository>().refreshData();
+      context.read<EventsRepository>().refreshData();
+      context.read<NotificationsRepository>().refreshData();
+      context.read<DataRepository>().refreshData();
       setState(() {
         ischecking = false;
       });
@@ -118,9 +121,6 @@ class _StartScreenState extends State<StartScreen> {
     // widget.load == true ? check() : noCheck();
     //getNotificationsCount();
     //loadNotificationsCount();
-    //context.read<EventsRepository>().refreshData();
-    context.read<UserDetailsRepository>().refreshData();
-    //context.read<NotificationsRepository>().refreshData();
 
     currentTab = widget.current_tab;
     homeTab = HomeTab();
@@ -166,8 +166,8 @@ class _StartScreenState extends State<StartScreen> {
                       model4.isLoading ||
                       model4.loadingFailed ||
                       ischecking
-                  ? LoaderCircular(0.5)
-                  // Loading("Loading")
+                  ? LoaderCircular(0.25, "Loading")
+
                   /*Scaffold(
                       body: Align(
                         alignment: Alignment.center,

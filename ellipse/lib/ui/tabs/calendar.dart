@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../repositories/index.dart';
@@ -126,11 +127,19 @@ class _CalendarTabState extends State<CalendarTab> {
               actions: [
                 IconButton(
                     icon: Icon(
-                      Icons.autorenew,
+                      LineIcons.refresh,
                       color: Theme.of(context).textTheme.caption.color,
                       size: 27,
                     ),
-                    onPressed: () => _onRefresh(context, model)),
+                    onPressed: () {
+                      context.read<EventsRepository>().refreshData();
+                      Scaffold.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Events Refreshed"),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    }),
                 Padding(
                   padding: const EdgeInsets.only(
                       right: 10, left: 0, top: 7, bottom: 7),
@@ -368,8 +377,12 @@ class _CalendarTabState extends State<CalendarTab> {
                                   for (var i = 0;
                                       i < model.allEvents?.length;
                                       i++)
-                                    if (model.allEvents[i].finish_time
+                                    if ((model.allEvents[i].o_allowed ||
+                                            model.allEvents[i].college_id ==
+                                                prefCollegeId) &&
+                                        model.allEvents[i].finish_time
                                             .isAfter(DateTime.now()) &&
+                                        model.allEvents[i].status == "active" &&
                                         model.allEvents[i].start_time.day ==
                                             selectedday.day &&
                                         model.allEvents[i].start_time.month ==
@@ -569,8 +582,13 @@ class _CalendarTabState extends State<CalendarTab> {
                                       for (var i = 0;
                                           i < model.allEvents?.length;
                                           i++)
-                                        if (model.allEvents[i].finish_time
+                                        if ((model.allEvents[i].o_allowed ||
+                                                model.allEvents[i].college_id ==
+                                                    prefCollegeId) &&
+                                            model.allEvents[i].finish_time
                                                 .isAfter(DateTime.now()) &&
+                                            model.allEvents[i].status ==
+                                                "active" &&
                                             model.allEvents[i].start_time
                                                     .month ==
                                                 selectedmonth.month &&
@@ -720,8 +738,13 @@ class _CalendarTabState extends State<CalendarTab> {
                                       for (var i = 0;
                                           i < model.allEvents?.length;
                                           i++)
-                                        if (model.allEvents[i].finish_time
+                                        if ((model.allEvents[i].o_allowed ||
+                                                model.allEvents[i].college_id ==
+                                                    prefCollegeId) &&
+                                            model.allEvents[i].finish_time
                                                 .isAfter(DateTime.now()) &&
+                                            model.allEvents[i].status ==
+                                                "active" &&
                                             model.allEvents[i].start_time
                                                     .year ==
                                                 currentYear.year) ...[
