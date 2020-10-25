@@ -86,10 +86,13 @@ class _EventSearchState extends State<EventSearch>
             shrinkWrap: true,
             children: <Widget>[
               for (var i = 0; i < model.allEvents?.length; i++)
-                if (model.allEvents[i].name
+                if ((model.allEvents[i].o_allowed ||
+                        model.allEvents[i].college_id == prefCollegeId) &&
+                    model.allEvents[i].status == "active" &&
+                    model.allEvents[i].name
                         .toLowerCase()
                         .contains(_searchText.toLowerCase()) &&
-                    model.allEvents[i].start_time.isAfter(DateTime.now())) ...[
+                    model.allEvents[i].finish_time.isAfter(DateTime.now())) ...[
                   EventSearchItem(
                       model.allEvents[i].imageUrl, model.allEvents[i].name, () {
                     Navigator.pushNamed(context, Routes.info_page,

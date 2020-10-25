@@ -365,8 +365,11 @@ class _RegistrationFormState extends State<RegistrationForm>
     print('Response body: ${response.body}');
     if (response.statusCode == 200) {
       context.read<EventsRepository>().refreshData();
-      Navigator.pushReplacementNamed(context, Routes.info_page,
-          arguments: {'index': widget.index, 'type': 'user'});
+      //Navigator.pushReplacementNamed(context, Routes.info_page,
+      //     arguments: {'index': widget.index, 'type': 'user'});
+      //}
+      Navigator.of(context).pop(true);
+      alertDialog(context, "Registration", "Registered Successfully");
     }
   }
 

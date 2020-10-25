@@ -198,20 +198,22 @@ class _EditProfileState extends State<EditProfile> {
             return null;
           }
         } else {
-          setState(() {
-            _isUploading = false;
-          });
-          context.read<UserDetailsRepository>().refreshData();
-          Navigator.of(context).pop(true);
+          done();
         }
       } else {
-        setState(() {
-          _isUploading = false;
-        });
-        context.read<UserDetailsRepository>().refreshData();
-        Navigator.of(context).pop(true);
+        done();
       }
     }
+  }
+
+  done() async {
+    setState(() {
+      _isUploading = false;
+    });
+    context.read<UserDetailsRepository>().refreshData();
+    Navigator.of(context).pop(true);
+    alertDialog(context, "Edit Profile",
+        "-Profile updated successfully\n-ReOpen app to load updated profile pic");
   }
 
   @override

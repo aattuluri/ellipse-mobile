@@ -50,33 +50,33 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
 
   publish() async {
     String event_id = widget.event_id.trim().toString();
-    if (selectedParticipants.isEmpty) {
-      alertDialog(context, "Publish", "Participants not selected");
-    } else {
-      print("Eventid");
-      print("$event_id");
-      setState(() {
-        isloading = true;
-      });
-      http.Response response = await http.post(
-        '${Url.URL}/api/event/generate_certificates',
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $prefToken'
-        },
-        body: jsonEncode(<String, dynamic>{
-          'eventId': '$event_id',
-          'participants': selectedParticipants,
-        }),
-      );
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-      if (response.statusCode == 200) {
-        //this.setState(() => participants.clear());
-        //this.setState(() => pending.clear());
-        //this.setState(() => published.clear());
-        loadRegisteredEvents();
-      }
+
+    print("Eventid");
+    print("$event_id");
+    setState(() {
+      isloading = true;
+    });
+    http.Response response = await http.post(
+      '${Url.URL}/api/event/generate_certificates',
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $prefToken'
+      },
+      body: jsonEncode(<String, dynamic>{
+        'eventId': '$event_id',
+        'participants': selectedParticipants,
+      }),
+    );
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+    if (response.statusCode == 200) {
+      //this.setState(() => participants.clear());
+      //this.setState(() => pending.clear());
+      //this.setState(() => published.clear());
+      loadRegisteredEvents();
+      Navigator.of(context).pop(true);
+      alertDialog(
+          context, "Certificates", "Certificates published Successfully");
     }
   }
 
@@ -135,7 +135,10 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
       setState(() {
         isloading = false;
       });
-      tab_controller.animateTo(0);
+      //tab_controller.animateTo(0);
+      Navigator.of(context).pop(true);
+      alertDialog(
+          context, "Certificates", "Certificate details updated Successfully");
     }
   }
 
@@ -286,16 +289,21 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                     ),
                                     RaisedButton(
                                       child: Text("Publish"),
-                                      onPressed: () {
-                                        setState(() {
-                                          selectAll = false;
-                                          participants = [];
-                                          pending = [];
-                                          published = [];
-                                        });
+                                      onPressed: selectedParticipants.isEmpty
+                                          ? () {
+                                              alertDialog(context, "Publish",
+                                                  "Participants not selected");
+                                            }
+                                          : () {
+                                              setState(() {
+                                                selectAll = false;
+                                                participants = [];
+                                                pending = [];
+                                                published = [];
+                                              });
 
-                                        publish();
-                                      },
+                                              publish();
+                                            },
                                       textColor: Colors.black,
                                       color: Theme.of(context).accentColor,
                                       padding:
@@ -415,6 +423,9 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                             itemBuilder: (BuildContext context, int index) {
                               Map<String, dynamic> data =
                                   published[index]['data'];
+                              String certUrl = published[index]
+                                      ['certificate_url']
+                                  .toString();
                               List<String> keys = data.keys.toList();
                               List<dynamic> values = data.values.toList();
                               return ExpansionTile(
@@ -440,7 +451,35 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                             values[i].toString(),
                                           ),
                                         ),
-                                      ]
+                                      ],
+                                      RaisedButton.icon(
+                                        onPressed: () {
+                                          "${Url.URL}/api/user/certificate?id=$certUrl"
+                                              .launchUrl;
+/*
+                      Navigator.pushNamed(context, Routes.pdfView,
+                          arguments: {
+                            'title': "heh",
+                            'link':
+                                "${Url.URL}/api/image?id=${model.allRegistrations[index].certificateUrl.toString()}"
+                          });*/
+                                        },
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .caption
+                                            .color,
+                                        icon: Icon(
+                                          LineIcons.download,
+                                          color: Theme.of(context)
+                                              .scaffoldBackgroundColor,
+                                        ),
+                                        label: Text(
+                                          "Download",
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .scaffoldBackgroundColor),
+                                        ),
+                                      )
                                     ],
                                   ),
                                   SizedBox(

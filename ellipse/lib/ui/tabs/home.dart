@@ -1035,17 +1035,17 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                         ),
                   ///////////////////////////////Tab3//////////////////////////////////////
                   /*ListView(
-                    physics: ClampingScrollPhysics(),
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    children: <Widget>[
-                      for (var i = 0; i < model.allEvents.length; i++)
-                        if (model.allEvents[i].user_id.toString().trim() ==
-                            prefId.toString().trim()) ...[
-                          EventTileGeneral(true, i, "myevents_info_page")
-                        ],
-                    ],
-                  ),
+                  physics: ClampingScrollPhysics(),
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  children: <Widget>[
+                    for (var i = 0; i < model.allEvents.length; i++)
+                      if (model.allEvents[i].user_id.toString().trim() ==
+                          prefId.toString().trim()) ...[
+                        EventTileGeneral(true, i, "myevents_info_page")
+                      ],
+                  ],
+                ),
 */
                   ///////////////////////////////Tab4//////////////////////////////////////
                   ListView(

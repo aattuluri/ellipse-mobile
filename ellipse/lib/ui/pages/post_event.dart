@@ -39,7 +39,7 @@ class _PostEventState extends State<PostEvent>
   final List<String> _eventtypes = ["Technical", "Cultural"];
   final List<String> _requirements = ["Laptop", "Internet"];
   final List<String> _themes = ["Coding", "Writing"];
-
+  final List<String> _venueTypes = ["College", "Other"];
   List fetched_form;
   List colleges = List();
   List<String> selected_requirements = [];
@@ -55,6 +55,7 @@ class _PostEventState extends State<PostEvent>
   String event_mode;
   String payment_type;
   String _college;
+  String _venueType;
   String event_type;
   String theme;
   String reg_mode = "";
@@ -154,7 +155,7 @@ class _PostEventState extends State<PostEvent>
   var _reg_linkController = new TextEditingController();
   var _registration_feeController = new TextEditingController();
   var _venueController = new TextEditingController();
-  var _platform_linkController = new TextEditingController();
+  var _platform_detailsController = new TextEditingController();
   void _openImagePickerModal(BuildContext context) {
     final flatButtonColor = Theme.of(context).primaryColor;
     print('Image Picker Modal Called');
@@ -279,10 +280,11 @@ class _PostEventState extends State<PostEvent>
           "event_mode": "$event_mode",
           "fee_type": "$payment_type",
           "venue": _venueController.text,
+          "venue_type": _venueType.isNullOrEmpty() ? "" : _venueType,
           "fee": _registration_feeController.text,
           "requirements": selected_requirements,
           "tags": selected_themes,
-          //"platform_link": _platform_linkController.text,
+          "platform_details": _platform_detailsController.text,
           "o_allowed": o_allowed,
           "start_time": _start_timeController.text,
           "finish_time": _finish_timeController.text,
@@ -327,21 +329,26 @@ class _PostEventState extends State<PostEvent>
             setState(() {
               _imageFile = null;
             });
-            createDynamicLink(eventId);
+            // createDynamicLink(eventId);
             context.read<EventsRepository>().refreshData();
             Navigator.pushNamed(
               context,
               Routes.start,
-              arguments: {'current_tab': 1},
+              arguments: {'current_tab': 0},
             );
             setState(() {
               _isUploading = false;
             });
+            alertDialog(
+                context,
+                "Post Event",
+                "-Event posted successfully" +
+                    "\n-Your event will be verified and accepted within few hours" +
+                    "\n-Manage your events in posted events panel in your profile");
             print("Image Uploaded");
           }
         } catch (e) {
           print(e);
-          return null;
         }
       }
     }
@@ -1273,7 +1280,64 @@ class _PostEventState extends State<PostEvent>
                                   ? CardPage.body(
                                       title: "Venue",
                                       body: RowLayout(children: <Widget>[
-                                        TextFormField(
+                                        FormField(
+                                          builder: (FormFieldState state) {
+                                            return InputDecorator(
+                                              decoration: InputDecoration(
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "Venue Type"),
+                                              child:
+                                                  new DropdownButtonHideUnderline(
+                                                child: new DropdownButton(
+                                                  hint:
+                                                      Text("Select Venue Type"),
+                                                  isExpanded: true,
+                                                  value: _venueType,
+                                                  isDense: true,
+                                                  items:
+                                                      _venueTypes.map((item) {
+                                                    return new DropdownMenuItem(
+                                                      child: new Text(
+                                                        item,
+                                                      ),
+                                                      value: item.toString(),
+                                                    );
+                                                  }).toList(),
+                                                  onChanged: (newValue) {
+                                                    setState(() {
+                                                      _venueType = newValue;
+                                                      state.didChange(newValue);
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                        if (!_venueType.isNullOrEmpty()) ...[
+                                          TextFormField(
+                                            controller: _venueController,
+                                            style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .textTheme
+                                                  .caption
+                                                  .color,
+                                            ),
+                                            cursorColor: Theme.of(context)
+                                                .textTheme
+                                                .caption
+                                                .color,
+                                            decoration: InputDecoration(
+                                                hintText: _venueType ==
+                                                        "College"
+                                                    ? "Room No,Building,College Name"
+                                                    : "Room No,Building,Address",
+                                                border: OutlineInputBorder(),
+                                                labelText: "Venue"),
+                                            maxLines: 5,
+                                          ),
+                                        ],
+                                        /*TextFormField(
                                           onSaved: (e) => e,
                                           controller: _venueController,
                                           style: TextStyle(
@@ -1291,6 +1355,7 @@ class _PostEventState extends State<PostEvent>
                                               labelText: "Venue"),
                                           maxLines: 5,
                                         ),
+                                        */
                                       ]),
                                     )
                                   : online
@@ -1300,7 +1365,7 @@ class _PostEventState extends State<PostEvent>
                                             TextFormField(
                                               onSaved: (e) => e,
                                               controller:
-                                                  _platform_linkController,
+                                                  _platform_detailsController,
                                               style: TextStyle(
                                                 color: Theme.of(context)
                                                     .textTheme
@@ -1313,7 +1378,7 @@ class _PostEventState extends State<PostEvent>
                                                   .color,
                                               decoration: InputDecoration(
                                                   border: OutlineInputBorder(),
-                                                  labelText: "Link"),
+                                                  labelText: "Details"),
                                               maxLines: 3,
                                             ),
                                           ]),

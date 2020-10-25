@@ -20,7 +20,7 @@ Future alertDialog(BuildContext context, String title, String content) {
           FlatButton(
             child: Text('Ok'),
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(true);
             },
           ),
         ],

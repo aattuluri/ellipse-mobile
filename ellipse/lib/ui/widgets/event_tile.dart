@@ -1,5 +1,7 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
@@ -39,7 +41,7 @@ class EventTileGeneralState extends State<EventTileGeneral>
     return Visibility(
       visible: widget.visible,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: 5),
         child: InkWell(
           onTap: () {
             Navigator.pushNamed(context, Routes.info_page, arguments: {
@@ -73,8 +75,11 @@ class EventTileGeneralState extends State<EventTileGeneral>
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text(
+                        AutoSizeText(
                           _event.name,
+                          minFontSize: 15,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(fontSize: 18),
                         ),
                         SizedBox(
@@ -89,8 +94,11 @@ class EventTileGeneralState extends State<EventTileGeneral>
                             SizedBox(
                               width: 8,
                             ),
-                            Text(
+                            AutoSizeText(
                               _event.start_time.toString().toDate(context),
+                              minFontSize: 5,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(fontSize: 10),
                             )
                           ],
@@ -101,14 +109,17 @@ class EventTileGeneralState extends State<EventTileGeneral>
                         Row(
                           children: <Widget>[
                             Icon(
-                              Icons.location_on,
+                              Icons.account_balance_outlined,
                               size: 20,
                             ),
                             SizedBox(
                               width: 8,
                             ),
-                            Text(
+                            AutoSizeText(
                               _event.college_name,
+                              minFontSize: 5,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(fontSize: 10),
                             )
                           ],
@@ -165,12 +176,14 @@ class EventTileAdminState extends State<EventTileAdmin>
 
   @override
   Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
     final Events _event =
         context.watch<EventsRepository>().getEvent(widget.index);
     return Visibility(
       visible: widget.visible,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
         child: InkWell(
           onTap: () {
             Navigator.pushNamed(
@@ -211,8 +224,11 @@ class EventTileAdminState extends State<EventTileAdmin>
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              Text(
+                              AutoSizeText(
                                 _event.name,
+                                //minFontSize: 5,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(fontSize: 18),
                               ),
                               SizedBox(
@@ -227,10 +243,13 @@ class EventTileAdminState extends State<EventTileAdmin>
                                   SizedBox(
                                     width: 8,
                                   ),
-                                  Text(
+                                  AutoSizeText(
                                     _event.start_time
                                         .toString()
                                         .toDate(context),
+                                    minFontSize: 5,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(fontSize: 10),
                                   )
                                 ],
@@ -241,14 +260,17 @@ class EventTileAdminState extends State<EventTileAdmin>
                               Row(
                                 children: <Widget>[
                                   Icon(
-                                    Icons.location_on,
+                                    Icons.account_balance_outlined,
                                     size: 20,
                                   ),
                                   SizedBox(
                                     width: 8,
                                   ),
-                                  Text(
+                                  AutoSizeText(
                                     _event.college_name,
+                                    minFontSize: 5,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(fontSize: 10),
                                   )
                                 ],
@@ -290,6 +312,198 @@ class EventTileAdminState extends State<EventTileAdmin>
         ),
       ),
     );
+
+    /*Visibility(
+      visible: widget.visible,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Container(
+          width: w,
+          color: Theme.of(context).cardColor,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              _event.name,
+                              style: GoogleFonts.roboto(
+                                  textStyle: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18)),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Text(
+                              _event.start_time.toString().toDate(context),
+                              style: GoogleFonts.roboto(
+                                  textStyle: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      //color: facebook_dgrey_color,
+                                      fontSize: 13)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                        icon: Icon(
+                          Icons.more_vert,
+                        ),
+                        onPressed: () {}),
+                  ],
+                ),
+              ),
+              Divider(),
+              //Separator.divider(),
+              ////////////////////////////////////////////////////////////////////////////
+              InkWell(
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    Routes.info_page,
+                    arguments: {
+                      'index': widget.index,
+                      'type': 'admin',
+                      'event_': _event
+                    },
+                  );
+                },
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: w * 0.30,
+                          height: w * 0.30,
+                          child: Center(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.only(
+                                  topRight: Radius.circular(8),
+                                  bottomRight: Radius.circular(8),
+                                  topLeft: Radius.circular(8),
+                                  bottomLeft: Radius.circular(8)),
+                              child: FadeInImage(
+                                width: w * 0.27,
+                                height: w * 0.27,
+                                fit: BoxFit.cover,
+                                fadeInDuration: Duration(milliseconds: 1000),
+                                image: NetworkImage(
+                                    "${Url.URL}/api/image?id=${_event.imageUrl}"),
+                                placeholder:
+                                    AssetImage('assets/icons/loading.gif'),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          width: w * 0.70,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: <Widget>[
+                                  Icon(
+                                    Icons.account_balance_outlined,
+                                    size: 20,
+                                  ),
+                                  SizedBox(
+                                    width: 8,
+                                  ),
+                                  AutoSizeText(
+                                    _event.college_name,
+                                    minFontSize: 5,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 10),
+                                  )
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: AutoSizeText(
+                        _event.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.roboto(
+                            textStyle: TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w400)),
+                      ),
+                    ),
+                    Container(
+                      height: 50,
+                      child: Row(
+                        children: <Widget>[
+                          Icon(
+                            Icons.account_balance_outlined,
+                            size: 20,
+                          ),
+                          SizedBox(
+                            width: 8,
+                          ),
+                          AutoSizeText(
+                            _event.college_name,
+                            minFontSize: 5,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 10),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              //////////////////////////////////////////////////////////////////////////////
+              /*
+              Divider(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  FlatButton.icon(
+                    icon: _event.status == "active"
+                        ? Icon(Icons.verified_outlined)
+                        : Icon(Icons.access_time), //icon image
+                    label: AutoSizeText(_event.status), //text to show in button
+                    onPressed: () {},
+                  ),
+                  FlatButton.icon(
+                    icon: Icon(Icons.share_outlined), //icon image
+                    label: AutoSizeText('Share'), //text to show in button
+                    onPressed: () {},
+                  ),
+                  FlatButton.icon(
+                    icon: Icon(Icons.visibility_outlined), //icon image
+                    label: AutoSizeText('View'), //text to show in button
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+              */
+            ],
+          ),
+        ),
+      ),
+    );*/
   }
 }
 

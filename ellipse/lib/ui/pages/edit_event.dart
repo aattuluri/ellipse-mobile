@@ -32,12 +32,14 @@ class _EditEventState extends State<EditEvent> {
   List colleges = List();
   final List<String> _requirements = ["Laptop", "Internet"];
   final List<String> _themes = ["Coding", "Writing"];
+  final List<String> _venueTypes = ["College", "Other"];
   List<dynamic> selected_requirements = [];
   List<dynamic> selected_themes = [];
   bool o_allowed = null;
   String event_mode = "";
   String payment_type = "";
   String _college;
+  String _venueType;
   String event_type;
   String theme;
   String requirement;
@@ -84,7 +86,7 @@ class _EditEventState extends State<EditEvent> {
   var _payment_typeController = new TextEditingController();
   var _registration_feeController = new TextEditingController();
   var _venueController = new TextEditingController();
-  var _platform_linkController = new TextEditingController();
+  var _platform_detailsController = new TextEditingController();
   void _openImagePickerModal(BuildContext context) {
     final flatButtonColor = Theme.of(context).primaryColor;
     print('Image Picker Modal Called');
@@ -135,7 +137,7 @@ class _EditEventState extends State<EditEvent> {
         });
   }
 
-  edit_event(String id, bool o_allowed_) async {
+  edit_event(String id, bool o_allowed_, venue_type) async {
     if (_nameController.text.isNullOrEmpty() ||
         _descriptionController.text.isNullOrEmpty() ||
         _aboutController.text.isNullOrEmpty() ||
@@ -187,13 +189,14 @@ class _EditEventState extends State<EditEvent> {
           "event_type": "$e_t",
           "reg_link": _reg_linkController.text,
           "fee": _registration_feeController.text,
+          "platform_details": _platform_detailsController.text,
           "about": _aboutController.text,
           "fee_type": "$p_t",
           "o_allowed": o_a,
           "requirements": selected_requirements,
           "tags": selected_themes,
-          'venue_type': _venueController.text,
-          'venue_college': _venueController.text,
+          'venue_type': _venueType.isNullOrEmpty() ? venue_type : _venueType,
+          'venue_college': "",
           "venue": _venueController.text,
         }),
       );
@@ -246,20 +249,22 @@ class _EditEventState extends State<EditEvent> {
           setState(() {
             _imageFile = null;
           });
-          setState(() {
-            _isUploading = false;
-          });
-          context.read<EventsRepository>().refreshData();
-          Navigator.of(context).pop(true);
+          done();
         }
       } else {
-        setState(() {
-          _isUploading = false;
-        });
-        context.read<EventsRepository>().refreshData();
-        Navigator.of(context).pop(true);
+        done();
       }
     }
+  }
+
+  done() async {
+    setState(() {
+      _isUploading = false;
+    });
+    context.read<EventsRepository>().refreshData();
+    Navigator.of(context).pop(true);
+    alertDialog(context, "Edit Event",
+        "-Event updated successfully\n-Refresh event to load updated event poster");
   }
 
   @override
@@ -289,8 +294,8 @@ class _EditEventState extends State<EditEvent> {
     _registration_feeController =
         new TextEditingController(text: _event.registration_fee);
     _venueController = new TextEditingController(text: _event.venue);
-    _platform_linkController =
-        new TextEditingController(text: _event.platform_link);
+    _platform_detailsController =
+        new TextEditingController(text: _event.platform_details);
 
     _event_modeController = new TextEditingController(text: _event.event_mode);
     _payment_typeController =
@@ -443,7 +448,8 @@ class _EditEventState extends State<EditEvent> {
                                 );
                               },
                             ),
-                            FormField(
+
+                            /*FormField(
                               builder: (FormFieldState state) {
                                 return InputDecorator(
                                   decoration: InputDecoration(
@@ -473,7 +479,7 @@ class _EditEventState extends State<EditEvent> {
                                   ),
                                 );
                               },
-                            ),
+                            ),*/
                           ]),
                         ),
                         CardPage.body(
@@ -1008,60 +1014,97 @@ class _EditEventState extends State<EditEvent> {
                             ),
                           ]),
                         ),
-                        (event_mode == "" &&
-                                    _event_modeController.text == "Offline") ||
-                                (event_mode == "Offline")
-                            ? CardPage.body(
-                                title: "Venue",
-                                body: RowLayout(children: <Widget>[
-                                  TextFormField(
-                                    onSaved: (e) => e,
-                                    controller: _venueController,
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .caption
-                                          .color,
+                        if ((event_mode == "" &&
+                                _event_modeController.text == "Offline") ||
+                            (event_mode == "Offline")) ...[
+                          CardPage.body(
+                            title: "Venue",
+                            body: RowLayout(children: <Widget>[
+                              FormField(
+                                builder: (FormFieldState state) {
+                                  return InputDecorator(
+                                    decoration: InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        labelText: "Venue Type"),
+                                    child: new DropdownButtonHideUnderline(
+                                      child: new DropdownButton(
+                                        hint: Text(
+                                            (!_event.venueType.isNullOrEmpty())
+                                                ? _event.venueType
+                                                : !_venueType.isNullOrEmpty()
+                                                    ? _venueType
+                                                    : "Select Venue Type"),
+                                        isExpanded: true,
+                                        value: _venueType,
+                                        isDense: true,
+                                        items: _venueTypes.map((item) {
+                                          return new DropdownMenuItem(
+                                            child: new Text(
+                                              item,
+                                            ),
+                                            value: item.toString(),
+                                          );
+                                        }).toList(),
+                                        onChanged: (newValue) {
+                                          setState(() {
+                                            _venueType = newValue;
+                                            state.didChange(newValue);
+                                          });
+                                        },
+                                      ),
                                     ),
-                                    cursorColor: Theme.of(context)
+                                  );
+                                },
+                              ),
+                              if ((!_event.venueType.isNullOrEmpty() &&
+                                      (_event.venueType == "College" ||
+                                          _event.venueType == "Other")) ||
+                                  !_venueType.isNullOrEmpty()) ...[
+                                TextFormField(
+                                  controller: _venueController,
+                                  style: TextStyle(
+                                    color: Theme.of(context)
                                         .textTheme
                                         .caption
                                         .color,
-                                    decoration: InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        labelText: "Venue"),
-                                    maxLines: 5,
                                   ),
-                                ]),
-                              )
-                            : (event_mode == "" &&
-                                        _event_modeController.text ==
-                                            "Offline") ||
-                                    (event_mode == "Online")
-                                ? CardPage.body(
-                                    title: "Platform",
-                                    body: RowLayout(children: <Widget>[
-                                      TextFormField(
-                                        onSaved: (e) => e,
-                                        controller: _platform_linkController,
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                        ),
-                                        cursorColor: Theme.of(context)
-                                            .textTheme
-                                            .caption
-                                            .color,
-                                        decoration: InputDecoration(
-                                            border: OutlineInputBorder(),
-                                            labelText: "Platform"),
-                                        maxLines: 3,
-                                      ),
-                                    ]),
-                                  )
-                                : Container(),
+                                  cursorColor:
+                                      Theme.of(context).textTheme.caption.color,
+                                  decoration: InputDecoration(
+                                      hintText: _event.venueType == "College"
+                                          ? "Room No,Building,College Name"
+                                          : "Room No,Building,Address",
+                                      border: OutlineInputBorder(),
+                                      labelText: "Venue"),
+                                  maxLines: 5,
+                                ),
+                              ],
+                            ]),
+                          ),
+                        ],
+                        if ((event_mode == "" &&
+                                _event_modeController.text == "Online") ||
+                            (event_mode == "Online")) ...[
+                          CardPage.body(
+                            title: "Platform",
+                            body: RowLayout(children: <Widget>[
+                              TextFormField(
+                                onSaved: (e) => e,
+                                controller: _platform_detailsController,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).textTheme.caption.color,
+                                ),
+                                cursorColor:
+                                    Theme.of(context).textTheme.caption.color,
+                                decoration: InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: "Details"),
+                                maxLines: 3,
+                              ),
+                            ]),
+                          )
+                        ],
                         CardPage.body(
                           title: "Payment",
                           body: RowLayout(children: <Widget>[
@@ -1153,29 +1196,24 @@ class _EditEventState extends State<EditEvent> {
                                 ),
                               ],
                             ),
-                            (payment_type == "" &&
-                                        _payment_typeController.text ==
-                                            "Paid") ||
-                                    (payment_type == "Paid")
-                                ? TextFormField(
-                                    onSaved: (e) => e,
-                                    controller: _registration_feeController,
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .caption
-                                          .color,
-                                    ),
-                                    cursorColor: Theme.of(context)
-                                        .textTheme
-                                        .caption
-                                        .color,
-                                    decoration: InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        labelText: "Registration Fee(in Rs)"),
-                                    maxLines: 1,
-                                  )
-                                : Container(),
+                            if ((payment_type == "" &&
+                                    _payment_typeController.text == "Paid") ||
+                                (payment_type == "Paid")) ...[
+                              TextFormField(
+                                onSaved: (e) => e,
+                                controller: _registration_feeController,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).textTheme.caption.color,
+                                ),
+                                cursorColor:
+                                    Theme.of(context).textTheme.caption.color,
+                                decoration: InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: "Registration Fee(in Rs)"),
+                                maxLines: 1,
+                              )
+                            ],
                           ]),
                         ),
                         CardPage.body(
@@ -1375,7 +1413,8 @@ class _EditEventState extends State<EditEvent> {
                                   fontWeight: FontWeight.bold),
                             ),
                             onPressed: () {
-                              edit_event(_event.id, _event.o_allowed);
+                              edit_event(_event.id, _event.o_allowed,
+                                  _event.venueType);
                             },
                             color: Theme.of(context).cardColor,
                             textColor:

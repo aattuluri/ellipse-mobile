@@ -7,8 +7,10 @@ import 'package:flutter/widgets.dart';
 const lightPrimaryColor = Color(0xFF1E1E1E);
 //const lightAccentColor = Color(0xFF3949AB);
 const lightAccentColor = Color(0xFF00BDAA);
-const lightBackgroundColor = Color(0xFFF0F0F0);
-const lightCardColor = Color(0xFFDEDEDE);
+//const lightBackgroundColor = Color(0xFFF0F0F0);
+//const lightCardColor = Color(0xFFDEDEDE);
+const lightBackgroundColor = Color(0xFFDEDEDE);
+const lightCardColor = Color(0xFFCFD3D6);
 
 /// DARK THEME
 const darkPrimaryColor = Color(0xFF151515);

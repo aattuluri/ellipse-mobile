@@ -46,9 +46,8 @@ extension DateFormatter on String {
       shour = "$shour";
     }
     DateTime Date = DateTime(year, month, day, weekday);
-    String D = DateFormat('dd MMMM yyyy').format(Date);
+    String D = DateFormat('dd MMM yyyy').format(Date);
     String fullDate = D + " " "$shour:$minute $type".toString();
-    //String fullDate = D + "-" "$shour:$minute $type".toString();
     return fullDate;
   }
 }

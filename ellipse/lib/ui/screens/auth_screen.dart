@@ -438,6 +438,7 @@ class _SignupState extends State<Signup> {
   List<String> errors = [];
   bool isLoading = false;
   String name, username, email, password, cpassword;
+  String pass;
   bool _secureText1 = true;
   bool _secureText2 = true;
 
@@ -539,8 +540,41 @@ class _SignupState extends State<Signup> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: <Widget>[
                           SizedBox(
-                            height: 30,
+                            height: 10,
                           ),
+                          InkWell(
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                Routes.signin,
+                              );
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: 10),
+                              child: Row(
+                                children: <Widget>[
+                                  Container(
+                                    padding: EdgeInsets.only(
+                                        left: 0, top: 10, bottom: 10),
+                                    child: Icon(Icons.keyboard_arrow_left,
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .caption
+                                            .color),
+                                  ),
+                                  Text('Login',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .caption
+                                              .color))
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 10),
                           Center(
                             child: Text(
                               "Ellipse",
@@ -781,7 +815,11 @@ class _SignupState extends State<Signup> {
                                 new Expanded(
                                   child: TextFormField(
                                     onSaved: (value) => password = value,
-                                    onChanged: (value) {},
+                                    onChanged: (value) {
+                                      setState(() {
+                                        pass = value;
+                                      });
+                                    },
                                     validator: (value) {
                                       if (value.isEmpty) {
                                         this.setState(() => errors.add(
@@ -864,6 +902,11 @@ class _SignupState extends State<Signup> {
                                       } else if (value.toString().length < 6) {
                                         this.setState(() => errors.add(
                                             "Password length should be \natleast 6 characters"));
+                                        //return "Password length should be \natleast 6 characters";
+                                      } else if (value != pass ||
+                                          pass != value) {
+                                        this.setState(() => errors.add(
+                                            "password and confirm password should be same"));
                                         //return "Password length should be \natleast 6 characters";
                                       }
                                       return null;

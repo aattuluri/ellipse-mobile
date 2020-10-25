@@ -1,12 +1,17 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../util/index.dart';
+
+final pagesCount = 4;
 
 class Intro extends StatefulWidget {
   @override
@@ -47,7 +52,7 @@ class _IntroState extends State<Intro> {
                     padding: EdgeInsets.symmetric(horizontal: 5),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         FlatButton(
                           onPressed: () {
@@ -94,6 +99,7 @@ class _IntroState extends State<Intro> {
                   child: PageView(
                     controller: _pageController,
                     children: [
+                      FirstPage(),
                       onBoardPage(
                           "event.svg", "All your college events at one place"),
                       onBoardPage("add.svg",
@@ -113,8 +119,8 @@ class _IntroState extends State<Intro> {
                   height: h * 0.05,
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children:
-                          List.generate(4, (index) => getIndicator(index))),
+                      children: List.generate(
+                          pagesCount + 1, (index) => getIndicator(index))),
                 ),
                 Expanded(
                   child: Container(),
@@ -124,7 +130,7 @@ class _IntroState extends State<Intro> {
                   child: GestureDetector(
                     onTap: () async {
                       print(currentPage);
-                      if (currentPage == 3) {
+                      if (currentPage == pagesCount) {
                         SharedPreferences prefs =
                             await SharedPreferences.getInstance();
                         bool loggedin = (prefs.getBool('loggedIn') ?? false);
@@ -191,12 +197,16 @@ class _IntroState extends State<Intro> {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 20),
-          child: SvgPicture.asset(
-            'assets/svg/$filename',
-            colorBlendMode: BlendMode.srcATop,
-            alignment: Alignment.center,
-            width: w * 0.65,
-            //height: w * 0.65,
+          child: Opacity(
+            opacity: 0.7,
+            child: SvgPicture.asset(
+              'assets/svg/$filename',
+              colorBlendMode: BlendMode.overlay,
+              allowDrawingOutsideViewBox: true,
+              alignment: Alignment.center,
+              width: w * 0.50,
+              //height: w * 0.65,
+            ),
           ),
           /* FlareActor(
             'assets/flares/$filename.svg',
@@ -206,20 +216,14 @@ class _IntroState extends State<Intro> {
           ),
           */
         ),
-        /* Icon(
-            icon,
-            size: 50,
-            color: Theme.of(context).textTheme.bodyText1.color,
-          ),
-          */
-
         Container(
           padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-          child: Text(
+          child: AutoSizeText(
             title,
+            minFontSize: 5,
             textAlign: TextAlign.center,
             style: GoogleFonts.comfortaa(
-                fontSize: 30, fontWeight: FontWeight.w500),
+                fontSize: 18, fontWeight: FontWeight.w500),
           ),
         ),
         /*Container(
@@ -230,6 +234,55 @@ class _IntroState extends State<Intro> {
             textAlign: TextAlign.center,
           ),
         )*/
+      ],
+    );
+  }
+
+  Column FirstPage() {
+    final w = MediaQuery.of(context).size.width;
+    final h = MediaQuery.of(context).size.height;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        SizedBox(
+          height: 18,
+        ),
+        Text(
+          "Ellipse",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              color: Theme.of(context).accentColor,
+              fontSize: 55,
+              fontFamily: 'Gugi',
+              fontWeight: FontWeight.w800),
+        ),
+        SizedBox(
+          height: 14,
+        ),
+        Text(
+          "There’s a lot of events happening around you! Our mission is to explore best events to you!",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              color: Theme.of(context).textTheme.caption.color.withOpacity(0.8),
+              fontSize: 18,
+              fontWeight: FontWeight.normal),
+        ),
+        SizedBox(
+          height: 14,
+        ),
+        SizedBox(
+          height: 0,
+          width: 0,
+          child: SvgPicture.asset(
+            'assets/svg/event.svg',
+            colorBlendMode: BlendMode.overlay,
+            allowDrawingOutsideViewBox: true,
+            alignment: Alignment.center,
+            width: w * 0.50,
+            //height: w * 0.65,
+          ),
+        ),
       ],
     );
   }

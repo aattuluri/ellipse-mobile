@@ -6,6 +6,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/index.dart';
@@ -215,114 +216,123 @@ class _AnnouncementsState extends State<Announcements>
           if (snapshot.hasData) {
             List<AnnouncementsModel> announcements = snapshot.data;
             List<AnnouncementsModel> data = announcements;
-            return ListView.builder(
-                itemCount: data.length,
-                itemBuilder: (context, index) {
-                  final _time = DateTime.parse(data[index].time);
-                  return data[index].visible == false &&
-                          _event.registered == false &&
-                          !_event.moderator
-                      ? SizedBox.shrink()
-                      : Container(
-                          margin: EdgeInsets.symmetric(
-                              vertical: 10.0, horizontal: 10.0),
-                          padding: EdgeInsets.all(10.0),
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .textTheme
-                                .caption
-                                .color
-                                .withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              SizedBox(
-                                width: 5.0,
+            return data.isEmpty
+                ? EmptyData(
+                    'No Announcements',
+                    " no announcements for ${_event.name}",
+                    LineIcons.certificate)
+                : ListView.builder(
+                    itemCount: data.length,
+                    itemBuilder: (context, index) {
+                      final _time = DateTime.parse(data[index].time);
+                      return data[index].visible == false &&
+                              _event.registered == false &&
+                              !_event.moderator
+                          ? SizedBox.shrink()
+                          : Container(
+                              margin: EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 10.0),
+                              padding: EdgeInsets.all(10.0),
+                              width: MediaQuery.of(context).size.width,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .caption
+                                    .color
+                                    .withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(10.0),
                               ),
-                              Container(
-                                child: Icon(Icons.speaker_notes, size: 23),
-                              ),
-                              SizedBox(
-                                width: 15.0,
-                              ),
-                              Column(
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
-                                  Text(
-                                    data[index].title,
-                                    style: TextStyle(
-                                        fontSize: 20.0,
-                                        fontWeight: FontWeight.bold),
-                                  ),
                                   SizedBox(
-                                    height: 10.0,
+                                    width: 5.0,
                                   ),
                                   Container(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.7,
-                                    child: Text(
-                                      data[index].description,
-                                      style: TextStyle(fontSize: 15.0),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 5),
-                                    child: Text(
-                                      _time.toString().toDate(context),
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontFamily: 'ProductSans',
-                                        //color: Tools.multiColors[Random().nextInt(5)]
-                                      ),
-                                    ),
+                                    child: Icon(Icons.speaker_notes, size: 23),
                                   ),
                                   SizedBox(
-                                    height: 15.0,
+                                    width: 15.0,
                                   ),
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Text(
+                                        data[index].title,
+                                        style: TextStyle(
+                                            fontSize: 20.0,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      SizedBox(
+                                        height: 10.0,
+                                      ),
+                                      Container(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.7,
+                                        child: Text(
+                                          data[index].description,
+                                          style: TextStyle(fontSize: 15.0),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 5),
+                                        child: Text(
+                                          _time.toString().toDate(context),
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontFamily: 'ProductSans',
+                                            //color: Tools.multiColors[Random().nextInt(5)]
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: 15.0,
+                                      ),
+                                    ],
+                                  ),
+                                  Spacer(),
+                                  widget.type == "admin"
+                                      ? Padding(
+                                          padding:
+                                              const EdgeInsets.only(right: 5),
+                                          child: InkWell(
+                                              onTap: () {
+                                                generalSheet(
+                                                  context,
+                                                  title: data[index].title,
+                                                  child: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.start,
+                                                    children: [
+                                                      _item(
+                                                        Icons.delete_outline,
+                                                        "Delete",
+                                                        () {
+                                                          Navigator.of(context)
+                                                              .pop(true);
+                                                          deleteAnnouncement(
+                                                              data[index].id,
+                                                              widget.id);
+                                                        },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                              child: Icon(Icons.more_vert,
+                                                  size: 25)),
+                                        )
+                                      : SizedBox.shrink()
                                 ],
                               ),
-                              Spacer(),
-                              widget.type == "admin"
-                                  ? Padding(
-                                      padding: const EdgeInsets.only(right: 5),
-                                      child: InkWell(
-                                          onTap: () {
-                                            generalSheet(
-                                              context,
-                                              title: data[index].title,
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
-                                                children: [
-                                                  _item(
-                                                    Icons.delete_outline,
-                                                    "Delete",
-                                                    () {
-                                                      Navigator.of(context)
-                                                          .pop(true);
-                                                      deleteAnnouncement(
-                                                          data[index].id,
-                                                          widget.id);
-                                                    },
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                          child:
-                                              Icon(Icons.more_vert, size: 25)),
-                                    )
-                                  : SizedBox.shrink()
-                            ],
-                          ),
-                        );
-                });
+                            );
+                    });
           } else if (snapshot.hasError) {
             return Text("${snapshot.error}");
           }
@@ -375,8 +385,16 @@ class _AddAnnouncementState extends State<AddAnnouncement>
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
     if (response.statusCode == 200) {
-      Navigator.pushReplacementNamed(context, Routes.info_page,
-          arguments: {'index': widget.index, 'type': 'admin'});
+      Navigator.of(context).pop(true);
+      alertDialog(
+          context, "Add Announcement", "Announcement Added Successfully");
+      //Navigator.pushReplacementNamed(context, Routes.info_page,
+      //    arguments: {'index': widget.index, 'type': 'admin'});
+      //Navigator.pushNamed(context, Routes.info_page, arguments: {
+      //  'index': widget.index,
+      //  'type': 'user',
+      //  'event_': _event
+      //});
     } else {
       print(response.body);
     }

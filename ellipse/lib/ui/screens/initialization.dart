@@ -116,7 +116,7 @@ class _InitializationState extends State<Initialization>
         String id = deepLink
             .toString()
             .trim()
-            .replaceAll("https://staging.ellipseapp.com/un/event/", "");
+            .replaceAll("${Url.DYNAMIC_LINK_REMOVE}", "");
         String Id = id.trim();
         print(Id);
         final _event = context.read<EventsRepository>().getEventIndex(Id);

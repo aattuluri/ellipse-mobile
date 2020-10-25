@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:Ellipse/ui/widgets/loading.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:line_icons/line_icons.dart';
@@ -18,6 +19,8 @@ import '../tabs/index.dart';
 import '../tabs/notifications.dart';
 import '../widgets/index.dart';
 
+final int tabCount = 4;
+
 class StartScreen extends StatefulWidget {
   final int current_tab;
   StartScreen(this.current_tab);
@@ -25,7 +28,9 @@ class StartScreen extends StatefulWidget {
   State<StatefulWidget> createState() => _StartScreenState();
 }
 
-class _StartScreenState extends State<StartScreen> {
+class _StartScreenState extends State<StartScreen>
+    with SingleTickerProviderStateMixin {
+  TabController controller;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
   int notifCount = 0;
@@ -117,6 +122,7 @@ class _StartScreenState extends State<StartScreen> {
 
   @override
   void initState() {
+    controller = new TabController(length: tabCount, vsync: this);
     check();
     // widget.load == true ? check() : noCheck();
     //getNotificationsCount();
@@ -147,7 +153,17 @@ class _StartScreenState extends State<StartScreen> {
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+    final width = MediaQuery.of(context).size.width;
+    final tabPadding = (width / tabCount) * 0.15;
     return WillPopScope(
       onWillPop: () async {
         return false;
@@ -167,47 +183,64 @@ class _StartScreenState extends State<StartScreen> {
                       model4.loadingFailed ||
                       ischecking
                   ? LoaderCircular(0.25, "Loading")
-
-                  /*Scaffold(
-                      body: Align(
-                        alignment: Alignment.center,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircularProgressIndicator(),
-                            SizedBox(
-                              height: 40,
-                            ),
-                            Text(
-                              "Loading",
-                              style: TextStyle(
-                                  color:
-                                      Theme.of(context).textTheme.caption.color,
-                                  fontSize: 40.0,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(
-                              height: 20,
-                            ),
-                            Text(
-                              "Please Wait....",
-                              style: TextStyle(
-                                  color:
-                                      Theme.of(context).textTheme.caption.color,
-                                  fontSize: 30.0,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )*/
                   :
                   ////////////////////////////
                   Scaffold(
                       key: scaffoldKey,
                       body: currentPage,
                       bottomNavigationBar: Container(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            top: BorderSide(
+                              width: 1.0,
+                              color: Theme.of(context).cardColor,
+                            ),
+                          ),
+                        ),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                              maxHeight: height * 0.06,
+                              minHeight: height * 0.06),
+                          child: TabBar(
+                            dragStartBehavior: DragStartBehavior.start,
+                            labelColor: Theme.of(context).accentColor,
+                            unselectedLabelColor:
+                                Theme.of(context).iconTheme.color,
+                            onTap: (index) async {
+                              setState(() {
+                                currentTab = index;
+                                currentPage = pages[index];
+                              });
+                              if (index == 2) {
+                                setState(() {
+                                  notifCount = 0;
+                                });
+                              }
+                            },
+                            indicator: UnderlineTabIndicator(
+                              borderSide: BorderSide(
+                                color: Theme.of(context).accentColor,
+                              ),
+                              insets: EdgeInsets.fromLTRB(
+                                  tabPadding, 0.0, tabPadding, height * 0.06),
+                            ),
+
+                            controller: controller,
+                            isScrollable: false,
+                            physics: NeverScrollableScrollPhysics(),
+                            // indicatorColor: Theme.of(context).accentColor,
+                            tabs: <Widget>[
+                              Tab(icon: Icon(LineIcons.home)),
+                              Tab(icon: Icon(LineIcons.calendar_o)),
+                              Tab(
+                                icon: Icon(Icons.notifications),
+                              ),
+                              Tab(icon: Icon(LineIcons.user)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      /*Container(
                         decoration: BoxDecoration(
                           border: Border(
                             top: BorderSide(
@@ -264,6 +297,7 @@ class _StartScreenState extends State<StartScreen> {
                           ],
                         ),
                       ),
+                    */
                     ),
             ),
           ),
