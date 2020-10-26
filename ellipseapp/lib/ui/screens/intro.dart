@@ -248,6 +248,22 @@ class _IntroState extends State<Intro> {
         SizedBox(
           height: 18,
         ),
+        /* Container(
+          width: w,
+          child: TextLiquidFill(
+            text: 'Ellipse',
+            textAlign: TextAlign.center,
+            waveColor: Theme.of(context).accentColor,
+            boxBackgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            textStyle: TextStyle(
+                color: Theme.of(context).textTheme.caption.color,
+                fontSize: 55,
+                fontFamily: 'Gugi',
+                fontWeight: FontWeight.w800),
+            boxHeight: 200.0,
+          ),
+        ),*/
+
         Text(
           "Ellipse",
           textAlign: TextAlign.center,

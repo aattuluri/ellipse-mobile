@@ -22,4 +22,5 @@ export 'radio_cell.dart';
 export 'row_item.dart';
 export 'slide_menu_item.dart';
 export 'slider_menu.dart';
+export 'textAnimations.dart';
 export 'timeline.dart';
