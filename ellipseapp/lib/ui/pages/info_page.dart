@@ -183,13 +183,13 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                           ),
                           SizedBox(height: 3),
                           SlideMenuItem1(
-                              Icons.group, "Register", "Register to event", () {
+                              Icons.group, "Register", "Register", () {
                             if (_event.moderator) {
                               alertDialog(context, "Event Registration",
-                                  "You are admin to this event.You can not register to this event");
+                                  "An admin cannot register to an event");
                             } else if (_event.registered == true) {
                               alertDialog(context, "Event Registration",
-                                  "You have to already registered to this event");
+                                  "You have already registered for this event");
                             } else if (_event.registered == false &&
                                 _event.reg_mode == "form") {
                               setState(() {
@@ -277,7 +277,7 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                   return AlertDialog(
                                     title: new Text("Chat"),
                                     content: new Text(
-                                        "You have to register to event to chat with event admin"),
+                                        "Chat is enabled only for registered participants."),
                                     actions: <Widget>[
                                       new FlatButton(
                                         child: new Text("Ok"),
@@ -701,14 +701,14 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                                         alertDialog(
                                                             context,
                                                             "Event Registration",
-                                                            "You are admin to this event.You can not register to this event");
+                                                            "An event Admin can not register to the same event");
                                                       } else if (_event
                                                               .registered ==
                                                           true) {
                                                         alertDialog(
                                                             context,
                                                             "Event Registration",
-                                                            "You have to already registered to this event");
+                                                            "You already registered for this event");
                                                       } else if (_event
                                                                   .registered ==
                                                               false &&

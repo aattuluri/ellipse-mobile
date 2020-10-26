@@ -151,7 +151,7 @@ class _EditEventState extends State<EditEvent> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: new Text("Post Event"),
-            content: new Text("Required fields can not be empty"),
+            content: new Text("Required fields cannot be empty"),
             actions: <Widget>[
               new FlatButton(
                 child: new Text("Ok"),
@@ -1297,7 +1297,7 @@ class _EditEventState extends State<EditEvent> {
                                           _reg_last_dateController.text))) {
                                     _finish_timeController.clear();
                                     alertDialog(context, "End Date",
-                                        "End Date should be after start date and reg end date");
+                                        "End Date should be after start date and registration end date");
                                   }
                                 },
                                 controller: _finish_timeController,
@@ -1347,7 +1347,7 @@ class _EditEventState extends State<EditEvent> {
                                           _finish_timeController.text))) {
                                     _reg_last_dateController.clear();
                                     alertDialog(context, "Reg End Date",
-                                        "Reg End Date should be before start time and end time");
+                                        "Registration end date should be before event start date");
                                   }
                                 },
                                 controller: _reg_last_dateController,

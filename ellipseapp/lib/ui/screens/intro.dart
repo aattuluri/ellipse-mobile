@@ -101,13 +101,13 @@ class _IntroState extends State<Intro> {
                     children: [
                       FirstPage(),
                       onBoardPage(
-                          "event.svg", "All your college events at one place"),
+                          "event.svg", "Find and register for all your College events from one App"),
                       onBoardPage("add.svg",
-                          "Post your events and manage events easily"),
-                      onBoardPage("certificate.svg",
-                          "Easy to manage registration forms and certificates"),
+                          "Post events and manage them with ease"),
                       onBoardPage(
-                          "dashboard.svg", "Feature rich dashboard for admins"),
+                          "dashboard.svg", "Feature Rich dashboard for Event Administrators"),
+                      onBoardPage("certificate.svg",
+                          "Create announcements, Live chat with participants and generate event certificates"),
                     ],
                     onPageChanged: (value) => {setCurrentPage(value)},
                   ),
