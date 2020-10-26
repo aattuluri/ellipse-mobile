@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
 
+import '../../models/index.dart';
 import '../../repositories/index.dart';
 import '../../util/index.dart';
 import '../widgets/index.dart';
@@ -88,15 +89,18 @@ class _NotificationsTabState extends State<NotificationsTab> {
                                 status: model.allNotifications[i].status,
                                 onTap: () {
                                   final _event = context
-                                      .watch<EventsRepository>()
+                                      .read<EventsRepository>()
                                       .getEventIndex(
                                           model.allNotifications[i].event_id);
-
+                                  final Events event_ = context
+                                      .read<EventsRepository>()
+                                      .getEvent(_event);
                                   if (_event.toString().validNumeric()) {
                                     Navigator.pushNamed(
                                         context, Routes.info_page, arguments: {
                                       'index': _event,
-                                      'type': 'user'
+                                      'type': 'user',
+                                      'event_': event_
                                     });
                                   }
                                 },
