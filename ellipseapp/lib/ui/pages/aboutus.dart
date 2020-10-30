@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_web_browser/flutter_web_browser.dart';
 import 'package:line_icons/line_icons.dart';
+
+import '../../util/index.dart';
 
 const String version = '0.4.20';
 
@@ -140,12 +141,29 @@ class _AboutUsState extends State<AboutUs> {
                   ),
                   InkWell(
                     onTap: () {
-                      FlutterWebBrowser.openWebPage(
-                        url: 'https://ellipseapp.com/Privacy_Policy.pdf',
-                        androidToolbarColor: Theme.of(context).primaryColor,
-                      );
+                      Navigator.pushNamed(context, Routes.mdDecode, arguments: {
+                        'title': 'Privacy Policy',
+                        'url':
+                            'https://gunasekhar0027.github.io/ellipsedata/privacy_policy.md'
+                      });
                     },
                     child: Text("Privacy Policy",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).accentColor)),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(10.0),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(context, Routes.mdDecode, arguments: {
+                        'title': 'Terms and Conditions',
+                        'url':
+                            'https://gunasekhar0027.github.io/ellipsedata/terms_and_conditions.md'
+                      });
+                    },
+                    child: Text("Terms And Conditions",
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).accentColor)),

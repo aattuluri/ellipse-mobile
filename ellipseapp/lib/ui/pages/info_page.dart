@@ -1012,12 +1012,18 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                                     child: Container(
                                                       height: 55,
                                                       width: 55,
-                                                      child: FadeInImage(
-                                                        image: NetworkImage(
-                                                            "${Url.URL}/api/image?id=${organizedBy['profile_pic']}"),
-                                                        placeholder: AssetImage(
-                                                            'assets/icons/loading.gif'),
-                                                      ),
+                                                      child: organizedBy[
+                                                                  'profile_pic']
+                                                              .toString()
+                                                              .isNullOrEmpty()
+                                                          ? NoProfilePic()
+                                                          : FadeInImage(
+                                                              image: NetworkImage(
+                                                                  "${Url.URL}/api/image?id=${organizedBy['profile_pic']}"),
+                                                              placeholder:
+                                                                  AssetImage(
+                                                                      'assets/icons/loading.gif'),
+                                                            ),
                                                     ),
                                                   ),
                                                 ),

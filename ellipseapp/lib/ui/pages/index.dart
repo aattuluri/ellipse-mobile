@@ -10,6 +10,7 @@ export 'edit_profile.dart';
 export 'feedback.dart';
 export 'filter_calendar.dart';
 export 'info_page.dart';
+export 'mdDecode.dart';
 export 'my_events.dart';
 export 'myevents_tab_screens.dart';
 export 'participants.dart';

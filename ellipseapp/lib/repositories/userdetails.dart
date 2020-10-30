@@ -29,6 +29,8 @@ class UserDetailsRepository extends BaseRepository {
       allUserDetails = (json.decode(response.body) as List)
           .map((data) => UserDetails.fromJson(data))
           .toList();
+      prefs.setString("name", allUserDetails[0].name);
+      prefs.setString("collegeName", allUserDetails[0].college_name);
       finishLoading();
       print("UserDetails loaded");
     } catch (_) {

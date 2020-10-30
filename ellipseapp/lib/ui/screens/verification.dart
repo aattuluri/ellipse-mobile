@@ -675,8 +675,7 @@ class _CheckState extends State<Check> {
         : female
             ? "Female"
             : null;
-    if (_imageFile == null ||
-        prefId.isNullOrEmpty() ||
+    if (prefId.isNullOrEmpty() ||
         _college.isNullOrEmpty() ||
         bio.isNullOrEmpty() ||
         designation.isNullOrEmpty() ||
@@ -717,72 +716,68 @@ class _CheckState extends State<Check> {
         }),
       );
       if (response.statusCode == 200) {
-        Map<String, String> headers = {
-          HttpHeaders.authorizationHeader: "Bearer $prefToken",
-          HttpHeaders.contentTypeHeader: "application/json"
-        };
-        final mimeTypeData =
-            lookupMimeType(_imageFile.path, headerBytes: [0xFF, 0xD8])
-                .split('/');
+        if (!_imageFile.isNullOrEmpty()) {
+          Map<String, String> headers = {
+            HttpHeaders.authorizationHeader: "Bearer $prefToken",
+            HttpHeaders.contentTypeHeader: "application/json"
+          };
+          final mimeTypeData =
+              lookupMimeType(_imageFile.path, headerBytes: [0xFF, 0xD8])
+                  .split('/');
 
-        // Intilize the multipart request
-        final imageUploadRequest = http.MultipartRequest(
-            'POST', Uri.parse('${Url.URL}/api/users/uploadimage?id=$prefId'));
-        imageUploadRequest.headers.addAll(headers);
-        // Attach the file in the request
-        final file = await http.MultipartFile.fromPath('image', _imageFile.path,
-            contentType: MediaType(mimeTypeData[0], mimeTypeData[1]));
-        // Explicitly pass the extension of the image with request body
-        // Since image_picker has some bugs due which it mixes up
-        // image extension with file name like this filenamejpge
-        // Which creates some problem at the server side to manage
-        // or verify the file extension
-        imageUploadRequest.files.add(file);
+          // Intilize the multipart request
+          final imageUploadRequest = http.MultipartRequest(
+              'POST', Uri.parse('${Url.URL}/api/users/uploadimage?id=$prefId'));
+          imageUploadRequest.headers.addAll(headers);
+          // Attach the file in the request
+          final file = await http.MultipartFile.fromPath(
+              'image', _imageFile.path,
+              contentType: MediaType(mimeTypeData[0], mimeTypeData[1]));
+          // Explicitly pass the extension of the image with request body
+          // Since image_picker has some bugs due which it mixes up
+          // image extension with file name like this filenamejpge
+          // Which creates some problem at the server side to manage
+          // or verify the file extension
+          imageUploadRequest.files.add(file);
 
-        try {
-          final streamedResponse = await imageUploadRequest.send();
-          final response1 = await http.Response.fromStream(streamedResponse);
-          if (response1.statusCode == 200) {
-            Navigator.pushNamed(context, Routes.initialization);
-            setState(() {
-              _isUploading = false;
-            });
-            print("Image Uploaded");
+          try {
+            final streamedResponse = await imageUploadRequest.send();
+            final response1 = await http.Response.fromStream(streamedResponse);
+            if (response1.statusCode == 200) {
+              redirect();
+              print("Image Uploaded");
+            }
+          } catch (e) {
+            print(e);
+            return null;
           }
-        } catch (e) {
-          print(e);
-          return null;
+          redirect();
         }
-        setState(() {
-          isLoading = false;
-        });
-        Navigator.pushNamed(
-          context,
-          Routes.start,
-          arguments: {'current_tab': 0},
-        );
+        redirect();
       } else {
+        redirect();
         print(response.body);
       }
     }
+  }
+
+  redirect() async {
+    setState(() {
+      isLoading = false;
+    });
+    Navigator.pushNamed(context, Routes.initialization);
   }
 
   @override
   // To store the file provided by the image_picker
   File _imageFile;
 
-  // To track the file uploading state
-  bool _isUploading = false;
-
   void _getImage(BuildContext context, ImageSource source) async {
-    File image = await ImagePicker.pickImage(source: source, imageQuality: 10);
-    // Compress plugin
-
+    final _picker = ImagePicker();
+    final pickedFile = await _picker.getImage(source: source, imageQuality: 70);
     setState(() {
-      _imageFile = image;
+      _imageFile = File(pickedFile.path);
     });
-
-    // Closes the bottom sheet
     Navigator.pop(context);
   }
 

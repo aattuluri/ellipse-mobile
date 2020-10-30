@@ -411,6 +411,7 @@ class ChatBubble extends StatefulWidget {
 class _ChatBubbleState extends State<ChatBubble> {
   @override
   Widget build(BuildContext context) {
+    print('${widget.chatMessage.sender_pic}');
     return GestureDetector(
       onLongPress: () => showDialog(
         context: context,
@@ -559,12 +560,15 @@ class _ChatBubbleState extends State<ChatBubble> {
                             width: 35,
                             child: ClipRRect(
                                 borderRadius: BorderRadius.circular(540),
-                                child: FadeInImage(
-                                  image: NetworkImage(
-                                      "${Url.URL}/api/image?id=${widget.chatMessage.sender_pic}"),
-                                  placeholder:
-                                      AssetImage('assets/icons/loading.gif'),
-                                )),
+                                child: widget.chatMessage.sender_pic
+                                        .isNullOrEmpty()
+                                    ? NoProfilePic()
+                                    : FadeInImage(
+                                        image: NetworkImage(
+                                            "${Url.URL}/api/image?id=${widget.chatMessage.sender_pic}"),
+                                        placeholder: AssetImage(
+                                            'assets/icons/loading.gif'),
+                                      )),
                           ),
                           SizedBox(
                             width: 10,

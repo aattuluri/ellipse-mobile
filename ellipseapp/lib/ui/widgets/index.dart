@@ -16,6 +16,7 @@ export 'item_snippet.dart';
 export 'launch_countdown.dart';
 export 'list_cell.dart';
 export 'loading.dart';
+export 'noProfilePic.dart';
 export 'notification_item.dart';
 export 'particle__background.dart';
 export 'radio_cell.dart';

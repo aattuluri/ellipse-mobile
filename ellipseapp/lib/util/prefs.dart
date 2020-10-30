@@ -5,6 +5,7 @@ String prefId = "",
     prefEmail = "",
     prefToken = "",
     prefCollegeId = "",
+    prefCollegeName = "",
     prefFirebaseMessagingToken = "";
 int prefNotificationsCount = 0;
 bool prefLoggedIn;
@@ -16,6 +17,7 @@ loadPref() async {
   prefEmail = prefs.getString("email");
   prefToken = prefs.getString("token");
   prefCollegeId = prefs.getString("collegeId");
+  prefCollegeName = prefs.getString("collegeName");
   prefFirebaseMessagingToken = prefs.getString("firebaseMessagingToken");
 }
 
@@ -27,6 +29,7 @@ resetPref() async {
   prefs.setString("email", "");
   prefs.setString("token", "");
   prefs.setString("collegeId", "");
+  prefs.setString("collegeName", "");
   prefs.setString("firebaseMessagingToken", "");
 }
 

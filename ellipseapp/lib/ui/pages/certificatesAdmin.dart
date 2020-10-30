@@ -530,7 +530,9 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                   fit: BoxFit.cover,
                                   fadeInDuration: Duration(milliseconds: 1000),
                                   image: NetworkImage(
-                                      "https://staging.ellipseapp.com/static/media/certificate_sample.987b5a91.png"),
+                                      "https://gunasekhar0027.github.io/ellipsedata/certificate.png"
+                                      //"https://staging.ellipseapp.com/static/media/certificate_sample.987b5a91.png"
+                                      ),
                                   placeholder:
                                       AssetImage('assets/icons/loading.gif')),
                             ),

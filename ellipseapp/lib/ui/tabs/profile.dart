@@ -101,12 +101,14 @@ class _ProfileTabState extends State<ProfileTab> with TickerProviderStateMixin {
                               child: Container(
                                 height: 55,
                                 width: 55,
-                                child: FadeInImage(
-                                  image: NetworkImage(
-                                      "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
-                                  placeholder:
-                                      AssetImage('assets/icons/loading.gif'),
-                                ),
+                                child: _userdetails.profile_pic.isNullOrEmpty()
+                                    ? NoProfilePic()
+                                    : FadeInImage(
+                                        image: NetworkImage(
+                                            "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                        placeholder: AssetImage(
+                                            'assets/icons/loading.gif'),
+                                      ),
                               ),
                             ),
                           ),

@@ -197,7 +197,7 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
                             () {
                           FlutterWebBrowser.openWebPage(
                             url:
-                                'https://play.google.com/store/apps/details?id=com.guna0027.ellipse',
+                                'https://play.google.com/store/apps/details?id=com.ellipse.ellipseapp',
                           );
                         }),
                         Divider(height: 1),
@@ -222,7 +222,7 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
                 //trailing: Icon(Icons.chevron_right),
                 onTap: () {
                   Share.share(
-                      "https://play.google.com/store/apps/details?id=com.guna0027.ellipse");
+                      "https://play.google.com/store/apps/details?id=com.ellipse.ellipseapp");
                 }),
             ListCell.icon(
                 icon: Icons.integration_instructions_rounded,

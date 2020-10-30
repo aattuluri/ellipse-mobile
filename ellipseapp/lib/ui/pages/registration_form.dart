@@ -22,12 +22,23 @@ class DynamicWidgetItem extends StatelessWidget {
 
   TextEditingController controller = new TextEditingController();
   dynamic filled;
+  bool readOnly = false;
   List<String> filled_list = [];
   List<String> filled_list_local = [];
   String _selected_option;
   String data;
   @override
   Widget build(BuildContext context) {
+    if (title == "Name") {
+      controller.text = prefName;
+      readOnly = true;
+    } else if (title == "Email") {
+      controller.text = prefEmail;
+      readOnly = true;
+    } else if (title == "College") {
+      controller.text = prefCollegeName;
+      readOnly = true;
+    } else {}
     switch (field) {
       case "short_text":
         return Container(
@@ -38,6 +49,7 @@ class DynamicWidgetItem extends StatelessWidget {
             },
             controller: controller,
             autofocus: false,
+            readOnly: readOnly,
             enableInteractiveSelection: true,
             maxLines: 1,
             decoration: new InputDecoration(
