@@ -132,7 +132,7 @@ class _AboutUsState extends State<AboutUs> {
                   Padding(
                     padding: const EdgeInsets.all(20),
                     child: Text(
-                      'Ellipse is an application platform which can be used to post events.',
+                      'Ellipse App is an application platform where you can post college events.',
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -379,7 +379,7 @@ class _AboutUsState extends State<AboutUs> {
                       "",
                       "Gunasekhar A",
                       "Developer",
-                      "(Flutter Developer,Web Developer)",
+                      "(Flutter & Web Developer)",
                       "gunasekhar158@gmail.com",
                       "VIT University,Vellore",
                       () {}),
@@ -387,7 +387,7 @@ class _AboutUsState extends State<AboutUs> {
                       "",
                       "Lalith Sagar P",
                       "Developer",
-                      "(IOS Developer,Web Developer)",
+                      "(IOS & Web Developer)",
                       "lalithpunepalli@gmail.com",
                       "VIT University,Vellore",
                       () {}),

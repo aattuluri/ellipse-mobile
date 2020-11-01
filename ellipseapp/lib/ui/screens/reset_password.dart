@@ -244,7 +244,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                                                         const EdgeInsets.only(
                                                             left: 20.0),
                                                     child: Text(
-                                                      "GET OTP",
+                                                      "Send OTP",
                                                       style: TextStyle(
                                                           color: Theme.of(
                                                                   context)
@@ -530,7 +530,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                                                   if (password != cpassword) {
                                                     Fluttertoast.showToast(
                                                         msg:
-                                                            "Both password should be same",
+                                                            "Passwords should match",
                                                         toastLength:
                                                             Toast.LENGTH_SHORT,
                                                         gravity:
