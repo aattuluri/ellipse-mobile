@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:device_info/device_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
@@ -31,11 +32,20 @@ class _SignInState extends State<SignIn> {
 
   signIn(String email, pass) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    // IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
     Map data1 = {'email': email};
     http.Response response1 =
         await http.post("${Url.URL}/api/check_email_exists", body: data1);
     if (response1.statusCode == 200) {
-      Map data2 = {'email': email, 'password': pass};
+      Map data2 = {
+        'email': email,
+        'password': pass,
+        'type': "app",
+        'device_os': "Android",
+        'device_name': '${androidInfo.model}'
+      };
       http.Response response2 =
           await http.post("${Url.URL}/api/users/login", body: data2);
       if (response2.statusCode == 200) {
@@ -455,6 +465,9 @@ class _SignupState extends State<Signup> {
 
   signUp(String name, username, email, pass) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    // IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
     Map data1 = {'email': email};
     Map data2 = {'username': username};
     http.Response response1 =
@@ -466,7 +479,10 @@ class _SignupState extends State<Signup> {
         'name': name,
         'username': username,
         'email': email,
-        'password': pass
+        'password': pass,
+        'type': "app",
+        'device_os': "Android",
+        'device_name': '${androidInfo.model}'
       };
       http.Response response3 =
           await http.post("${Url.URL}/api/users/signup", body: data3);

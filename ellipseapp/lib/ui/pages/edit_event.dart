@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:date_time_picker/date_time_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -164,6 +164,10 @@ class _EditEventState extends State<EditEvent> {
         },
       );
     } else {
+      print(_reg_last_dateController.text);
+      print(_start_timeController.text);
+      print(DateTime.parse(_start_timeController.text).toUtc().toString());
+      print(_finish_timeController.text);
       setState(() {
         _isUploading = true;
       });
@@ -182,9 +186,12 @@ class _EditEventState extends State<EditEvent> {
           "eventId": id,
           "name": _nameController.text,
           "description": _descriptionController.text,
-          "start_time": _start_timeController.text,
-          "finish_time": _finish_timeController.text,
-          "registration_end_time": _reg_last_dateController.text,
+          "start_time":
+              DateTime.parse(_start_timeController.text).toUtc().toString(),
+          "finish_time":
+              DateTime.parse(_finish_timeController.text).toUtc().toString(),
+          "registration_end_time":
+              DateTime.parse(_reg_last_dateController.text).toUtc().toString(),
           "event_mode": "$e_m",
           "event_type": "$e_t",
           "reg_link": _reg_linkController.text,
@@ -274,7 +281,7 @@ class _EditEventState extends State<EditEvent> {
     super.initState();
   }
 
-  final format = DateFormat("yyyy-MM-dd HH:mm");
+  final format = DateFormat("yyyy-MM-dd HH:mm ");
   @override
   Widget build(BuildContext context) {
     final Events _event =
@@ -1220,17 +1227,12 @@ class _EditEventState extends State<EditEvent> {
                           title: "Date and Time Details",
                           body: RowLayout(
                             children: <Widget>[
-                              DateTimeField(
-                                style: TextStyle(
-                                  color:
-                                      Theme.of(context).textTheme.caption.color,
-                                ),
-                                cursorColor:
-                                    Theme.of(context).textTheme.caption.color,
+                              DateTimePicker(
+                                type: DateTimePickerType.dateTime,
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(),
-                                  labelText: 'Start time',
-                                  hintText: 'Start time',
+                                  labelText: "Registration Ends At",
+                                  hintText: 'Registration Ends At',
                                   hintStyle: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
@@ -1239,135 +1241,83 @@ class _EditEventState extends State<EditEvent> {
                                     fontSize: 18.0,
                                   ),
                                 ),
-                                onChanged: (value) {
-                                  if (value.isBefore(DateTime.parse(
-                                          _reg_last_dateController.text)) ||
-                                      value.isAfter(DateTime.parse(
-                                          _finish_timeController.text))) {
-                                    _start_timeController.clear();
-                                    alertDialog(context, "Start Date",
-                                        "Start Date should be after reg end date and before finish date ");
-                                  }
-                                },
-                                controller: _start_timeController,
-                                format: format,
-                                onShowPicker: (context, currentValue) async {
-                                  final date = await showDatePicker(
-                                      context: context,
-                                      firstDate: DateTime.now(),
-                                      initialDate:
-                                          currentValue ?? DateTime.now(),
-                                      lastDate: DateTime(2100));
-                                  if (date != null) {
-                                    final time = await showTimePicker(
-                                      context: context,
-                                      initialTime: TimeOfDay.fromDateTime(
-                                          currentValue ?? DateTime.now()),
-                                    );
-                                    return DateTimeField.combine(date, time)
-                                        .toUtc();
-                                  } else {
-                                    return currentValue;
-                                  }
-                                },
-                              ),
-                              DateTimeField(
-                                style: TextStyle(
-                                  color:
-                                      Theme.of(context).textTheme.caption.color,
-                                ),
-                                cursorColor:
-                                    Theme.of(context).textTheme.caption.color,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Finish time',
-                                  hintText: 'Finish time',
-                                  hintStyle: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .caption
-                                        .color,
-                                    fontSize: 18.0,
-                                  ),
-                                ),
-                                onChanged: (value) {
-                                  if (value.isBefore(DateTime.parse(
-                                          _start_timeController.text)) ||
-                                      value.isBefore(DateTime.parse(
-                                          _reg_last_dateController.text))) {
-                                    _finish_timeController.clear();
-                                    alertDialog(context, "End Date",
-                                        "End Date should be after start date and reg end date");
-                                  }
-                                },
-                                controller: _finish_timeController,
-                                format: format,
-                                onShowPicker: (context, currentValue) async {
-                                  final date = await showDatePicker(
-                                      context: context,
-                                      firstDate: DateTime.now(),
-                                      initialDate:
-                                          currentValue ?? DateTime.now(),
-                                      lastDate: DateTime(2100));
-                                  if (date != null) {
-                                    final time = await showTimePicker(
-                                      context: context,
-                                      initialTime: TimeOfDay.fromDateTime(
-                                          currentValue ?? DateTime.now()),
-                                    );
-                                    return DateTimeField.combine(date, time);
-                                  } else {
-                                    return currentValue;
-                                  }
-                                },
-                              ),
-                              DateTimeField(
-                                style: TextStyle(
-                                  color:
-                                      Theme.of(context).textTheme.caption.color,
-                                ),
-                                cursorColor:
-                                    Theme.of(context).textTheme.caption.color,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: "Registration last date",
-                                  hintText: 'Registration last date',
-                                  hintStyle: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .caption
-                                        .color,
-                                    fontSize: 18.0,
-                                  ),
-                                ),
-                                onChanged: (value) {
-                                  if (value.isAfter(DateTime.parse(
-                                          _start_timeController.text)) ||
-                                      value.isAfter(DateTime.parse(
-                                          _finish_timeController.text))) {
-                                    _reg_last_dateController.clear();
-                                    alertDialog(context, "Reg End Date",
-                                        "Reg End Date should be before start time and end time");
-                                  }
-                                },
+                                dateMask: 'd MMMM, yyyy - hh:mm a',
                                 controller: _reg_last_dateController,
-                                format: format,
-                                onShowPicker: (context, currentValue) async {
-                                  final date = await showDatePicker(
-                                      context: context,
-                                      firstDate: DateTime.now(),
-                                      initialDate:
-                                          currentValue ?? DateTime.now(),
-                                      lastDate: DateTime(2100));
-                                  if (date != null) {
-                                    final time = await showTimePicker(
-                                      context: context,
-                                      initialTime: TimeOfDay.fromDateTime(
-                                          currentValue ?? DateTime.now()),
-                                    );
-                                    return DateTimeField.combine(date, time);
-                                  } else {
-                                    return currentValue;
+                                //initialValue: DateTime.now().toString(),
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2100),
+                                use24HourFormat: false,
+                                onChanged: (value) {
+                                  if (DateTime.parse(value).isAfter(
+                                      DateTime.parse(
+                                          _finish_timeController.text))) {
+                                    // _reg_last_dateController.clear();
+                                    alertDialog(context, "Registration Ends At",
+                                        "Registration end time should be before end time");
+                                  }
+                                },
+                              ),
+                              DateTimePicker(
+                                type: DateTimePickerType.dateTime,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Starts At',
+                                  hintText: 'Starts At',
+                                  hintStyle: TextStyle(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    fontSize: 18.0,
+                                  ),
+                                ),
+                                dateMask: 'd MMMM, yyyy - hh:mm a',
+                                controller: _start_timeController,
+                                //initialValue: DateTime.now().toString(),
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2100),
+                                use24HourFormat: false,
+                                onChanged: (value) {
+                                  if (DateTime.parse(value).isAfter(
+                                      DateTime.parse(
+                                          _finish_timeController.text))) {
+                                    //  _start_timeController.clear();
+                                    alertDialog(context, "Starts At",
+                                        "Start time should be before end time");
+                                  }
+                                },
+                              ),
+                              DateTimePicker(
+                                type: DateTimePickerType.dateTime,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Ends At',
+                                  hintText: 'Ends At',
+                                  hintStyle: TextStyle(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    fontSize: 18.0,
+                                  ),
+                                ),
+                                dateMask: 'd MMMM, yyyy - hh:mm a',
+                                controller: _finish_timeController,
+                                //initialValue: DateTime.now().toString(),
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2100),
+                                use24HourFormat: false,
+                                onChanged: (value) {
+                                  if ((DateTime.parse(value).isBefore(
+                                          DateTime.parse(
+                                              _start_timeController.text))) ||
+                                      (DateTime.parse(value).isBefore(
+                                          DateTime.parse(
+                                              _reg_last_dateController
+                                                  .text)))) {
+                                    // _finish_timeController.clear();
+                                    alertDialog(context, "Ends At",
+                                        "End time should be after start time and registration end time");
                                   }
                                 },
                               ),

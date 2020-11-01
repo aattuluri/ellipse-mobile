@@ -2,9 +2,9 @@ class Url {
   /////STAGING//////
 
   //static String URL = "https://staging.ellipseapp.com";
-  // static String WEBSOCKET_URL = "wss://staging.ellipseapp.com/ws";
+  //static String WEBSOCKET_URL = "wss://staging.ellipseapp.com/ws";
   //static String DYNAMIC_LINK_REMOVE =
-  //   "https://staging.ellipseapp.com/un/event/";
+  //"https://staging.ellipseapp.com/un/event/";
 
   /////PRODUCTION/////
 

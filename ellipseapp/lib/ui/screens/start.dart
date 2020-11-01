@@ -48,74 +48,84 @@ class _StartScreenState extends State<StartScreen>
     setState(() {
       ischecking = true;
     });
-
-    final responsen = await http.get(
-      "${Url.URL}/api/get_unseen_notifications_count",
+    final responsev = await http.get(
+      "${Url.URL}/api/users/me",
       headers: {
         HttpHeaders.authorizationHeader: "Bearer $prefToken",
         HttpHeaders.contentTypeHeader: "application/json"
       },
     );
-    final responseJson = json.decode(responsen.body);
-    print("Notifications Count");
-    setState(() {
-      notifCount = responseJson;
-    });
-    print(responseJson);
-
-    http.Response response;
-    try {
-      response = await http.post(
-        '${Url.URL}/api/users/check',
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $prefToken'
-        },
-        body: jsonEncode(<dynamic, dynamic>{'id': '$prefId'}),
-      );
-    } catch (e) {
+    if (responsev.statusCode == 401) {
       Navigator.pushNamed(context, Routes.signin);
-    }
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
-    if (response.statusCode == 401) {
-      var route = new MaterialPageRoute(
-        builder: (BuildContext context) =>
-            OtpPageEmailVerify(prefEmail, "email_verification"),
+    } else {
+      final responsen = await http.get(
+        "${Url.URL}/api/get_unseen_notifications_count",
+        headers: {
+          HttpHeaders.authorizationHeader: "Bearer $prefToken",
+          HttpHeaders.contentTypeHeader: "application/json"
+        },
       );
-      Navigator.of(context).push(route);
-    } else if (response.statusCode == 402) {
-      var route = new MaterialPageRoute(
-        builder: (BuildContext context) => Check(),
-      );
-      Navigator.of(context).push(route);
-    } else if (response.statusCode == 403) {
+      final responseJson = json.decode(responsen.body);
+      print("Notifications Count");
       setState(() {
-        preferences.setString("collegeId", "${response.body}".toString());
+        notifCount = responseJson;
       });
-      _firebaseMessaging.getToken().then((deviceToken) async {
-        await http.post(
-          '${Url.URL}/api/add_firebase_notification_token_to_user',
+      print(responseJson);
+
+      http.Response response;
+      try {
+        response = await http.post(
+          '${Url.URL}/api/users/check',
           headers: <String, String>{
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $prefToken'
           },
-          body: jsonEncode(<dynamic, dynamic>{'token': '$deviceToken'}),
+          body: jsonEncode(<dynamic, dynamic>{'id': '$prefId'}),
         );
-      });
-      context.read<UserDetailsRepository>().refreshData();
-      context.read<EventsRepository>().refreshData();
-      context.read<NotificationsRepository>().refreshData();
-      context.read<DataRepository>().refreshData();
-      setState(() {
-        ischecking = false;
-      });
-      print("All details checked");
-    } else {
-      setState(() {
-        ischecking = false;
-      });
-      Navigator.pushNamed(context, Routes.signin);
+      } catch (e) {
+        Navigator.pushNamed(context, Routes.signin);
+      }
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+      if (response.statusCode == 401) {
+        var route = new MaterialPageRoute(
+          builder: (BuildContext context) =>
+              OtpPageEmailVerify(prefEmail, "email_verification"),
+        );
+        Navigator.of(context).push(route);
+      } else if (response.statusCode == 402) {
+        var route = new MaterialPageRoute(
+          builder: (BuildContext context) => Check(),
+        );
+        Navigator.of(context).push(route);
+      } else if (response.statusCode == 403) {
+        setState(() {
+          preferences.setString("collegeId", "${response.body}".toString());
+        });
+        _firebaseMessaging.getToken().then((deviceToken) async {
+          await http.post(
+            '${Url.URL}/api/add_firebase_notification_token_to_user',
+            headers: <String, String>{
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $prefToken'
+            },
+            body: jsonEncode(<dynamic, dynamic>{'token': '$deviceToken'}),
+          );
+        });
+        context.read<UserDetailsRepository>().refreshData();
+        context.read<EventsRepository>().refreshData();
+        context.read<NotificationsRepository>().refreshData();
+        context.read<DataRepository>().refreshData();
+        setState(() {
+          ischecking = false;
+        });
+        print("All details checked");
+      } else {
+        setState(() {
+          ischecking = false;
+        });
+        Navigator.pushNamed(context, Routes.signin);
+      }
     }
   }
 

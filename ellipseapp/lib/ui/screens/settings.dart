@@ -38,11 +38,21 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
         await http.post("${Url.URL}/api/users/logout", headers: headers);
   }
 
-  void _showDialoglogout() {
+  logoutofAll() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Bearer $prefToken",
+      HttpHeaders.contentTypeHeader: "application/json"
+    };
+    var response =
+        await http.post("${Url.URL}/api/users/logoutall", headers: headers);
+  }
+
+  void _showDialoglogout(String title, String subtitle, int function) {
     generalDialog(
       context,
-      title: Text("Logout"),
-      content: Text("Are you sure you want to logout?"),
+      title: Text(title),
+      content: Text(subtitle),
       actions: [
         new FlatButton(
           child: new Text("Cancel"),
@@ -53,10 +63,8 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
         new FlatButton(
           child: new Text("Ok"),
           onPressed: () async {
-            logout();
-
+            function == 1 ? logout() : logoutofAll();
             resetPref();
-            //Navigator.pushNamed(context, Routes.intro);
             Navigator.pushNamed(context, Routes.signin);
           },
         ),
@@ -236,11 +244,25 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
               child: OutlineButton(
                 onPressed: () {
                   setState(() {
-                    _showDialoglogout();
+                    _showDialoglogout(
+                        "Logout", "Are you sure you want to logout?", 1);
                   });
                 },
                 child: Text(
                   "Logout",
+                ),
+              ),
+            ),
+            Center(
+              child: OutlineButton(
+                onPressed: () {
+                  setState(() {
+                    _showDialoglogout("Logout of all devices",
+                        "Are you sure you want to logout of all devices?", 2);
+                  });
+                },
+                child: Text(
+                  "Logout of all devices",
                 ),
               ),
             ),

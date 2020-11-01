@@ -28,6 +28,17 @@ class _CertificatesState extends State<Certificates> {
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           title: Text("Certificates"),
           elevation: 5,
+          actions: [
+            IconButton(
+                icon: Icon(
+                  LineIcons.refresh,
+                  color: Theme.of(context).textTheme.caption.color,
+                  size: 27,
+                ),
+                onPressed: () {
+                  context.read<EventsRepository>().refreshData();
+                }),
+          ],
           centerTitle: true,
         ),
         body: ListView.builder(

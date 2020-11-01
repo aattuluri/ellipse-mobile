@@ -3,7 +3,7 @@ description: Ellipse App
 
 publish_to: 'none'
 
-version: 1.0.0+2
+version: 1.0.0+3
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -28,7 +28,9 @@ dependencies:
   share: ^0.6.5+4
   url_launcher: ^5.7.2
   dio: ^3.0.10
+  device_info: ^0.4.2+9
   ##ui##
+  date_time_picker: ^1.0.2
   google_fonts: ^1.1.1
   line_icons: ^0.2.0
   add_2_calendar: ^1.4.0

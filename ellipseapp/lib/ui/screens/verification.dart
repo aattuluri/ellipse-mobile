@@ -9,7 +9,6 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../util/index.dart';
 import '../screens/index.dart';
@@ -277,10 +276,8 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
             title: Text("OTP Verification"),
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             leading: new IconButton(
-              icon: new Icon(Icons.arrow_back_ios),
+              icon: new Icon(Icons.arrow_back),
               onPressed: () async {
-                SharedPreferences preferences =
-                    await SharedPreferences.getInstance();
                 resetPref();
                 Navigator.pushNamed(context, Routes.signin);
               },
@@ -374,6 +371,18 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
                           ),
                         ),
                       ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      email_sent
+                          ? Text(
+                              "Click here to Re-send OTP to Email",
+                              style: TextStyle(fontSize: 15.0),
+                            )
+                          : Text(
+                              "Click here to Send OTP to Email",
+                              style: TextStyle(fontSize: 15.0),
+                            ),
                     ],
                   ),
                   flex: 60,
@@ -869,6 +878,17 @@ class _CheckState extends State<Check> {
                 return false;
               },
               child: Scaffold(
+                appBar: AppBar(
+                  title: Text("Fill Profile"),
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  leading: new IconButton(
+                    icon: new Icon(Icons.arrow_back),
+                    onPressed: () async {
+                      resetPref();
+                      Navigator.pushNamed(context, Routes.signin);
+                    },
+                  ),
+                ),
                 body: SingleChildScrollView(
                   child: Stack(
                     children: <Widget>[
@@ -889,7 +909,7 @@ class _CheckState extends State<Check> {
                                       padding:
                                           const EdgeInsets.only(left: 20.0),
                                       child: Text(
-                                        "Profile Picture",
+                                        "Profile Picture(Optional)",
                                         style: TextStyle(
                                             color: Colors.grey, fontSize: 16.0),
                                       ),
@@ -1318,7 +1338,6 @@ class _CheckState extends State<Check> {
                                   ],
                                 ),
                               ),
-                              SizedBox(height: 20),
                               Container(
                                 margin: const EdgeInsets.only(top: 20.0),
                                 padding: const EdgeInsets.only(
@@ -1367,11 +1386,6 @@ class _CheckState extends State<Check> {
                                         ),
                                         onPressed: () async {
                                           next();
-                                          //Navigator.pushNamed(
-                                          // context,
-                                          // Routes.start,
-                                          // arguments: {'currebt_tab': 1},
-                                          //);
                                         },
                                       ),
                                     ),

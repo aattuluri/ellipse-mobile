@@ -28,6 +28,7 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  Timer timer;
   IOWebSocketChannel channel;
   bool isLoading = false;
   ScrollController scrollController;
@@ -125,8 +126,7 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  @override
-  Future<void> initState() {
+  websocketConnect() async {
     loadPref();
     _SearchListState();
     scrollController = ScrollController();
@@ -142,8 +142,12 @@ class _ChatPageState extends State<ChatPage> {
     headers["Origin"] = "XXXXXX";
     headers["Authorization"] = "XXXXXX";
    */
-    channel = IOWebSocketChannel.connect('${Url.WEBSOCKET_URL}',
-        headers: {'X-Client-Version': prefId});
+    channel = IOWebSocketChannel.connect(
+      '${Url.WEBSOCKET_URL}',
+      pingInterval: Duration(
+        seconds: 1,
+      ),
+    );
     channel.stream.listen((data) {
       var response = json.decode(data);
       String action = response['action'];
@@ -212,6 +216,13 @@ class _ChatPageState extends State<ChatPage> {
           break;
       }
     });
+  }
+
+  @override
+  void initState() {
+    websocketConnect();
+    timer =
+        Timer.periodic(Duration(seconds: 500), (Timer t) => websocketConnect());
     super.initState();
   }
 
