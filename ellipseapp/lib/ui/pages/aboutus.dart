@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_web_browser/flutter_web_browser.dart';
 import 'package:line_icons/line_icons.dart';
+
+import '../../util/index.dart';
 
 const String version = '0.4.20';
 
@@ -131,7 +132,7 @@ class _AboutUsState extends State<AboutUs> {
                   Padding(
                     padding: const EdgeInsets.all(20),
                     child: Text(
-                      'Ellipse is an application platform which can be used to post events.',
+                      'Ellipse App is an application platform where you can post college events.',
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -140,12 +141,29 @@ class _AboutUsState extends State<AboutUs> {
                   ),
                   InkWell(
                     onTap: () {
-                      FlutterWebBrowser.openWebPage(
-                        url: 'https://ellipseapp.com/Privacy_Policy.pdf',
-                        androidToolbarColor: Theme.of(context).primaryColor,
-                      );
+                      Navigator.pushNamed(context, Routes.mdDecode, arguments: {
+                        'title': 'Privacy Policy',
+                        'url':
+                            'https://gunasekhar0027.github.io/ellipsedata/privacy_policy.md'
+                      });
                     },
                     child: Text("Privacy Policy",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).accentColor)),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(10.0),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(context, Routes.mdDecode, arguments: {
+                        'title': 'Terms and Conditions',
+                        'url':
+                            'https://gunasekhar0027.github.io/ellipsedata/terms_and_conditions.md'
+                      });
+                    },
+                    child: Text("Terms And Conditions",
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).accentColor)),
@@ -361,7 +379,7 @@ class _AboutUsState extends State<AboutUs> {
                       "",
                       "Gunasekhar A",
                       "Developer",
-                      "(Flutter Developer,Web Developer)",
+                      "(Flutter & Web Developer)",
                       "gunasekhar158@gmail.com",
                       "VIT University,Vellore",
                       () {}),
@@ -369,7 +387,7 @@ class _AboutUsState extends State<AboutUs> {
                       "",
                       "Lalith Sagar P",
                       "Developer",
-                      "(IOS Developer,Web Developer)",
+                      "(IOS & Web Developer)",
                       "lalithpunepalli@gmail.com",
                       "VIT University,Vellore",
                       () {}),

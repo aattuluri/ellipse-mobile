@@ -9,7 +9,6 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../util/index.dart';
 import '../screens/index.dart';
@@ -277,10 +276,8 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
             title: Text("OTP Verification"),
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             leading: new IconButton(
-              icon: new Icon(Icons.arrow_back_ios),
+              icon: new Icon(Icons.arrow_back),
               onPressed: () async {
-                SharedPreferences preferences =
-                    await SharedPreferences.getInstance();
                 resetPref();
                 Navigator.pushNamed(context, Routes.signin);
               },
@@ -374,6 +371,18 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
                           ),
                         ),
                       ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      email_sent
+                          ? Text(
+                              "Click here to Re-send OTP to Email",
+                              style: TextStyle(fontSize: 15.0),
+                            )
+                          : Text(
+                              "Click here to Send OTP to Email",
+                              style: TextStyle(fontSize: 15.0),
+                            ),
                     ],
                   ),
                   flex: 60,
@@ -675,8 +684,7 @@ class _CheckState extends State<Check> {
         : female
             ? "Female"
             : null;
-    if (_imageFile == null ||
-        prefId.isNullOrEmpty() ||
+    if (prefId.isNullOrEmpty() ||
         _college.isNullOrEmpty() ||
         bio.isNullOrEmpty() ||
         designation.isNullOrEmpty() ||
@@ -717,72 +725,68 @@ class _CheckState extends State<Check> {
         }),
       );
       if (response.statusCode == 200) {
-        Map<String, String> headers = {
-          HttpHeaders.authorizationHeader: "Bearer $prefToken",
-          HttpHeaders.contentTypeHeader: "application/json"
-        };
-        final mimeTypeData =
-            lookupMimeType(_imageFile.path, headerBytes: [0xFF, 0xD8])
-                .split('/');
+        if (!_imageFile.isNullOrEmpty()) {
+          Map<String, String> headers = {
+            HttpHeaders.authorizationHeader: "Bearer $prefToken",
+            HttpHeaders.contentTypeHeader: "application/json"
+          };
+          final mimeTypeData =
+              lookupMimeType(_imageFile.path, headerBytes: [0xFF, 0xD8])
+                  .split('/');
 
-        // Intilize the multipart request
-        final imageUploadRequest = http.MultipartRequest(
-            'POST', Uri.parse('${Url.URL}/api/users/uploadimage?id=$prefId'));
-        imageUploadRequest.headers.addAll(headers);
-        // Attach the file in the request
-        final file = await http.MultipartFile.fromPath('image', _imageFile.path,
-            contentType: MediaType(mimeTypeData[0], mimeTypeData[1]));
-        // Explicitly pass the extension of the image with request body
-        // Since image_picker has some bugs due which it mixes up
-        // image extension with file name like this filenamejpge
-        // Which creates some problem at the server side to manage
-        // or verify the file extension
-        imageUploadRequest.files.add(file);
+          // Intilize the multipart request
+          final imageUploadRequest = http.MultipartRequest(
+              'POST', Uri.parse('${Url.URL}/api/users/uploadimage?id=$prefId'));
+          imageUploadRequest.headers.addAll(headers);
+          // Attach the file in the request
+          final file = await http.MultipartFile.fromPath(
+              'image', _imageFile.path,
+              contentType: MediaType(mimeTypeData[0], mimeTypeData[1]));
+          // Explicitly pass the extension of the image with request body
+          // Since image_picker has some bugs due which it mixes up
+          // image extension with file name like this filenamejpge
+          // Which creates some problem at the server side to manage
+          // or verify the file extension
+          imageUploadRequest.files.add(file);
 
-        try {
-          final streamedResponse = await imageUploadRequest.send();
-          final response1 = await http.Response.fromStream(streamedResponse);
-          if (response1.statusCode == 200) {
-            Navigator.pushNamed(context, Routes.initialization);
-            setState(() {
-              _isUploading = false;
-            });
-            print("Image Uploaded");
+          try {
+            final streamedResponse = await imageUploadRequest.send();
+            final response1 = await http.Response.fromStream(streamedResponse);
+            if (response1.statusCode == 200) {
+              redirect();
+              print("Image Uploaded");
+            }
+          } catch (e) {
+            print(e);
+            return null;
           }
-        } catch (e) {
-          print(e);
-          return null;
+          redirect();
         }
-        setState(() {
-          isLoading = false;
-        });
-        Navigator.pushNamed(
-          context,
-          Routes.start,
-          arguments: {'current_tab': 0},
-        );
+        redirect();
       } else {
+        redirect();
         print(response.body);
       }
     }
+  }
+
+  redirect() async {
+    setState(() {
+      isLoading = false;
+    });
+    Navigator.pushNamed(context, Routes.initialization);
   }
 
   @override
   // To store the file provided by the image_picker
   File _imageFile;
 
-  // To track the file uploading state
-  bool _isUploading = false;
-
   void _getImage(BuildContext context, ImageSource source) async {
-    File image = await ImagePicker.pickImage(source: source, imageQuality: 10);
-    // Compress plugin
-
+    final _picker = ImagePicker();
+    final pickedFile = await _picker.getImage(source: source, imageQuality: 70);
     setState(() {
-      _imageFile = image;
+      _imageFile = File(pickedFile.path);
     });
-
-    // Closes the bottom sheet
     Navigator.pop(context);
   }
 
@@ -874,6 +878,17 @@ class _CheckState extends State<Check> {
                 return false;
               },
               child: Scaffold(
+                appBar: AppBar(
+                  title: Text("Fill Profile"),
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  leading: new IconButton(
+                    icon: new Icon(Icons.arrow_back),
+                    onPressed: () async {
+                      resetPref();
+                      Navigator.pushNamed(context, Routes.signin);
+                    },
+                  ),
+                ),
                 body: SingleChildScrollView(
                   child: Stack(
                     children: <Widget>[
@@ -894,7 +909,7 @@ class _CheckState extends State<Check> {
                                       padding:
                                           const EdgeInsets.only(left: 20.0),
                                       child: Text(
-                                        "Profile Picture",
+                                        "Profile Picture(Optional)",
                                         style: TextStyle(
                                             color: Colors.grey, fontSize: 16.0),
                                       ),
@@ -1323,7 +1338,6 @@ class _CheckState extends State<Check> {
                                   ],
                                 ),
                               ),
-                              SizedBox(height: 20),
                               Container(
                                 margin: const EdgeInsets.only(top: 20.0),
                                 padding: const EdgeInsets.only(
@@ -1372,11 +1386,6 @@ class _CheckState extends State<Check> {
                                         ),
                                         onPressed: () async {
                                           next();
-                                          //Navigator.pushNamed(
-                                          // context,
-                                          // Routes.start,
-                                          // arguments: {'currebt_tab': 1},
-                                          //);
                                         },
                                       ),
                                     ),

@@ -29,6 +29,7 @@ class Routes {
   static const change_password = '/change_password';
   static const about_us = '/about_us';
   static const help_support = '/help_support';
+  static const mdDecode = '/mdDecode';
 
   /// Methods that generate all routes
   static Route<dynamic> generateRoute(RouteSettings routeSettings) {
@@ -149,11 +150,18 @@ class Routes {
             settings: routeSettings,
             builder: (_) => ConnectionErrorScreen(),
           );
+        case mdDecode:
+          final title = args['title'] as String;
+          final url = args['url'] as String;
+          return MaterialPageRoute(
+            settings: routeSettings,
+            builder: (_) => MdDecode(title, url),
+          );
         default:
           return errorRoute(routeSettings);
       }
     } catch (_) {
-      //return errorRoute(routeSettings);
+      return errorRoute(routeSettings);
     }
   }
 

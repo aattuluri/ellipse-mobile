@@ -133,12 +133,6 @@ class _CalendarTabState extends State<CalendarTab> {
                     ),
                     onPressed: () {
                       context.read<EventsRepository>().refreshData();
-                      Scaffold.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Events Refreshed"),
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
                     }),
                 Padding(
                   padding: const EdgeInsets.only(

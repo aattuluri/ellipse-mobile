@@ -296,78 +296,96 @@ class _EditProfileState extends State<EditProfile> {
                                     ),
                                   )
                                 : Container(
-                                    width: 80.0,
-                                    height: 80.0,
-                                    child: CircleAvatar(
-                                      radius: 40,
-                                      backgroundColor: Colors.grey,
-                                      child: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(540),
-                                        child: InkWell(
-                                          onTap: () {
-                                            showDialog(
-                                              context: context,
-                                              builder: (_) => Container(
-                                                color: Theme.of(context)
-                                                    .scaffoldBackgroundColor
-                                                    .withOpacity(0.7),
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                      Radius.circular(10.0),
-                                                    ),
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .center,
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        FadeInImage(
-                                                          image: NetworkImage(
-                                                              "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
-                                                          placeholder: AssetImage(
-                                                              'assets/icons/loading.gif'),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                          width: 3,
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .caption
+                                              .color),
+                                      borderRadius: BorderRadius.circular(50),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(540),
+                                      child: InkWell(
+                                        onTap: _userdetails.profile_pic
+                                                .isNullOrEmpty()
+                                            ? () {}
+                                            : () {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (_) => Container(
+                                                    color: Theme.of(context)
+                                                        .scaffoldBackgroundColor
+                                                        .withOpacity(0.7),
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8.0),
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                          Radius.circular(10.0),
                                                         ),
-                                                        SizedBox(height: 10),
-                                                        FloatingActionButton(
-                                                          backgroundColor:
-                                                              Theme.of(context)
-                                                                  .accentColor,
-                                                          onPressed: () {
-                                                            Navigator.pop(
-                                                                context);
-                                                          },
-                                                          tooltip: 'Close',
-                                                          child: Icon(
-                                                              Icons.close,
-                                                              size: 30),
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .center,
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            _userdetails
+                                                                    .profile_pic
+                                                                    .isNullOrEmpty()
+                                                                ? NoProfilePic()
+                                                                : FadeInImage(
+                                                                    image: NetworkImage(
+                                                                        "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                                                    placeholder:
+                                                                        AssetImage(
+                                                                            'assets/icons/loading.gif'),
+                                                                  ),
+                                                            SizedBox(
+                                                                height: 10),
+                                                            FloatingActionButton(
+                                                              backgroundColor:
+                                                                  Theme.of(
+                                                                          context)
+                                                                      .accentColor,
+                                                              onPressed: () {
+                                                                Navigator.pop(
+                                                                    context);
+                                                              },
+                                                              tooltip:
+                                                                  'Increment',
+                                                              child: Icon(
+                                                                  Icons.close,
+                                                                  size: 30),
+                                                            ),
+                                                          ],
                                                         ),
-                                                      ],
+                                                      ),
                                                     ),
                                                   ),
+                                                );
+                                              },
+                                        child: Container(
+                                          height: 73,
+                                          width: 73,
+                                          child: _userdetails.profile_pic
+                                                  .isNullOrEmpty()
+                                              ? NoProfilePic()
+                                              : FadeInImage(
+                                                  image: NetworkImage(
+                                                      "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                                  placeholder: AssetImage(
+                                                      'assets/icons/loading.gif'),
                                                 ),
-                                              ),
-                                            );
-                                          },
-                                          child: Container(
-                                            height: 73,
-                                            width: 73,
-                                            child: FadeInImage(
-                                              image: NetworkImage(
-                                                  "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
-                                              placeholder: AssetImage(
-                                                  'assets/icons/loading.gif'),
-                                            ),
-                                          ),
                                         ),
                                       ),
-                                    )),
+                                    ),
+                                  ),
                             SizedBox(width: 10.0),
                             OutlineButton(
                               onPressed: () {

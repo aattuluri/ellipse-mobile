@@ -189,7 +189,11 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                   "You are admin to this event.You can not register to this event");
                             } else if (_event.registered == true) {
                               alertDialog(context, "Event Registration",
-                                  "You have to already registered to this event");
+                                  "You have already registered to this event");
+                            } else if (_event.reg_last_date
+                                .isBefore(DateTime.now())) {
+                              alertDialog(context, "Event Registration",
+                                  "Event Registration Closed");
                             } else if (_event.registered == false &&
                                 _event.reg_mode == "form") {
                               setState(() {
@@ -626,7 +630,10 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                       ),
                                       details: _event.description,
                                     ),
-                                    (!_event.registered && !_event.moderator)
+                                    (!_event.registered &&
+                                            !_event.moderator &&
+                                            _event.reg_last_date
+                                                .isAfter(DateTime.now()))
                                         ? Container(
                                             margin: const EdgeInsets.symmetric(
                                                 vertical: 10),
@@ -1012,12 +1019,18 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                                     child: Container(
                                                       height: 55,
                                                       width: 55,
-                                                      child: FadeInImage(
-                                                        image: NetworkImage(
-                                                            "${Url.URL}/api/image?id=${organizedBy['profile_pic']}"),
-                                                        placeholder: AssetImage(
-                                                            'assets/icons/loading.gif'),
-                                                      ),
+                                                      child: organizedBy[
+                                                                  'profile_pic']
+                                                              .toString()
+                                                              .isNullOrEmpty()
+                                                          ? NoProfilePic()
+                                                          : FadeInImage(
+                                                              image: NetworkImage(
+                                                                  "${Url.URL}/api/image?id=${organizedBy['profile_pic']}"),
+                                                              placeholder:
+                                                                  AssetImage(
+                                                                      'assets/icons/loading.gif'),
+                                                            ),
                                                     ),
                                                   ),
                                                 ),

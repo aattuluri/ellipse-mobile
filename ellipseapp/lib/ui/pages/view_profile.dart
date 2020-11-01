@@ -6,6 +6,7 @@ import 'package:row_collection/row_collection.dart';
 import '../../models/index.dart';
 import '../../repositories/index.dart';
 import '../../util/index.dart';
+import '../widgets/index.dart';
 
 class ViewProfile extends StatefulWidget {
   const ViewProfile({Key key}) : super(key: key);
@@ -62,57 +63,66 @@ class _ViewProfileState extends State<ViewProfile> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(540),
                           child: InkWell(
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (_) => Container(
-                                  color: Theme.of(context)
-                                      .scaffoldBackgroundColor
-                                      .withOpacity(0.7),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(10.0),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          FadeInImage(
-                                            image: NetworkImage(
-                                                "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
-                                            placeholder: AssetImage(
-                                                'assets/icons/loading.gif'),
+                            onTap: _userdetails.profile_pic.isNullOrEmpty()
+                                ? () {}
+                                : () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => Container(
+                                        color: Theme.of(context)
+                                            .scaffoldBackgroundColor
+                                            .withOpacity(0.7),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.all(
+                                              Radius.circular(10.0),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                _userdetails.profile_pic
+                                                        .isNullOrEmpty()
+                                                    ? NoProfilePic()
+                                                    : FadeInImage(
+                                                        image: NetworkImage(
+                                                            "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                                        placeholder: AssetImage(
+                                                            'assets/icons/loading.gif'),
+                                                      ),
+                                                SizedBox(height: 10),
+                                                FloatingActionButton(
+                                                  backgroundColor:
+                                                      Theme.of(context)
+                                                          .accentColor,
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                  },
+                                                  tooltip: 'Increment',
+                                                  child: Icon(Icons.close,
+                                                      size: 30),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                          SizedBox(height: 10),
-                                          FloatingActionButton(
-                                            backgroundColor:
-                                                Theme.of(context).accentColor,
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            tooltip: 'Increment',
-                                            child: Icon(Icons.close, size: 30),
-                                          ),
-                                        ],
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
+                                    );
+                                  },
                             child: Container(
                               height: 60,
                               width: 60,
-                              child: FadeInImage(
-                                image: NetworkImage(
-                                    "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
-                                placeholder:
-                                    AssetImage('assets/icons/loading.gif'),
-                              ),
+                              child: _userdetails.profile_pic.isNullOrEmpty()
+                                  ? NoProfilePic()
+                                  : FadeInImage(
+                                      image: NetworkImage(
+                                          "${Url.URL}/api/image?id=${_userdetails.profile_pic}"),
+                                      placeholder: AssetImage(
+                                          'assets/icons/loading.gif'),
+                                    ),
                             ),
                           ),
                         ),

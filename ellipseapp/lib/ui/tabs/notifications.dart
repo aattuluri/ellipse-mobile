@@ -53,12 +53,6 @@ class _NotificationsTabState extends State<NotificationsTab> {
                   ),
                   onPressed: () {
                     context.read<NotificationsRepository>().refreshData();
-                    Scaffold.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Notifications Refreshed"),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
                   }),
             ],
             automaticallyImplyLeading: false,

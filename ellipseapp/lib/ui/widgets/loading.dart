@@ -10,11 +10,14 @@ class LoaderCircular extends StatefulWidget {
   final Color color2;
   final Color color3;
 
+  //LoaderCircular(this.value, this.text,
+  //   {this.color1 = Colors.deepOrangeAccent,
+  //   this.color2 = Colors.yellow,
+  //  this.color3 = Colors.lightGreen});
   LoaderCircular(this.value, this.text,
       {this.color1 = Colors.deepOrangeAccent,
       this.color2 = Colors.yellow,
       this.color3 = Colors.lightGreen});
-
   @override
   _LoaderCircularState createState() => _LoaderCircularState();
 }
@@ -33,13 +36,13 @@ class _LoaderCircularState extends State<LoaderCircular>
     super.initState();
 
     controller1 = AnimationController(
-        duration: const Duration(milliseconds: 1200), vsync: this);
+        duration: const Duration(milliseconds: 1500), vsync: this);
 
     controller2 = AnimationController(
-        duration: const Duration(milliseconds: 900), vsync: this);
+        duration: const Duration(milliseconds: 1200), vsync: this);
 
     controller3 = AnimationController(
-        duration: const Duration(milliseconds: 2000), vsync: this);
+        duration: const Duration(milliseconds: 2300), vsync: this);
 
     animation1 = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
         parent: controller1, curve: Interval(0.0, 1.0, curve: Curves.linear)));
@@ -129,7 +132,7 @@ class Arc1Painter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     Paint p1 = new Paint()
       ..color = color
-      ..strokeWidth = 2.0
+      ..strokeWidth = 2.5
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
 
