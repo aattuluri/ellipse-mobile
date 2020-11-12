@@ -2,10 +2,9 @@ import 'dart:convert';
 import 'dart:core';
 import 'dart:ui';
 
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:date_time_picker/date_time_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
 
@@ -53,7 +52,9 @@ class DynamicWidgetItem extends StatelessWidget {
             enableInteractiveSelection: true,
             maxLines: 1,
             decoration: new InputDecoration(
-                border: OutlineInputBorder(), hintText: title),
+                labelText: title,
+                border: OutlineInputBorder(),
+                hintText: title),
           ),
         );
         break;
@@ -69,7 +70,9 @@ class DynamicWidgetItem extends StatelessWidget {
             controller: controller,
             maxLines: 5,
             decoration: new InputDecoration(
-                border: OutlineInputBorder(), hintText: title),
+                labelText: title,
+                border: OutlineInputBorder(),
+                hintText: title),
           ),
         );
         break;
@@ -260,42 +263,25 @@ class DynamicWidgetItem extends StatelessWidget {
       case "date":
         return Container(
           margin: new EdgeInsets.symmetric(vertical: 8),
-          child: new DateTimeField(
-            onChanged: (value) {
-              filled = value.toString();
-            },
-            controller: controller,
-            style: TextStyle(
-              color: Theme.of(context).textTheme.caption.color,
-            ),
-            cursorColor: Theme.of(context).textTheme.caption.color,
+          child: DateTimePicker(
+            type: DateTimePickerType.dateTime,
             decoration: InputDecoration(
-              suffixIcon: Icon(Icons.event),
               border: OutlineInputBorder(),
+              labelText: title,
               hintText: title,
               hintStyle: TextStyle(
                 color: Theme.of(context).textTheme.caption.color,
                 fontSize: 18.0,
               ),
             ),
-            format: DateFormat("yyyy-MM-dd HH:mm"),
-            onShowPicker: (context, currentValue) async {
-              final date = await showDatePicker(
-                  context: context,
-                  firstDate: DateTime(DateTime.now().year - 100,
-                      DateTime.now().month, DateTime.now().day),
-                  initialDate: currentValue ?? DateTime.now(),
-                  lastDate: DateTime(2100));
-              if (date != null) {
-                final time = await showTimePicker(
-                  context: context,
-                  initialTime:
-                      TimeOfDay.fromDateTime(currentValue ?? DateTime.now()),
-                );
-                return DateTimeField.combine(date, time);
-              } else {
-                return currentValue;
-              }
+            dateMask: 'd MMMM, yyyy - hh:mm a',
+            controller: controller,
+            //initialValue: DateTime.now().toString(),
+            firstDate: DateTime(2000),
+            lastDate: DateTime(2100),
+            use24HourFormat: false,
+            onChanged: (value) {
+              filled = value.toString();
             },
           ),
         );
@@ -312,16 +298,7 @@ class DynamicWidgetItem extends StatelessWidget {
             controller: controller,
             maxLines: 2,
             decoration: new InputDecoration(
-                suffixIcon: Padding(
-                  padding: const EdgeInsets.only(right: 5),
-                  child: InkWell(
-                    onTap: () {},
-                    child: Icon(
-                      Icons.content_paste,
-                      size: 25,
-                    ),
-                  ),
-                ),
+                labelText: title,
                 border: OutlineInputBorder(),
                 hintText: title),
           ),
@@ -354,15 +331,18 @@ class _RegistrationFormState extends State<RegistrationForm>
   Map<String, dynamic> data = {};
 
   register(UserDetails userdetails, Events event) async {
-    data["Name"] = userdetails.name.toString();
-    data["Email"] = userdetails.email.toString();
-    data["College"] = userdetails.college_name.toString();
     listDynamic.forEach((widget) {
       print("");
       print(widget.title);
       print(widget.filled);
       data[widget.title.toString()] = widget.filled;
     });
+    data["Name"] = userdetails.name;
+    data["Email"] = userdetails.email;
+    if (data.containsKey('College')) {
+      data["College"] = userdetails.college_name;
+    } else {}
+
     print(data);
 
     http.Response response = await http.post(
@@ -381,7 +361,7 @@ class _RegistrationFormState extends State<RegistrationForm>
       //     arguments: {'index': widget.index, 'type': 'user'});
       //}
       Navigator.of(context).pop(true);
-      alertDialog(context, "Registration", "Registered Successfully");
+      messageDialog(context, "Registered Successfully");
     }
   }
 

@@ -283,7 +283,7 @@ class _PostEventState extends State<PostEvent>
           "fee_type": "$payment_type",
           "venue": _venueController.text,
           "venue_type": _venueType.isNullOrEmpty() ? "" : _venueType,
-          "fee": _registration_feeController.text,
+          "fee": _registration_feeController.text.toString(),
           "requirements": selected_requirements,
           "tags": selected_themes,
           "platform_details": _platform_detailsController.text,
@@ -344,12 +344,13 @@ class _PostEventState extends State<PostEvent>
             setState(() {
               _isUploading = false;
             });
-            alertDialog(
+            messageDialog(context, 'Event Posted successfully');
+            /*alertDialog(
                 context,
                 "Post Event",
                 "-Event posted successfully" +
                     "\n-Your event will be verified and accepted within few hours" +
-                    "\n-Manage your events in posted events panel in your profile");
+                    "\n-Manage your events in posted events panel in your profile");*/
             print("Image Uploaded");
           }
         } catch (e) {
@@ -622,12 +623,12 @@ class _PostEventState extends State<PostEvent>
                                         .caption
                                         .color,
                                   ),
-                                  controller: _aboutController,
+                                  controller: _descriptionController,
                                   cursorColor:
                                       Theme.of(context).textTheme.caption.color,
                                   decoration: InputDecoration(
                                       border: OutlineInputBorder(),
-                                      labelText: "About"),
+                                      labelText: "Description"),
                                   maxLines: 6,
                                 ),
                                 TextFormField(
@@ -637,12 +638,12 @@ class _PostEventState extends State<PostEvent>
                                         .caption
                                         .color,
                                   ),
-                                  controller: _descriptionController,
+                                  controller: _aboutController,
                                   cursorColor:
                                       Theme.of(context).textTheme.caption.color,
                                   decoration: InputDecoration(
                                       border: OutlineInputBorder(),
-                                      labelText: "Description"),
+                                      labelText: "About"),
                                   maxLines: 6,
                                 ),
                                 FormField(
@@ -1519,11 +1520,8 @@ class _PostEventState extends State<PostEvent>
                                         setState(() {
                                           // _reg_last_dateController.clear();
                                         });
-
-                                        alertDialog(
-                                            context,
-                                            "Registration Ends At",
-                                            "Registration end time should be before end time");
+                                        messageDialog(context,
+                                            'Registration end time should be before end time');
                                       }
                                     },
                                   ),
@@ -1554,8 +1552,7 @@ class _PostEventState extends State<PostEvent>
                                         setState(() {
                                           //_start_timeController.clear();
                                         });
-
-                                        alertDialog(context, "Starts At",
+                                        messageDialog(context,
                                             "Start time should be before end time ");
                                       }
                                     },
@@ -1592,8 +1589,7 @@ class _PostEventState extends State<PostEvent>
                                         setState(() {
                                           //_finish_timeController.clear();
                                         });
-
-                                        alertDialog(context, "Ends At",
+                                        messageDialog(context,
                                             "End time should be after start time and registration end time");
                                       }
                                     },

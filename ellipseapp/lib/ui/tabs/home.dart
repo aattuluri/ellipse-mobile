@@ -34,8 +34,8 @@ class HomeTab extends StatefulWidget {
 
 class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   final List tabs = [
-    IconTab(name: "All", icon: Icons.all_inclusive),
-    IconTab(name: "Registered", icon: Icons.beenhere),
+    IconTab(name: "Upcoming", icon: Icons.update_outlined),
+    IconTab(name: "Ongoing", icon: Icons.all_inclusive_outlined),
     // IconTab(name: "Posted", icon: Icons.star),
     IconTab(name: "Past", icon: Icons.access_time),
   ];
@@ -94,7 +94,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
             "Ellipse",
             style: TextStyle(
                 color: Theme.of(context).accentColor,
-                fontSize: 35,
+                fontSize: 30,
                 fontFamily: 'Gugi',
                 fontWeight: FontWeight.w800),
           ),
@@ -876,7 +876,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                                               .status ==
                                                           "active" &&
                                                       model.allEvents[i]
-                                                          .finish_time
+                                                          .start_time
                                                           .isAfter(DateTime
                                                               .now())) ...[
                                                     if (isChecked
@@ -990,7 +990,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                                                               .status ==
                                                           "active" &&
                                                       model.allEvents[i]
-                                                          .finish_time
+                                                          .start_time
                                                           .isAfter(DateTime
                                                               .now())) ...[
                                                     EventTileGeneral(
@@ -1009,57 +1009,36 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                     ),
                   ),
                   ///////////////////////////////Tab2//////////////////////////////////////
-
-                  model.allRegistrations.isEmpty
-                      ? EmptyData("No Registered\nEvents", "", Icons.event_busy)
-                      : ListView(
-                          physics: ClampingScrollPhysics(),
-                          scrollDirection: Axis.vertical,
-                          shrinkWrap: true,
-                          children: <Widget>[
-                            for (var i = 0;
-                                i < model.allEvents.length;
-                                i++) ...[
-                              for (var j = 0;
-                                  j < model.allRegistrations.length;
-                                  j++) ...[
-                                if (model.allRegistrations[j].user_id ==
-                                        prefId &&
-                                    model.allRegistrations[j].event_id ==
-                                        model.allEvents[i].id) ...[
-                                  EventTileGeneral(true, i, "info_page")
-                                ]
-                              ]
-                            ]
-                          ],
-                        ),
-                  ///////////////////////////////Tab3//////////////////////////////////////
-                  /*ListView(
-                  physics: ClampingScrollPhysics(),
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  children: <Widget>[
-                    for (var i = 0; i < model.allEvents.length; i++)
-                      if (model.allEvents[i].user_id.toString().trim() ==
-                          prefId.toString().trim()) ...[
-                        EventTileGeneral(true, i, "myevents_info_page")
-                      ],
-                  ],
-                ),
-*/
+                  ListView(
+                    physics: ClampingScrollPhysics(),
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    children: <Widget>[
+                      for (var i = 0; i < model.allEvents.length; i++) ...[
+                        if ((model.allEvents[i].o_allowed ||
+                                model.allEvents[i].college_id ==
+                                    prefCollegeId) &&
+                            model.allEvents[i].status == "active" &&
+                            model.allEvents[i].start_time
+                                .isBefore(DateTime.now()) &&
+                            model.allEvents[i].finish_time
+                                .isAfter(DateTime.now())) ...[
+                          EventTileGeneral(true, i, "info_page")
+                        ]
+                      ]
+                    ],
+                  ),
                   ///////////////////////////////Tab4//////////////////////////////////////
                   ListView(
                     physics: ClampingScrollPhysics(),
                     scrollDirection: Axis.vertical,
                     children: <Widget>[
-                      for (var i = 0;
-                          i <
-                              (model.allEvents.length > 6
-                                  ? 6
-                                  : model.allEvents.length);
-                          i++)
-                        if (model.allEvents[i].finish_time
-                            .isBefore(DateTime.now())) ...[
+                      for (var i = 0; i < model.allEvents.length; i++)
+                        if (model.allEvents[i].status == "active" &&
+                            model.allEvents[i].finish_time
+                                .isBefore(DateTime.now()) &&
+                            model.allEvents[i].start_time
+                                .isBefore(DateTime.now())) ...[
                           EventTileGeneral(true, i, "null")
                         ]
                     ],
@@ -1229,7 +1208,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text(
-                            'Filter Events',
+                            'Filters',
                             style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 16,
@@ -1240,7 +1219,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                             height: 8,
                           ),
                           Text(
-                            'All',
+                            'Filter Events',
                             style: TextStyle(
                                 fontWeight: FontWeight.w300,
                                 fontSize: 16,

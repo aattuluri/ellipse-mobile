@@ -68,6 +68,7 @@ class _ResetPasswordState extends State<ResetPassword> {
       print('Response body: ${response.body}');
       if (response.statusCode == 200) {
         Navigator.pushNamed(context, Routes.signin);
+        messageDialog(context, 'Password Reset Successful');
       } else {
         print(response.body);
       }
@@ -244,7 +245,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                                                         const EdgeInsets.only(
                                                             left: 20.0),
                                                     child: Text(
-                                                      "Send OTP",
+                                                      "GET OTP",
                                                       style: TextStyle(
                                                           color: Theme.of(
                                                                   context)
@@ -296,10 +297,8 @@ class _ResetPasswordState extends State<ResetPassword> {
                                                     .push(route);
                                               } else if (response.statusCode ==
                                                   201) {
-                                                alertDialog(
-                                                    context,
-                                                    "Reset Password",
-                                                    "Email does not exist");
+                                                messageDialog(context,
+                                                    "Email not registered");
                                               }
                                             },
                                           ),
@@ -530,11 +529,11 @@ class _ResetPasswordState extends State<ResetPassword> {
                                                   if (password != cpassword) {
                                                     Fluttertoast.showToast(
                                                         msg:
-                                                            "Passwords should match",
+                                                            "Both password should be same",
                                                         toastLength:
                                                             Toast.LENGTH_SHORT,
                                                         gravity:
-                                                            ToastGravity.TOP,
+                                                            ToastGravity.CENTER,
                                                         textColor: Colors.white,
                                                         timeInSecForIosWeb: 2,
                                                         backgroundColor:

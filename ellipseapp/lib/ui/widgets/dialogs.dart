@@ -144,3 +144,31 @@ class RoundDialog extends StatelessWidget {
     );
   }
 }
+
+Future messageDialog(BuildContext context, String text) {
+  return showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Container(
+        width: MediaQuery.of(context).size.width / 1.3,
+        height: MediaQuery.of(context).size.height / 2.5,
+        decoration: new BoxDecoration(
+          shape: BoxShape.rectangle,
+          color: const Color(0xFFFFFF),
+          borderRadius: new BorderRadius.all(new Radius.circular(32.0)),
+        ),
+        child: new AlertDialog(
+          content: Text(text),
+          actions: [
+            FlatButton(
+              child: Text('Ok'),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}

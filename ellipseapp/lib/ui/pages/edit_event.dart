@@ -195,7 +195,7 @@ class _EditEventState extends State<EditEvent> {
           "event_mode": "$e_m",
           "event_type": "$e_t",
           "reg_link": _reg_linkController.text,
-          "fee": _registration_feeController.text,
+          "fee": _registration_feeController.text.toString(),
           "platform_details": _platform_detailsController.text,
           "about": _aboutController.text,
           "fee_type": "$p_t",
@@ -270,8 +270,7 @@ class _EditEventState extends State<EditEvent> {
     });
     context.read<EventsRepository>().refreshData();
     Navigator.of(context).pop(true);
-    alertDialog(context, "Edit Event",
-        "-Event updated successfully\n-Refresh event to load updated event poster");
+    messageDialog(context, 'Event Updated successfully');
   }
 
   @override
@@ -405,12 +404,12 @@ class _EditEventState extends State<EditEvent> {
                                 color:
                                     Theme.of(context).textTheme.caption.color,
                               ),
-                              controller: _aboutController,
+                              controller: _descriptionController,
                               cursorColor:
                                   Theme.of(context).textTheme.caption.color,
                               decoration: InputDecoration(
                                   border: OutlineInputBorder(),
-                                  labelText: "About"),
+                                  labelText: "Description"),
                               maxLines: 6,
                             ),
                             TextFormField(
@@ -418,12 +417,12 @@ class _EditEventState extends State<EditEvent> {
                                 color:
                                     Theme.of(context).textTheme.caption.color,
                               ),
-                              controller: _descriptionController,
+                              controller: _aboutController,
                               cursorColor:
                                   Theme.of(context).textTheme.caption.color,
                               decoration: InputDecoration(
                                   border: OutlineInputBorder(),
-                                  labelText: "Description"),
+                                  labelText: "About"),
                               maxLines: 6,
                             ),
                             FormField(
@@ -1252,7 +1251,7 @@ class _EditEventState extends State<EditEvent> {
                                       DateTime.parse(
                                           _finish_timeController.text))) {
                                     // _reg_last_dateController.clear();
-                                    alertDialog(context, "Registration Ends At",
+                                    messageDialog(context,
                                         "Registration end time should be before end time");
                                   }
                                 },
@@ -1282,7 +1281,7 @@ class _EditEventState extends State<EditEvent> {
                                       DateTime.parse(
                                           _finish_timeController.text))) {
                                     //  _start_timeController.clear();
-                                    alertDialog(context, "Starts At",
+                                    messageDialog(context,
                                         "Start time should be before end time");
                                   }
                                 },
@@ -1316,7 +1315,7 @@ class _EditEventState extends State<EditEvent> {
                                               _reg_last_dateController
                                                   .text)))) {
                                     // _finish_timeController.clear();
-                                    alertDialog(context, "Ends At",
+                                    messageDialog(context,
                                         "End time should be after start time and registration end time");
                                   }
                                 },

@@ -70,7 +70,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     height: 14,
                   ),
                   Text(
-                    "A lot of events happen around you! Our mission is to help you find what's best for you with a few clicks!",
+                    "There’s a lot of events happening around you! Our mission is to explore best events to you!",
                     style: TextStyle(
                         color: Theme.of(context)
                             .textTheme

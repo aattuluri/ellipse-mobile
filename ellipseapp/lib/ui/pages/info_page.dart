@@ -8,7 +8,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_web_browser/flutter_web_browser.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:line_icons/line_icons.dart';
@@ -205,11 +204,7 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                               _key.currentState.closeDrawer();
                             } else if (_event.reg_mode == "link") {
                               String link = _event.reg_link;
-                              FlutterWebBrowser.openWebPage(
-                                url: '$link',
-                                androidToolbarColor:
-                                    Theme.of(context).primaryColor,
-                              );
+                              link.launchUrl;
                             }
                           }),
                           Container(
@@ -275,24 +270,8 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                               });
                               _key.currentState.closeDrawer();
                             } else {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: new Text("Chat"),
-                                    content: new Text(
-                                        "You have to register to event to chat with event admin"),
-                                    actions: <Widget>[
-                                      new FlatButton(
-                                        child: new Text("Ok"),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
+                              messageDialog(context,
+                                  "You have to register to event to chat with event admin");
                             }
                           }),
                         ],
@@ -485,7 +464,6 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                                       onPressed: () {
                                                         Navigator.pop(context);
                                                       },
-                                                      tooltip: 'Increment',
                                                       child: Icon(Icons.close,
                                                           size: 30),
                                                     ),
@@ -601,6 +579,36 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                             ),
                                           ),
                                           SizedBox(width: 5),
+                                          if (_event.reg_mode == 'link' ||
+                                              (_event.registered &&
+                                                  widget.type == 'user') ||
+                                              widget.type == 'admin') ...[
+                                            FloatingActionButton(
+                                              mini: true,
+                                              onPressed: () async {
+                                                if (_event.moderator) {
+                                                  setState(() {
+                                                    view = ChatPage(
+                                                        _event.id,
+                                                        "admin",
+                                                        widget.index,
+                                                        _event.user_id);
+                                                    default_view = false;
+                                                  });
+                                                } else {
+                                                  setState(() {
+                                                    view = ChatPage(
+                                                        _event.id,
+                                                        "admin",
+                                                        widget.index,
+                                                        _event.user_id);
+                                                    default_view = false;
+                                                  });
+                                                }
+                                              },
+                                              child: Icon(Icons.chat_outlined),
+                                            ),
+                                          ],
                                         ],
                                       ),
                                     ),
@@ -736,13 +744,15 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                                           "link") {
                                                         String link =
                                                             _event.reg_link;
-                                                        FlutterWebBrowser
+                                                        link.launchUrl;
+                                                        /*FlutterWebBrowser
                                                             .openWebPage(
                                                           url: '$link',
                                                           androidToolbarColor:
                                                               Theme.of(context)
                                                                   .primaryColor,
                                                         );
+                                                        */
                                                       }
                                                     },
                                                   ),
@@ -1019,18 +1029,17 @@ class _InfoPageState extends State<InfoPage> with TickerProviderStateMixin {
                                                     child: Container(
                                                       height: 55,
                                                       width: 55,
-                                                      child: organizedBy[
-                                                                  'profile_pic']
-                                                              .toString()
-                                                              .isNullOrEmpty()
-                                                          ? NoProfilePic()
-                                                          : FadeInImage(
-                                                              image: NetworkImage(
-                                                                  "${Url.URL}/api/image?id=${organizedBy['profile_pic']}"),
-                                                              placeholder:
-                                                                  AssetImage(
-                                                                      'assets/icons/loading.gif'),
-                                                            ),
+                                                      child:
+                                                          '${organizedBy['profile_pic']}'
+                                                                  .isNullOrEmpty()
+                                                              ? NoProfilePic()
+                                                              : FadeInImage(
+                                                                  image: NetworkImage(
+                                                                      "${Url.URL}/api/image?id=${organizedBy['profile_pic']}"),
+                                                                  placeholder:
+                                                                      AssetImage(
+                                                                          'assets/icons/loading.gif'),
+                                                                ),
                                                     ),
                                                   ),
                                                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -9,9 +10,9 @@ extension LaunchUrl on String {
       await launch(this);
     } else {
       Fluttertoast.showToast(
-        msg: '$this Invalid Link',
-        gravity: ToastGravity.TOP,
-      );
+          msg: '$this is Invalid Link',
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1);
     }
   }
 }

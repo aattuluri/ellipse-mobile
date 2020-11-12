@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/index.dart';
 import '../util/index.dart';
@@ -15,9 +14,6 @@ class NotificationsRepository extends BaseRepository {
 
   @override
   Future<void> loadData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    loadPref();
-
     try {
       print("Started Loading notifications");
       // Receives the data and parse it

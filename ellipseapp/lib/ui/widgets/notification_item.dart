@@ -64,15 +64,13 @@ class NotificationItem extends StatelessWidget {
                                 title,
                                 style: TextStyle(
                                   fontSize: 16,
-                                  fontFamily: 'ProductSans',
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.normal,
                                 ),
                               ),
                               Text(
                                 description,
                                 style: TextStyle(
                                   fontSize: 15,
-                                  fontFamily: 'ProductSans',
                                 ),
                               ),
                             ],

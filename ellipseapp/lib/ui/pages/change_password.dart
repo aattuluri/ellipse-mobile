@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../util/index.dart';
 import '../screens/index.dart';
+import '../widgets/index.dart';
 
 class ChangePassword extends StatefulWidget {
   const ChangePassword({Key key}) : super(key: key);
@@ -57,7 +58,12 @@ class _ChangePasswordState extends State<ChangePassword>
       setState(() {
         isloading = false;
       });
-      Navigator.pushNamed(context, Routes.signin);
+      messageDialog(context, 'Password updated successfully');
+    } else if (response1.statusCode == 401) {
+      setState(() {
+        isloading = false;
+      });
+      messageDialog(context, 'Invalid Password');
     }
   }
 
@@ -75,25 +81,7 @@ class _ChangePasswordState extends State<ChangePassword>
   @override
   Widget build(BuildContext context) {
     return isloading
-        ? SafeArea(
-            child: Scaffold(
-                body: Align(
-            alignment: Alignment.center,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Center(child: CircularProgressIndicator()),
-                Text(
-                  "Updating password....",
-                  style: TextStyle(
-                      color: Theme.of(context).textTheme.caption.color,
-                      fontSize: 30.0,
-                      fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          )))
+        ? LoaderCircular(0.25, 'Updating')
         : SafeArea(
             child: Scaffold(
               appBar: AppBar(
@@ -128,7 +116,7 @@ class _ChangePasswordState extends State<ChangePassword>
                               Theme.of(context).textTheme.caption.color,
                           decoration: InputDecoration(
                               border: OutlineInputBorder(),
-                              labelText: "Old Password"),
+                              labelText: "Current Password"),
                           maxLines: 1,
                         ),
                         SizedBox(

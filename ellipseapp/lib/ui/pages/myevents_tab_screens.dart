@@ -247,12 +247,6 @@ class _AnnouncementsState extends State<Announcements>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
                                   SizedBox(
-                                    width: 5.0,
-                                  ),
-                                  Container(
-                                    child: Icon(Icons.speaker_notes, size: 23),
-                                  ),
-                                  SizedBox(
                                     width: 15.0,
                                   ),
                                   Column(
@@ -386,8 +380,8 @@ class _AddAnnouncementState extends State<AddAnnouncement>
     print('Response body: ${response.body}');
     if (response.statusCode == 200) {
       Navigator.of(context).pop(true);
-      alertDialog(
-          context, "Add Announcement", "Announcement Added Successfully");
+      messageDialog(context, "Announcement Added Successfully");
+
       //Navigator.pushReplacementNamed(context, Routes.info_page,
       //    arguments: {'index': widget.index, 'type': 'admin'});
       //Navigator.pushNamed(context, Routes.info_page, arguments: {

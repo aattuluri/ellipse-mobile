@@ -132,7 +132,7 @@ class _AboutUsState extends State<AboutUs> {
                   Padding(
                     padding: const EdgeInsets.all(20),
                     child: Text(
-                      'Ellipse App is an application platform where you can post college events.',
+                      'Ellipse is an application platform which can be used to post events.',
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -141,11 +141,15 @@ class _AboutUsState extends State<AboutUs> {
                   ),
                   InkWell(
                     onTap: () {
-                      Navigator.pushNamed(context, Routes.mdDecode, arguments: {
+                      Navigator.pushNamed(context, Routes.pdfView, arguments: {
+                        'title': 'Privacy Policy',
+                        'link': "https://ellipseapp.com/Privacy_Policy.pdf"
+                      });
+                      /*Navigator.pushNamed(context, Routes.mdDecode, arguments: {
                         'title': 'Privacy Policy',
                         'url':
                             'https://gunasekhar0027.github.io/ellipsedata/privacy_policy.md'
-                      });
+                      });*/
                     },
                     child: Text("Privacy Policy",
                         style: TextStyle(
@@ -379,7 +383,7 @@ class _AboutUsState extends State<AboutUs> {
                       "",
                       "Gunasekhar A",
                       "Developer",
-                      "(Flutter & Web Developer)",
+                      "(Flutter Developer,Web Developer)",
                       "gunasekhar158@gmail.com",
                       "VIT University,Vellore",
                       () {}),
@@ -387,7 +391,7 @@ class _AboutUsState extends State<AboutUs> {
                       "",
                       "Lalith Sagar P",
                       "Developer",
-                      "(IOS & Web Developer)",
+                      "(IOS Developer,Web Developer)",
                       "lalithpunepalli@gmail.com",
                       "VIT University,Vellore",
                       () {}),

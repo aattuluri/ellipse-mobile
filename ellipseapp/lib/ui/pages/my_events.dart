@@ -28,7 +28,7 @@ class _MyEventsState extends State<MyEvents> {
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             elevation: 4,
             title: Text(
-              "My Events",
+              "Posted Events",
               style: TextStyle(
                   color: Theme.of(context).textTheme.caption.color,
                   fontSize: 20.0,

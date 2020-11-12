@@ -2,10 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:intl/intl.dart';
-import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/index.dart';
 import '../../repositories/index.dart';
@@ -38,114 +35,101 @@ class EventTileGeneralState extends State<EventTileGeneral>
   Widget build(BuildContext context) {
     final Events _event =
         context.watch<EventsRepository>().getEvent(widget.index);
+    final h = MediaQuery.of(context).size.height;
+    final w = MediaQuery.of(context).size.width;
     return Visibility(
       visible: widget.visible,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        child: InkWell(
-          onTap: () {
+      child: InkWell(
+        onTap: () {
+          if (_event.finish_time.isBefore(DateTime.now())) {
+          } else {
             Navigator.pushNamed(context, Routes.info_page, arguments: {
               'index': widget.index,
               'type': 'user',
               'event_': _event
             });
-            /* if (widget.route == "info_page") {
-              Navigator.pushNamed(context, Routes.info_page,
-                  arguments: {'index': widget.index, 'type': 'user'});
-            } else if (widget.route == "myevents_info_page") {
-              Navigator.pushNamed(
-                context,
-                Routes.info_page,
-                arguments: {'index': widget.index, 'type': 'admin'},
-              );
-            } else if (widget.route == "null") {}*/
-          },
-          child: Container(
-            height: 100,
-            decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(8)),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Container(
-                    padding: EdgeInsets.only(left: 16),
-                    width: MediaQuery.of(context).size.width - 100,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        AutoSizeText(
-                          _event.name,
-                          minFontSize: 15,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 18),
-                        ),
-                        SizedBox(
-                          height: 8,
-                        ),
-                        Row(
-                          children: <Widget>[
-                            Icon(
-                              LineIcons.calendar_o,
-                              size: 20,
-                            ),
-                            SizedBox(
-                              width: 8,
-                            ),
-                            AutoSizeText(
-                              _event.start_time.toString().toDate(context),
-                              minFontSize: 5,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 10),
-                            )
-                          ],
-                        ),
-                        SizedBox(
-                          height: 4,
-                        ),
-                        Row(
-                          children: <Widget>[
-                            Icon(
-                              Icons.account_balance_outlined,
-                              size: 20,
-                            ),
-                            SizedBox(
-                              width: 8,
-                            ),
-                            AutoSizeText(
-                              _event.college_name,
-                              minFontSize: 5,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 10),
-                            )
-                          ],
-                        ),
-                      ],
+          }
+        },
+        child:
+            /*Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            //borderRadius: BorderRadius.circular(8)
+          ),
+          child:*/
+            Card(
+          elevation: 5,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Flexible(
+                    flex: 3,
+                    child: Container(
+                      padding: EdgeInsets.only(left: 16, top: 5, bottom: 5),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          AutoSizeText(
+                            _event.name,
+                            minFontSize: 15,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.normal),
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          AutoSizeText(
+                            _event.start_time.toString().toDate(context),
+                            minFontSize: 5,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          SizedBox(
+                            height: 4,
+                          ),
+                          AutoSizeText(
+                            _event.event_type,
+                            minFontSize: 5,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 13),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                ClipRRect(
-                  borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(8),
-                      bottomRight: Radius.circular(8)),
-                  child: FadeInImage(
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                    fadeInDuration: Duration(milliseconds: 1000),
-                    image: NetworkImage(
-                        "${Url.URL}/api/image?id=${_event.imageUrl}"),
-                    placeholder: AssetImage('assets/icons/loading.gif'),
+                  Flexible(
+                    flex: 1,
+                    child: Container(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.only(
+                            // topRight: Radius.circular(8),
+                            //bottomRight: Radius.circular(8)
+                            ),
+                        child: FadeInImage(
+                          width: w * 0.25,
+                          height: w * 0.25,
+                          fit: BoxFit.cover,
+                          fadeInDuration: Duration(milliseconds: 1000),
+                          image: NetworkImage(
+                              "${Url.URL}/api/image?id=${_event.imageUrl}"),
+                          placeholder: AssetImage('assets/icons/loading.gif'),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
         ),
+        //),
       ),
     );
   }
@@ -182,11 +166,111 @@ class EventTileAdminState extends State<EventTileAdmin>
         context.watch<EventsRepository>().getEvent(widget.index);
     return Visibility(
       visible: widget.visible,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-        child: InkWell(
-          onTap: () {
-            Navigator.pushNamed(
+      child: InkWell(
+        onTap: () {
+          Navigator.pushNamed(
+            context,
+            Routes.info_page,
+            arguments: {
+              'index': widget.index,
+              'type': 'admin',
+              'event_': _event
+            },
+          );
+        },
+        child:
+            /*Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            //borderRadius: BorderRadius.circular(8)
+          ),
+          child:*/
+            Card(
+          elevation: 5,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Flexible(
+                    flex: 3,
+                    child: Container(
+                      padding: EdgeInsets.only(left: 16, top: 5, bottom: 5),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          AutoSizeText(
+                            _event.name,
+                            minFontSize: 15,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.normal),
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          AutoSizeText(
+                            _event.start_time.toString().toDate(context),
+                            minFontSize: 5,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          SizedBox(
+                            height: 4,
+                          ),
+                          AutoSizeText(
+                            _event.event_type,
+                            minFontSize: 5,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                    flex: 1,
+                    child: Container(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.only(
+                            // topRight: Radius.circular(8),
+                            //bottomRight: Radius.circular(8)
+                            ),
+                        child: FadeInImage(
+                          width: w * 0.25,
+                          height: w * 0.25,
+                          fit: BoxFit.fill,
+                          fadeInDuration: Duration(milliseconds: 1000),
+                          image: NetworkImage(
+                              "${Url.URL}/api/image?id=${_event.imageUrl}"),
+                          placeholder: AssetImage('assets/icons/loading.gif'),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: Row(
+                  children: [
+                    Chip(
+                      label: Text(_event.status),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        //),
+      ),
+    );
+    /*  Navigator.pushNamed(
               context,
               Routes.info_page,
               arguments: {
@@ -195,124 +279,17 @@ class EventTileAdminState extends State<EventTileAdmin>
                 'event_': _event
               },
             );
-            /* if (widget.route == "info_page") {
-              Navigator.pushNamed(context, Routes.info_page,
-                  arguments: {'index': widget.index, 'type': 'user'});
-            } else if (widget.route == "myevents_info_page") {
-              Navigator.pushNamed(
-                context,
-                Routes.info_page,
-                arguments: {'index': widget.index, 'type': 'admin'},
-              );
-            } else if (widget.route == "null") {}*/
-          },
-          child: Container(
-            decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(8)),
-            child: Column(
-              children: [
-                Container(
-                  height: 100,
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Container(
-                          padding: EdgeInsets.only(left: 16),
-                          width: MediaQuery.of(context).size.width - 100,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              AutoSizeText(
-                                _event.name,
-                                //minFontSize: 5,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(fontSize: 18),
-                              ),
-                              SizedBox(
-                                height: 8,
-                              ),
-                              Row(
-                                children: <Widget>[
-                                  Icon(
-                                    LineIcons.calendar_o,
-                                    size: 20,
-                                  ),
-                                  SizedBox(
-                                    width: 8,
-                                  ),
-                                  AutoSizeText(
-                                    _event.start_time
-                                        .toString()
-                                        .toDate(context),
-                                    minFontSize: 5,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(fontSize: 10),
-                                  )
-                                ],
-                              ),
-                              SizedBox(
-                                height: 4,
-                              ),
-                              Row(
-                                children: <Widget>[
-                                  Icon(
-                                    Icons.account_balance_outlined,
-                                    size: 20,
-                                  ),
-                                  SizedBox(
-                                    width: 8,
-                                  ),
-                                  AutoSizeText(
-                                    _event.college_name,
-                                    minFontSize: 5,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(fontSize: 10),
-                                  )
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      ClipRRect(
-                        borderRadius: BorderRadius.only(
-                            topRight: Radius.circular(8),
-                            bottomRight: Radius.circular(8)),
-                        child: FadeInImage(
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                          fadeInDuration: Duration(milliseconds: 1000),
-                          image: NetworkImage(
-                              "${Url.URL}/api/image?id=${_event.imageUrl}"),
-                          placeholder: AssetImage('assets/icons/loading.gif'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: Row(
-                    children: [
-                      Chip(
-                        label: Text(_event.status),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
 
+   Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: Row(
+        children: [
+          Chip(
+            label: Text(_event.status),
+          ),
+        ],
+      ),
+    ),*/
     /*Visibility(
       visible: widget.visible,
       child: Padding(
@@ -504,151 +481,5 @@ class EventTileAdminState extends State<EventTileAdmin>
         ),
       ),
     );*/
-  }
-}
-
-class EventTileCalendar extends StatefulWidget {
-  final bool visible;
-  final int index;
-  final String route;
-  EventTileCalendar(this.visible, this.index, this.route);
-  @override
-  State createState() => new EventTileCalendarState();
-}
-
-class EventTileCalendarState extends State<EventTileCalendar> {
-  String token = "", id = "", email = "";
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      token = preferences.getString("token");
-      id = preferences.getString("id");
-      email = preferences.getString("email");
-    });
-  }
-
-  @override
-  void initState() {
-    getPref();
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final Events _event =
-        context.watch<EventsRepository>().getEvent(widget.index);
-    return Row(
-      children: [
-        Container(
-          width: 60,
-          //height: 200,
-          margin: EdgeInsets.only(right: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              RotatedBox(
-                quarterTurns: 3,
-                child: new Text(_event.name,
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-              ),
-              SizedBox(
-                height: 15,
-              ),
-              Text(DateFormat('MMM dd').format(_event.start_time),
-                  style: TextStyle(
-                      color: Colors.orange,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500)),
-              Text(DateFormat('yyyy').format(_event.start_time),
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Visibility(
-            visible: widget.visible,
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 0.0,
-                vertical: 5.0,
-              ),
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(10.0),
-                  ),
-                ),
-                elevation: 7.0,
-                child: InkWell(
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(10.0),
-                  ),
-                  onTap: () {
-                    if (widget.route == "info_page") {
-                      Navigator.pushNamed(context, Routes.info_page,
-                          arguments: {'index': widget.index});
-                    } else if (widget.route == "myevents_info_page") {
-                      /*  Navigator.pushNamed(
-                        context,
-                        Routes.my_events_info_page,
-                        arguments: {'index': widget.index},
-                      );*/
-                    }
-                  },
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(10.0),
-                    ),
-                    child: Stack(
-                      children: <Widget>[
-                        Column(
-                          children: [
-                            Center(
-                                child: Image(
-                              image: NetworkImage(
-                                  "${Url.URL}/api/image?id=${_event.imageUrl}"),
-                            )
-                                /* CachedNetworkImage(
-                                imageUrl:
-                                    "${Url.URL}/api/image?id=${_event.imageUrl}",
-                                filterQuality: FilterQuality.high,
-                                fadeInDuration: Duration(milliseconds: 1000),
-                                placeholder: (context, url) => Container(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.9,
-                                  height:
-                                      MediaQuery.of(context).size.width * 0.9,
-                                  child: Icon(
-                                    Icons.image,
-                                    size: 80,
-                                  ),
-                                ),
-                                errorWidget: (context, url, error) => Container(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.9,
-                                  height:
-                                      MediaQuery.of(context).size.width * 0.9,
-                                  child: Icon(
-                                    Icons.error,
-                                    size: 80,
-                                  ),
-                                ),
-                              ),
-                              */
-                                ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
   }
 }

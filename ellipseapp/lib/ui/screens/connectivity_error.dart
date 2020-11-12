@@ -9,7 +9,7 @@ class ConnectionErrorScreen extends StatelessWidget {
     return Scaffold(
       body: BigTip(
         title: Text('NETWORK ERROR'),
-        subtitle: Text('You are not connected to the internet?'),
+        subtitle: Text('You are not connected to internet'),
         action: Text(
           'Re-Connect',
           style: TextStyle(fontSize: 25, color: Theme.of(context).accentColor),

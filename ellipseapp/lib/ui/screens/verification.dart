@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,6 +13,7 @@ import 'package:mime/mime.dart';
 
 import '../../util/index.dart';
 import '../screens/index.dart';
+import '../widgets/index.dart';
 
 class OtpPageEmailVerify extends StatefulWidget {
   final String email, type;
@@ -26,20 +28,17 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
   TextEditingController controller2 = new TextEditingController();
   TextEditingController controller3 = new TextEditingController();
   TextEditingController controller4 = new TextEditingController();
-  TextEditingController controller5 = new TextEditingController();
-  TextEditingController controller6 = new TextEditingController();
+  //TextEditingController controller5 = new TextEditingController();
+  //TextEditingController controller6 = new TextEditingController();
 
   TextEditingController currController = new TextEditingController();
-
-  bool email_sent = false;
 
   void matchOtp_reset_password() async {
     String otp = controller1.text +
         controller2.text +
         controller3.text +
-        controller4.text +
-        controller5.text +
-        controller6.text;
+        controller4.text;
+
     print(otp);
     http.Response response = await http.post(
       '${Url.URL}/api/users/emailverified_forgot_password?otp=$otp',
@@ -51,8 +50,10 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
       var route = new MaterialPageRoute(
           builder: (BuildContext context) => ResetPassword("enter_password"));
       Navigator.of(context).push(route);
+      flutterToast(
+          context, 'OTP Verification Successful', 2, ToastGravity.CENTER);
     } else {
-      print(response.body);
+      messageDialog(context, 'Incorrect OTP');
     }
   }
 
@@ -60,9 +61,7 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
     String otp = controller1.text +
         controller2.text +
         controller3.text +
-        controller4.text +
-        controller5.text +
-        controller6.text;
+        controller4.text;
     print(otp);
     http.Response response = await http.post(
       '${Url.URL}/api/users/emailverified',
@@ -77,9 +76,7 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
     print('Response body: ${response.body}');
     if (response.statusCode == 300) {
       Navigator.pushNamed(context, Routes.initialization);
-    } else {
-      print(response.body);
-    }
+    } else {}
   }
 
   send_otp() async {
@@ -94,9 +91,6 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
 
     if (response1.statusCode == 200) {
       print("sent otp to your mail");
-      setState(() {
-        email_sent = true;
-      });
     } else {
       print(response1.body);
     }
@@ -105,8 +99,10 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
   @override
   void initState() {
     loadPref();
+
     super.initState();
     currController = controller1;
+    send_otp();
   }
 
   @override
@@ -116,8 +112,6 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
     controller2.dispose();
     controller3.dispose();
     controller4.dispose();
-    controller5.dispose();
-    controller6.dispose();
   }
 
   @override
@@ -216,48 +210,6 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
         ),
       ),
       Padding(
-        padding: const EdgeInsets.only(right: 2.0, left: 2.0),
-        child: new Container(
-          alignment: Alignment.center,
-          decoration: new BoxDecoration(
-              color: Color.fromRGBO(0, 0, 0, 0.1),
-              border: new Border.all(
-                  width: 1.0, color: Theme.of(context).textTheme.caption.color),
-              borderRadius: new BorderRadius.circular(4.0)),
-          child: new TextField(
-            inputFormatters: [
-              LengthLimitingTextInputFormatter(1),
-            ],
-            textAlign: TextAlign.center,
-            controller: controller5,
-            autofocus: false,
-            enabled: false,
-            style: TextStyle(fontSize: 24.0),
-          ),
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.only(right: 2.0, left: 2.0),
-        child: new Container(
-          alignment: Alignment.center,
-          decoration: new BoxDecoration(
-              color: Color.fromRGBO(0, 0, 0, 0.1),
-              border: new Border.all(
-                  width: 1.0, color: Theme.of(context).textTheme.caption.color),
-              borderRadius: new BorderRadius.circular(4.0)),
-          child: new TextField(
-            inputFormatters: [
-              LengthLimitingTextInputFormatter(1),
-            ],
-            textAlign: TextAlign.center,
-            controller: controller6,
-            autofocus: false,
-            enabled: false,
-            style: TextStyle(fontSize: 24.0),
-          ),
-        ),
-      ),
-      Padding(
         padding: EdgeInsets.only(left: 2.0, right: 0.0),
         child: new Container(
           color: Colors.transparent,
@@ -291,46 +243,43 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
                     mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      email_sent
-                          ? Column(
-                              mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: Text(
-                                    "Verify your OTP",
-                                    style: TextStyle(
-                                        fontSize: 18.0,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 16.0, top: 4.0, right: 16.0),
-                                  child: Text(
-                                    "Please type the verification code sent to your mail",
-                                    style: TextStyle(
-                                        fontSize: 15.0,
-                                        fontWeight: FontWeight.normal),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 30.0, top: 2.0, right: 30.0),
-                                  child: Text(
-                                    widget.email,
-                                    style: TextStyle(
-                                      fontSize: 15.0,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Container(),
+                      Column(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              "Verify your OTP",
+                              style: TextStyle(
+                                  fontSize: 18.0, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 16.0, top: 4.0, right: 16.0),
+                            child: Text(
+                              "Please type the verification code sent to your mail",
+                              style: TextStyle(
+                                  fontSize: 15.0,
+                                  fontWeight: FontWeight.normal),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 30.0, top: 2.0, right: 30.0),
+                            child: Text(
+                              widget.email,
+                              style: TextStyle(
+                                fontSize: 15.0,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
                       SizedBox(
                         height: 15,
                       ),
@@ -357,15 +306,10 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
                                 SizedBox(
                                   width: 10,
                                 ),
-                                email_sent
-                                    ? Text(
-                                        "Re-send OTP to Email",
-                                        style: TextStyle(fontSize: 19.0),
-                                      )
-                                    : Text(
-                                        "Send OTP to Email",
-                                        style: TextStyle(fontSize: 19.0),
-                                      ),
+                                Text(
+                                  "Re-send OTP to Email",
+                                  style: TextStyle(fontSize: 19.0),
+                                ),
                               ],
                             ),
                           ),
@@ -374,37 +318,29 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
                       SizedBox(
                         height: 5,
                       ),
-                      email_sent
-                          ? Text(
-                              "Click here to Re-send OTP to Email",
-                              style: TextStyle(fontSize: 15.0),
-                            )
-                          : Text(
-                              "Click here to Send OTP to Email",
-                              style: TextStyle(fontSize: 15.0),
-                            ),
+                      Text(
+                        "Click here to Re-send OTP to Email",
+                        style: TextStyle(fontSize: 15.0),
+                      ),
                     ],
                   ),
                   flex: 60,
                 ),
-                Flexible(
-                  child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        GridView.count(
-                            crossAxisCount: 8,
-                            mainAxisSpacing: 10.0,
-                            shrinkWrap: true,
-                            primary: false,
-                            scrollDirection: Axis.vertical,
-                            children: List<Container>.generate(
-                                8,
-                                (int index) =>
-                                    Container(child: widgetList[index]))),
-                      ]),
-                  flex: 20,
-                ),
+                Column(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      GridView.count(
+                          crossAxisCount: 6,
+                          mainAxisSpacing: 10.0,
+                          shrinkWrap: true,
+                          primary: false,
+                          scrollDirection: Axis.vertical,
+                          children: List<Container>.generate(
+                              6,
+                              (int index) =>
+                                  Container(child: widgetList[index]))),
+                    ]),
                 Flexible(
                   child: Column(
                     mainAxisSize: MainAxisSize.max,
@@ -593,69 +529,49 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
   }
 
   void inputTextToField(String str) {
-    //Edit first textField
-    if (currController == controller1) {
-      controller1.text = str;
-      currController = controller2;
-    }
+    setState(() {
+      //Edit first textField
+      if (currController == controller1) {
+        controller1.text = str;
+        currController = controller2;
+      }
 
-    //Edit second textField
-    else if (currController == controller2) {
-      controller2.text = str;
-      currController = controller3;
-    }
+      //Edit second textField
+      else if (currController == controller2) {
+        controller2.text = str;
+        currController = controller3;
+      }
 
-    //Edit third textField
-    else if (currController == controller3) {
-      controller3.text = str;
-      currController = controller4;
-    }
+      //Edit third textField
+      else if (currController == controller3) {
+        controller3.text = str;
+        currController = controller4;
+      }
 
-    //Edit fourth textField
-    else if (currController == controller4) {
-      controller4.text = str;
-      currController = controller5;
-    }
-
-    //Edit fifth textField
-    else if (currController == controller5) {
-      controller5.text = str;
-      currController = controller6;
-    }
-
-    //Edit sixth textField
-    else if (currController == controller6) {
-      controller6.text = str;
-      currController = controller6;
-    }
+      //Edit fourth textField
+      else if (currController == controller4) {
+        controller4.text = str;
+        currController = controller4;
+      }
+    });
   }
 
   void deleteText() {
-    if (currController.text.length == 0) {
-    } else {
-      currController.text = "";
-      currController = controller5;
-      return;
-    }
-
-    if (currController == controller1) {
-      controller1.text = "";
-    } else if (currController == controller2) {
-      controller1.text = "";
-      currController = controller1;
-    } else if (currController == controller3) {
-      controller2.text = "";
-      currController = controller2;
-    } else if (currController == controller4) {
-      controller3.text = "";
-      currController = controller3;
-    } else if (currController == controller5) {
-      controller4.text = "";
-      currController = controller4;
-    } else if (currController == controller6) {
-      controller5.text = "";
-      currController = controller5;
-    }
+    setState(() {
+      if (currController == controller1) {
+        controller1.text = "";
+        currController = controller1;
+      } else if (currController == controller2) {
+        controller2.text = "";
+        currController = controller1;
+      } else if (currController == controller3) {
+        controller3.text = "";
+        currController = controller2;
+      } else if (currController == controller4) {
+        controller4.text = "";
+        currController = controller3;
+      }
+    });
   }
 }
 
@@ -689,23 +605,7 @@ class _CheckState extends State<Check> {
         bio.isNullOrEmpty() ||
         designation.isNullOrEmpty() ||
         gender.isNullOrEmpty()) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: new Text("Profile fill"),
-            content: new Text("Required fields can not be empty"),
-            actions: <Widget>[
-              new FlatButton(
-                child: new Text("Ok"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
+      messageDialog(context, "Required fields can not be empty");
     } else {
       setState(() {
         isLoading = true;
@@ -852,44 +752,26 @@ class _CheckState extends State<Check> {
 
   @override
   Widget build(BuildContext context) {
-    return isLoading
-        ? SafeArea(
-            child: Scaffold(
-                body: Align(
-            alignment: Alignment.center,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Center(child: CircularProgressIndicator()),
-                Text(
-                  "Saving your profile....",
-                  style: TextStyle(
-                      color: Theme.of(context).textTheme.caption.color,
-                      fontSize: 30.0,
-                      fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          )))
-        : SafeArea(
-            child: WillPopScope(
-              onWillPop: () async {
-                return false;
+    return SafeArea(
+      child: WillPopScope(
+        onWillPop: () async {
+          return false;
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text("Fill Profile"),
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            leading: new IconButton(
+              icon: new Icon(Icons.arrow_back),
+              onPressed: () async {
+                resetPref();
+                Navigator.pushNamed(context, Routes.signin);
               },
-              child: Scaffold(
-                appBar: AppBar(
-                  title: Text("Fill Profile"),
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                  leading: new IconButton(
-                    icon: new Icon(Icons.arrow_back),
-                    onPressed: () async {
-                      resetPref();
-                      Navigator.pushNamed(context, Routes.signin);
-                    },
-                  ),
-                ),
-                body: SingleChildScrollView(
+            ),
+          ),
+          body: isLoading
+              ? LoaderCircular(0.25, 'Updating')
+              : SingleChildScrollView(
                   child: Stack(
                     children: <Widget>[
                       Container(
@@ -920,12 +802,9 @@ class _CheckState extends State<Check> {
                                       children: <Widget>[
                                         _imageFile == null
                                             ? Container(
-                                                height: 150.0,
-                                                width: 150.0,
-                                                child: Icon(
-                                                  Icons.add_a_photo,
-                                                  size: 65,
-                                                ),
+                                                height: 100.0,
+                                                width: 100.0,
+                                                child: NoProfilePic(),
                                                 decoration: BoxDecoration(
                                                   borderRadius:
                                                       BorderRadius.circular(
@@ -1400,8 +1279,8 @@ class _CheckState extends State<Check> {
                     ],
                   ),
                 ),
-              ),
-            ),
-          );
+        ),
+      ),
+    );
   }
 }
