@@ -61,24 +61,34 @@ class _RegisteredEventsState extends State<RegisteredEvents> {
           ),
           body: model.isLoading || model.loadingFailed
               ? _loadingIndicator
-              : ListView(
-                  physics: ClampingScrollPhysics(),
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  children: <Widget>[
-                    for (var i = 0; i < model.allEvents.length; i++) ...[
-                      for (var j = 0;
-                          j < model.allRegistrations.length;
-                          j++) ...[
-                        if (model.allRegistrations[j].user_id == prefId &&
-                            model.allRegistrations[j].event_id ==
-                                model.allEvents[i].id) ...[
-                          EventTileGeneral(true, i, "info_page")
+              : model.allRegistrations.isEmpty
+                  ? Container(
+                      height: double.infinity,
+                      width: double.infinity,
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      child: EmptyData(
+                          'No Registered Events',
+                          "You have not registered to any event",
+                          Icons.event_busy_outlined),
+                    )
+                  : ListView(
+                      physics: ClampingScrollPhysics(),
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      children: <Widget>[
+                        for (var i = 0; i < model.allEvents.length; i++) ...[
+                          for (var j = 0;
+                              j < model.allRegistrations.length;
+                              j++) ...[
+                            if (model.allRegistrations[j].user_id == prefId &&
+                                model.allRegistrations[j].event_id ==
+                                    model.allEvents[i].id) ...[
+                              EventTileGeneral(true, i, "info_page")
+                            ]
+                          ]
                         ]
-                      ]
-                    ]
-                  ],
-                ),
+                      ],
+                    ),
         ),
       );
     });

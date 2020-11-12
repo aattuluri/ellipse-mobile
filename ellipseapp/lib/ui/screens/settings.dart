@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_web_browser/flutter_web_browser.dart';
 import 'package:http/http.dart' as http;
 import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
@@ -117,7 +116,7 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
             ListCell.icon(
               icon: Icons.palette,
               title: "Theme",
-              subtitle: "choose app theme",
+              subtitle: "Choose App Theme",
               trailing: Icon(Icons.chevron_right),
               onTap: () => showDialog(
                 context: context,
@@ -156,7 +155,7 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
             ListCell.icon(
                 icon: Icons.edit,
                 title: "Edit Profile",
-                subtitle: "edit your profile",
+                subtitle: "Edit Your Profile",
                 trailing: Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.pushNamed(context, Routes.edit_profile);
@@ -174,7 +173,7 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
             ListCell.icon(
                 icon: Icons.message,
                 title: "Feedback",
-                subtitle: "send feedback",
+                subtitle: "Send Your Feedback",
                 onTap: () {
                   generalSheet(
                     context,
@@ -188,25 +187,19 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
                         }),
                         Divider(height: 1),
                         _feedbackItem(LineIcons.whatsapp, "Join Whatsapp", () {
-                          FlutterWebBrowser.openWebPage(
-                            url:
-                                'https://chat.whatsapp.com/FO8wG0wtNJCCHCdjDIrwIf',
-                          );
+                          'https://chat.whatsapp.com/FO8wG0wtNJCCHCdjDIrwIf'
+                              .launchUrl;
                         }),
-                        Divider(height: 1),
+                        /*Divider(height: 1),
                         _feedbackItem(Icons.mail_outline, "Mail Us", () {
-                          FlutterWebBrowser.openWebPage(
-                            url:
-                                'mailto:support@ellipseapp.com?subject=Feedback',
-                          );
-                        }),
+                          'mailto:support@ellipseapp.com?subject=Feedback'
+                              .launchUrl;
+                        }),*/
                         Divider(height: 1),
                         _feedbackItem(LineIcons.star_o, "Rate on Play Store",
                             () {
-                          FlutterWebBrowser.openWebPage(
-                            url:
-                                'https://play.google.com/store/apps/details?id=com.ellipse.ellipseapp',
-                          );
+                          'https://play.google.com/store/apps/details?id=com.ellipse.ellipseapp'
+                              .launchUrl;
                         }),
                         Divider(height: 1),
                       ],
@@ -217,7 +210,7 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
             ListCell.icon(
                 icon: Icons.account_circle,
                 title: "About",
-                subtitle: "Ellipse",
+                subtitle: "About Ellipse",
                 //trailing: Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.pushNamed(context, Routes.about_us);
@@ -226,7 +219,7 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
             ListCell.icon(
                 icon: Icons.share,
                 title: "Share",
-                subtitle: "share our app",
+                subtitle: "Share Our App",
                 //trailing: Icon(Icons.chevron_right),
                 onTap: () {
                   Share.share(
@@ -235,7 +228,7 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
             ListCell.icon(
                 icon: Icons.integration_instructions_rounded,
                 title: "App Intro",
-                subtitle: "app introduction",
+                subtitle: "App Introduction",
                 //trailing: Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.pushNamed(context, Routes.intro);

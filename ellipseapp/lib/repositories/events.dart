@@ -33,14 +33,12 @@ class EventsRepository extends BaseRepository {
       allEvents.sort(sortByStartTime);
       print(allEvents);
       print("Events loaded");
-      /////////////////
       for (var i = 0; i < allEvents.length; i++) {
         if (allEvents[i].user_id == prefId) {
           allEvents[i].moderator = true;
         }
       }
       //////////////////////////////////////////////////////////////////
-
       print("Started Loading Registered events");
       Map<String, String> headers = {
         HttpHeaders.authorizationHeader: "Bearer $prefToken",
@@ -56,17 +54,6 @@ class EventsRepository extends BaseRepository {
           .toList();
       print(allRegistrations);
       print("Registrations loaded");
-/*
-      if (allRegistrations.isNotEmpty) {
-        for (var i = 0; i < allEvents.length; i++) {
-          for (var j = 0; j < allRegistrations.length; j++) {
-            if (allRegistrations[j].event_id == allEvents[i].id) {
-              allEvents[i].registered = true;
-            }
-          }
-        }
-      }
-      */
       finishLoading();
     } catch (_) {
       print("ErrorErrorErrorErrorErrorErrorErrorErrorError");

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:EllipseApp/ui/widgets/index.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -27,11 +28,6 @@ class _InitializationState extends State<Initialization>
       loadPref();
       check_connectivity();
     } else {
-      //Navigator.push(
-      //  context,
-      // MaterialPageRoute(builder: (context) => OnBoarding()),
-      // );
-      //Navigator.pushNamed(context, Routes.splash_screen);
       Navigator.pushNamed(context, Routes.intro);
     }
   }
@@ -40,8 +36,6 @@ class _InitializationState extends State<Initialization>
     var connectivityResult = await (Connectivity().checkConnectivity());
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
-      // I am connected to a mobile network.
-      //Navigator.pushNamed(context, Routes.intro);
       Navigator.pushNamed(
         context,
         Routes.start,
@@ -126,13 +120,9 @@ class _InitializationState extends State<Initialization>
     }
   }
 
-  get() async {}
-
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
-    get();
-    //this.initDynamicLinks();
     loggedin();
     firebase();
     super.initState();
@@ -153,6 +143,6 @@ class _InitializationState extends State<Initialization>
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(child: Scaffold(body: Container()));
+    return Scaffold(body: LoaderCircular(0.25, 'Loading'));
   }
 }

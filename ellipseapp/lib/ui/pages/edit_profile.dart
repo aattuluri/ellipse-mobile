@@ -212,8 +212,7 @@ class _EditProfileState extends State<EditProfile> {
     });
     context.read<UserDetailsRepository>().refreshData();
     Navigator.of(context).pop(true);
-    alertDialog(context, "Edit Profile",
-        "-Profile updated successfully\n-ReOpen app to load updated profile pic");
+    messageDialog(context, 'Profile updated successfully');
   }
 
   @override
@@ -357,8 +356,6 @@ class _EditProfileState extends State<EditProfile> {
                                                                 Navigator.pop(
                                                                     context);
                                                               },
-                                                              tooltip:
-                                                                  'Increment',
                                                               child: Icon(
                                                                   Icons.close,
                                                                   size: 30),

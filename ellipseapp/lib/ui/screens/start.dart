@@ -7,6 +7,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:line_icons/line_icons.dart';
+import 'package:package_info/package_info.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,6 +34,7 @@ class _StartScreenState extends State<StartScreen>
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
   int notifCount = 0;
+  bool updateRequired;
   bool ischecking = false;
   HomeTab homeTab;
   CalendarTab calendarTab;
@@ -129,20 +131,148 @@ class _StartScreenState extends State<StartScreen>
     }
   }
 
+  getVersion() async {
+    http.Response response = await http.get("${Url.URL}/api/get_version");
+    var jsonResponse = json.decode(response.body);
+    print(jsonResponse);
+    if (jsonResponse != null) {
+      Map<String, dynamic> versionDetails = jsonResponse;
+      setState(() {
+        updateRequired = jsonResponse['required'];
+      });
+      PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
+        String version = packageInfo.version;
+        //String version = '1.0.2';
+        print(version);
+        print(versionDetails['version_name']);
+        print(updateRequired);
+        if (version == versionDetails['version_name']) {
+          check();
+        } else if (version != versionDetails['version_name'] &&
+            updateRequired) {
+          _showCompulsoryUpdateDialog(
+            context,
+            "Please update the app to continue\nNew Version : ${versionDetails['version_name']}",
+          );
+        } else if (version != versionDetails['version_name'] &&
+            !updateRequired) {
+          _showOptionalUpdateDialog(
+            context,
+            "A newer version of the app is available\nNew Version : ${versionDetails['version_name']}",
+          );
+        } else {
+          Navigator.pushNamed(context, Routes.signin);
+        }
+      });
+    }
+  }
+
+  _onUpdateNowClicked() {
+    'https://play.google.com/store/apps/details?id=com.ellipse.ellipseapp'
+        .launchUrl;
+  }
+
+  _showCompulsoryUpdateDialog(context, String message) async {
+    await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        String title = "App Update Available";
+        String btnLabel = "Update Now";
+        return Platform.isIOS
+            ? new CupertinoAlertDialog(
+                title: Text(title),
+                content: Text(message),
+                actions: <Widget>[
+                  CupertinoDialogAction(
+                    child: Text(
+                      btnLabel,
+                    ),
+                    isDefaultAction: true,
+                    onPressed: _onUpdateNowClicked,
+                  ),
+                ],
+              )
+            : new AlertDialog(
+                title: Text(
+                  title,
+                  style: TextStyle(fontSize: 22),
+                ),
+                content: Text(message),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text(btnLabel),
+                    onPressed: _onUpdateNowClicked,
+                  ),
+                ],
+              );
+      },
+    );
+  }
+
+  _showOptionalUpdateDialog(context, String message) async {
+    await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        String title = "App Update Available";
+        String btnLabel = "Update Now";
+        return Platform.isIOS
+            ? new CupertinoAlertDialog(
+                title: Text(title),
+                content: Text(message),
+                actions: <Widget>[
+                  CupertinoDialogAction(
+                    child: Text(
+                      btnLabel,
+                    ),
+                    isDefaultAction: true,
+                    onPressed: _onUpdateNowClicked,
+                  ),
+                  CupertinoDialogAction(
+                    child: Text(
+                      'Later',
+                    ),
+                    isDefaultAction: true,
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              )
+            : new AlertDialog(
+                title: Text(
+                  title,
+                  style: TextStyle(fontSize: 22),
+                ),
+                content: Text(message),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text(btnLabel),
+                    onPressed: _onUpdateNowClicked,
+                  ),
+                  FlatButton(
+                    child: Text('Later'),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              );
+      },
+    );
+  }
+
   @override
   void initState() {
     controller = new TabController(length: tabCount, vsync: this);
-    check();
-    // widget.load == true ? check() : noCheck();
-    //getNotificationsCount();
-    //loadNotificationsCount();
-
+    getVersion();
+    //check();
     currentTab = widget.current_tab;
     homeTab = HomeTab();
     calendarTab = CalendarTab();
     notificationsTab = NotificationsTab();
     profileTab = ProfileTab();
-    //moreTab = MoreTab();
     pages = [homeTab, calendarTab, notificationsTab, profileTab];
     switch (currentTab) {
       case 0:
@@ -163,7 +293,6 @@ class _StartScreenState extends State<StartScreen>
 
   @override
   void dispose() {
-    // TODO: implement dispose
     controller.dispose();
     super.dispose();
   }

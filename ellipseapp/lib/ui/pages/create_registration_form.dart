@@ -3,9 +3,8 @@ import 'dart:core';
 import 'dart:ui';
 
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:date_time_picker/date_time_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:row_collection/row_collection.dart';
 
 import '../../models/index.dart';
@@ -211,39 +210,23 @@ class DynamicWidgetState extends State<DynamicWidget> {
           children: [
             Container(
               margin: new EdgeInsets.symmetric(vertical: 8),
-              child: new DateTimeField(
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.caption.color,
-                ),
-                cursorColor: Theme.of(context).textTheme.caption.color,
+              child: DateTimePicker(
+                type: DateTimePickerType.dateTime,
                 decoration: InputDecoration(
-                  suffixIcon: Icon(Icons.event),
                   border: OutlineInputBorder(),
+                  labelText: widget.title,
                   hintText: widget.title,
                   hintStyle: TextStyle(
                     color: Theme.of(context).textTheme.caption.color,
                     fontSize: 18.0,
                   ),
                 ),
-                format: DateFormat("yyyy-MM-dd HH:mm"),
-                onShowPicker: (context, currentValue) async {
-                  final date = await showDatePicker(
-                      context: context,
-                      firstDate: DateTime(DateTime.now().year - 100,
-                          DateTime.now().month, DateTime.now().day),
-                      initialDate: currentValue ?? DateTime.now(),
-                      lastDate: DateTime(2100));
-                  if (date != null) {
-                    final time = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.fromDateTime(
-                          currentValue ?? DateTime.now()),
-                    );
-                    return DateTimeField.combine(date, time);
-                  } else {
-                    return currentValue;
-                  }
-                },
+                dateMask: 'd MMMM, yyyy - hh:mm a',
+                controller: controller,
+                //initialValue: DateTime.now().toString(),
+                firstDate: DateTime(2000),
+                lastDate: DateTime(2100),
+                use24HourFormat: false,
               ),
             ),
           ],
@@ -260,18 +243,7 @@ class DynamicWidgetState extends State<DynamicWidget> {
                 controller: controller,
                 maxLines: 2,
                 decoration: new InputDecoration(
-                    suffixIcon: Padding(
-                      padding: const EdgeInsets.only(right: 5),
-                      child: InkWell(
-                        onTap: () {},
-                        child: Icon(
-                          Icons.content_paste,
-                          size: 25,
-                        ),
-                      ),
-                    ),
-                    border: OutlineInputBorder(),
-                    hintText: widget.title),
+                    border: OutlineInputBorder(), hintText: widget.title),
               ),
             ),
           ],
@@ -534,7 +506,7 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
           data = [];
         });
       });
-      setState(() {
+      /* setState(() {
         form.add((json.encode(<String, dynamic>{
           "title": "College",
           "field": "short_text",
@@ -545,7 +517,7 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
         setState(() {
           data = [];
         });
-      });
+      });*/
     } else {
       setState(() {
         reg_form.clear();
@@ -732,18 +704,18 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
                             */
 
                         InputChip(
-                            label: Text("Date of Birth"),
+                            label: Text("College"),
                             selected: s_college,
                             onPressed: () {
                               setState(() {
                                 form.add((json.encode(<String, dynamic>{
-                                  "title": "Date of Birth",
-                                  "field": "date",
+                                  "title": "College",
+                                  "field": "short_text",
                                   "options": data
                                 })).toString());
                                 this.setState(() => listDynamic.add(
                                     new DynamicWidget(
-                                        "Date of Birth", "date", [])));
+                                        "College", "short_text", [])));
                                 setState(() {
                                   data = [];
                                 });
@@ -795,7 +767,7 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
                                 Row(
                                   children: [
                                     Spacer(),
-                                    index == 0 || index == 1 || index == 2
+                                    index == 0 || index == 1
                                         ? Container()
                                         : InkWell(
                                             onTap: () {

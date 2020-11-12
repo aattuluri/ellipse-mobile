@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -59,24 +60,25 @@ class _SignInState extends State<SignIn> {
             sharedPreferences.setString("token", jsonResponse['token']);
             sharedPreferences.setString("id", jsonResponse['userid']);
           });
-
           Navigator.pushNamed(context, Routes.initialization);
           setState(() {
             sharedPreferences.setBool('loggedIn', true);
             isLoading = false;
           });
         }
+        flutterToast(context, 'Login successful', 2, ToastGravity.CENTER);
+        // messageDialog(context, 'Login successful');
       } else {
         setState(() {
           isLoading = false;
         });
-        alertDialog(context, "Login", "Invalid Password");
+        messageDialog(context, 'Invalid Password');
       }
     } else {
       setState(() {
         isLoading = false;
       });
-      alertDialog(context, "Login", "Email does not exist");
+      messageDialog(context, 'Email does not exist');
     }
   }
 
@@ -503,6 +505,9 @@ class _SignupState extends State<Signup> {
 
           Navigator.pushNamed(context, Routes.initialization);
         }
+        flutterToast(
+            context, 'Registration successful', 2, ToastGravity.CENTER);
+        // messageDialog(context, 'Registration successful');
       } else {
         setState(() {
           isLoading = false;
@@ -512,18 +517,17 @@ class _SignupState extends State<Signup> {
       setState(() {
         isLoading = false;
       });
-      alertDialog(context, "Sign Up", "Email already exists");
+      messageDialog(context, 'Email already registered');
     } else if (response1.statusCode == 201 && response2.statusCode == 200) {
       setState(() {
         isLoading = false;
       });
-      alertDialog(context, "Sign Up", "Username already exists");
+      messageDialog(context, 'Username already exists');
     } else if (response1.statusCode == 200 && response2.statusCode == 200) {
       setState(() {
         isLoading = false;
       });
-      alertDialog(context, "Sign Up",
-          "-Eamil already exists\n-Username already exixts");
+      messageDialog(context, 'Email & Username already exixts');
     } else {}
   }
 

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../models/index.dart';
 import '../../repositories/index.dart';
 import '../../util/index.dart';
+import '../widgets/index.dart';
 
 class Certificates extends StatefulWidget {
   @override
@@ -41,21 +42,28 @@ class _CertificatesState extends State<Certificates> {
           ],
           centerTitle: true,
         ),
-        body: ListView.builder(
-            physics: NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.symmetric(horizontal: 0.0),
-            scrollDirection: Axis.vertical,
-            shrinkWrap: true,
-            itemCount: model.allRegistrations.length,
-            itemBuilder: (BuildContext context, int index) {
-              final eventIndex = context
-                  .read<EventsRepository>()
-                  .getEventIndex(model.allRegistrations[index].event_id);
-              final Events _event =
-                  context.watch<EventsRepository>().getEvent(eventIndex);
-              return CertificateTile(
-                  _event, model.allRegistrations[index], () {});
-            }),
+        body: model.allRegistrations.isEmpty
+            ? Container(
+                height: double.infinity,
+                width: double.infinity,
+                color: Theme.of(context).scaffoldBackgroundColor,
+                child: EmptyData('No Certificates', "", LineIcons.certificate),
+              )
+            : ListView.builder(
+                physics: NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.symmetric(horizontal: 0.0),
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                itemCount: model.allRegistrations.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final eventIndex = context
+                      .read<EventsRepository>()
+                      .getEventIndex(model.allRegistrations[index].event_id);
+                  final Events _event =
+                      context.watch<EventsRepository>().getEvent(eventIndex);
+                  return CertificateTile(
+                      _event, model.allRegistrations[index], () {});
+                }),
       ),
     );
   }
@@ -69,69 +77,91 @@ class CertificateTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      child: Container(
-        height: 100,
-        decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(8)),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.only(left: 16),
-                width: MediaQuery.of(context).size.width - 100,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      _event.name,
-                      style: TextStyle(fontSize: 18),
-                    ),
-                    SizedBox(
-                      height: 8,
-                    ),
-                    Row(
-                      children: <Widget>[
-                        _reg.certificateStatus == "generated"
-                            ? RaisedButton.icon(
-                                onPressed: () {
-                                  "${Url.URL}/api/user/certificate?id=${_reg.certificateUrl.toString()}"
-                                      .launchUrl;
-/*
-                      Navigator.pushNamed(context, Routes.pdfView,
-                          arguments: {
-                            'title': "heh",
-                            'link':
-                                "${Url.URL}/api/image?id=${model.allRegistrations[index].certificateUrl.toString()}"
-                          });*/
-                                },
+    return Consumer<EventsRepository>(builder: (context, model, child) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Container(
+          height: 100,
+          decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(8)),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.only(left: 16),
+                  width: MediaQuery.of(context).size.width - 100,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        _event.name,
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      SizedBox(
+                        height: 8,
+                      ),
+                      Row(
+                        children: <Widget>[
+                          if (_reg.certificateStatus == "generated") ...[
+                            RaisedButton.icon(
+                              onPressed: () {
+                                Navigator.pushNamed(context, Routes.pdfView,
+                                    arguments: {
+                                      'title': _event.name,
+                                      'link':
+                                          "${Url.URL}/api/user/certificate?id=${_reg.certificateUrl.toString()}"
+                                    });
+                              },
+                              color: Theme.of(context).textTheme.caption.color,
+                              icon: Icon(
+                                Icons.picture_as_pdf,
                                 color:
-                                    Theme.of(context).textTheme.caption.color,
-                                icon: Icon(
-                                  LineIcons.download,
+                                    Theme.of(context).scaffoldBackgroundColor,
+                              ),
+                              label: Text(
+                                "View",
+                                style: TextStyle(
+                                    color: Theme.of(context)
+                                        .scaffoldBackgroundColor),
+                              ),
+                            )
+                          ],
+                          SizedBox(
+                            width: 5,
+                          ),
+                          _reg.certificateStatus == "generated"
+                              ? RaisedButton.icon(
+                                  onPressed: () {
+                                    "${Url.URL}/api/user/certificate?id=${_reg.certificateUrl.toString()}"
+                                        .launchUrl;
+                                  },
                                   color:
-                                      Theme.of(context).scaffoldBackgroundColor,
-                                ),
-                                label: Text(
-                                  "Download",
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .scaffoldBackgroundColor),
-                                ),
-                              )
-                            : Chip(label: Text("Not Generated"))
-                      ],
-                    ),
-                  ],
+                                      Theme.of(context).textTheme.caption.color,
+                                  icon: Icon(
+                                    LineIcons.download,
+                                    color: Theme.of(context)
+                                        .scaffoldBackgroundColor,
+                                  ),
+                                  label: Text(
+                                    "Download",
+                                    style: TextStyle(
+                                        color: Theme.of(context)
+                                            .scaffoldBackgroundColor),
+                                  ),
+                                )
+                              : Chip(label: Text("Not Generated"))
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 }

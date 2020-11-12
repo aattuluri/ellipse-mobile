@@ -37,7 +37,7 @@ class _HelpSupportState extends State<HelpSupport>
         _feedbackController.clear();
       });
       Navigator.of(context).pop();
-      alertDialog(context, "Feedback", "Feedback Successfully sent");
+      messageDialog(context, "Feedback Submitted Successfully");
     } else {
       print(response.body);
     }

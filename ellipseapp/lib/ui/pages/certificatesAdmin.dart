@@ -69,13 +69,9 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
     if (response.statusCode == 200) {
-      //this.setState(() => participants.clear());
-      //this.setState(() => pending.clear());
-      //this.setState(() => published.clear());
       loadRegisteredEvents();
       Navigator.of(context).pop(true);
-      alertDialog(
-          context, "Certificates", "Certificates published Successfully");
+      messageDialog(context, "Certificates published Successfully");
     }
   }
 
@@ -136,8 +132,7 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
       });
       //tab_controller.animateTo(0);
       Navigator.of(context).pop(true);
-      alertDialog(
-          context, "Certificates", "Certificate details updated Successfully");
+      messageDialog(context, "Certificate details updated Successfully");
     }
   }
 
@@ -290,7 +285,7 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                       child: Text("Publish"),
                                       onPressed: selectedParticipants.isEmpty
                                           ? () {
-                                              alertDialog(context, "Publish",
+                                              messageDialog(context,
                                                   "Participants not selected");
                                             }
                                           : () {
@@ -367,9 +362,9 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                       title: Text(
                                         data["Name"],
                                       ),
-                                      subtitle: Text(
-                                        data["Email"],
-                                      ),
+                                      subtitle: Text('***************@gmail.com'
+                                          // data["Email"],
+                                          ),
                                       children: <Widget>[
                                         SizedBox(
                                           height: 10,
@@ -385,7 +380,9 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                                         horizontal: 15),
                                                 child: RowText(
                                                   keys[i].toString(),
-                                                  values[i].toString(),
+                                                  keys[i].toString() == "Email"
+                                                      ? '***************@gmail.com'
+                                                      : values[i].toString(),
                                                 ),
                                               ),
                                             ]
@@ -432,9 +429,9 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                 title: Text(
                                   data["Name"],
                                 ),
-                                subtitle: Text(
-                                  data["Email"],
-                                ),
+                                subtitle: Text('***************@gmail.com'
+                                    // data["Email"],
+                                    ),
                                 children: <Widget>[
                                   SizedBox(
                                     height: 10,
@@ -447,37 +444,65 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                               horizontal: 15),
                                           child: RowText(
                                             keys[i].toString(),
-                                            values[i].toString(),
+                                            keys[i].toString() == "Email"
+                                                ? '***************@gmail.com'
+                                                : values[i].toString(),
                                           ),
                                         ),
                                       ],
-                                      RaisedButton.icon(
-                                        onPressed: () {
-                                          "${Url.URL}/api/user/certificate?id=$certUrl"
-                                              .launchUrl;
-/*
-                      Navigator.pushNamed(context, Routes.pdfView,
-                          arguments: {
-                            'title': "heh",
-                            'link':
-                                "${Url.URL}/api/image?id=${model.allRegistrations[index].certificateUrl.toString()}"
-                          });*/
-                                        },
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .caption
-                                            .color,
-                                        icon: Icon(
-                                          LineIcons.download,
-                                          color: Theme.of(context)
-                                              .scaffoldBackgroundColor,
-                                        ),
-                                        label: Text(
-                                          "Download",
-                                          style: TextStyle(
+                                      Row(
+                                        children: [
+                                          RaisedButton.icon(
+                                            onPressed: () {
+                                              Navigator.pushNamed(
+                                                  context, Routes.pdfView,
+                                                  arguments: {
+                                                    'title': _event.name,
+                                                    'link':
+                                                        "${Url.URL}/api/user/certificate?id=$certUrl"
+                                                  });
+                                            },
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .caption
+                                                .color,
+                                            icon: Icon(
+                                              Icons.picture_as_pdf,
                                               color: Theme.of(context)
-                                                  .scaffoldBackgroundColor),
-                                        ),
+                                                  .scaffoldBackgroundColor,
+                                            ),
+                                            label: Text(
+                                              "View",
+                                              style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .scaffoldBackgroundColor),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: 5,
+                                          ),
+                                          RaisedButton.icon(
+                                            onPressed: () {
+                                              "${Url.URL}/api/user/certificate?id=$certUrl"
+                                                  .launchUrl;
+                                            },
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .caption
+                                                .color,
+                                            icon: Icon(
+                                              LineIcons.download,
+                                              color: Theme.of(context)
+                                                  .scaffoldBackgroundColor,
+                                            ),
+                                            label: Text(
+                                              "Download",
+                                              style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .scaffoldBackgroundColor),
+                                            ),
+                                          ),
+                                        ],
                                       )
                                     ],
                                   ),

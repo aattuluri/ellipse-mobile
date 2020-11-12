@@ -322,6 +322,7 @@ class _ChatPageState extends State<ChatPage> {
                     itemCount: chatMessage.length,
                     controller: scrollController,
                     shrinkWrap: true,
+                    //reverse: true,
                     padding: EdgeInsets.only(top: 5, bottom: 60),
                     scrollDirection: Axis.vertical,
                     itemBuilder: (context, index) {

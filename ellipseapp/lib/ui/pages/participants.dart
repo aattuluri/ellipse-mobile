@@ -91,7 +91,8 @@ class _ParticipantsState extends State<Participants>
                                 data["Name"],
                               ),
                               subtitle: Text(
-                                data["Email"],
+                                '***************@gmail.com',
+                                //data["Email"],
                               ),
                               children: <Widget>[
                                 SizedBox(
@@ -105,7 +106,9 @@ class _ParticipantsState extends State<Participants>
                                             horizontal: 15),
                                         child: RowText(
                                           keys[i].toString(),
-                                          values[i].toString(),
+                                          keys[i].toString() == "Email"
+                                              ? '***************@gmail.com'
+                                              : values[i].toString(),
                                         ),
                                       ),
                                     ]
