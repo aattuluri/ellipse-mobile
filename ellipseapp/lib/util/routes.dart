@@ -30,10 +30,10 @@ class Routes {
   static const about_us = '/about_us';
   static const help_support = '/help_support';
   static const mdDecode = '/mdDecode';
+  static const widgetScreen = '/widgetScreen';
 
   /// Methods that generate all routes
   static Route<dynamic> generateRoute(RouteSettings routeSettings) {
-    Animation<double> animation;
     try {
       final Map<String, dynamic> args = routeSettings.arguments;
 
@@ -59,10 +59,10 @@ class Routes {
             builder: (_) => Initialization(),
           );
         case start:
-          final current_tab = args['current_tab'] as int;
+          final currentTab = args['currentTab'] as int;
           return MaterialPageRoute(
             settings: routeSettings,
-            builder: (_) => StartScreen(current_tab),
+            builder: (_) => StartScreen(currentTab),
           );
         case settings:
           return MaterialPageRoute(
@@ -75,12 +75,11 @@ class Routes {
             builder: (_) => CalendarTab(),
           );
         case info_page:
-          final index = args['index'] as int;
           final type = args['type'] as String;
           final event_ = args['event_'] as Events;
           return MaterialPageRoute(
             settings: routeSettings,
-            builder: (_) => InfoPage(index, type, event_),
+            builder: (_) => InfoPage(type, event_),
           );
         case post_event:
           return MaterialPageRoute(
@@ -100,7 +99,7 @@ class Routes {
         case my_events:
           return MaterialPageRoute(
             settings: routeSettings,
-            builder: (_) => MyEvents(),
+            builder: (_) => PostedEvents(),
           );
         case certificates:
           return MaterialPageRoute(
@@ -108,10 +107,10 @@ class Routes {
             builder: (_) => Certificates(),
           );
         case edit_event:
-          final index = args['index'] as int;
+          final id = args['id'] as String;
           return MaterialPageRoute(
             settings: routeSettings,
-            builder: (_) => EditEvent(index),
+            builder: (_) => EditEvent(id),
           );
         case edit_profile:
           return MaterialPageRoute(
@@ -138,12 +137,12 @@ class Routes {
         case about_us:
           return MaterialPageRoute(
             settings: routeSettings,
-            builder: (_) => AboutUs(),
+            builder: (_) => About(),
           );
         case help_support:
           return MaterialPageRoute(
             settings: routeSettings,
-            builder: (_) => HelpSupport(),
+            builder: (_) => FeedbackApp(),
           );
         case connection_error:
           return MaterialPageRoute(
@@ -156,6 +155,13 @@ class Routes {
           return MaterialPageRoute(
             settings: routeSettings,
             builder: (_) => MdDecode(title, url),
+          );
+        case widgetScreen:
+          final title = args['title'] as String;
+          final widget = args['widget'] as Widget;
+          return MaterialPageRoute(
+            settings: routeSettings,
+            builder: (_) => WidgetScreen(title, widget),
           );
         default:
           return errorRoute(routeSettings);

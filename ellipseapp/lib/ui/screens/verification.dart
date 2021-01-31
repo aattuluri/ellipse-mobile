@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -10,7 +9,10 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
+import 'package:provider/provider.dart';
 
+import '../../providers/index.dart';
+import '../../repositories/index.dart';
 import '../../util/index.dart';
 import '../screens/index.dart';
 import '../widgets/index.dart';
@@ -24,6 +26,7 @@ class OtpPageEmailVerify extends StatefulWidget {
 
 class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
     with TickerProviderStateMixin {
+  bool isLoading = false;
   TextEditingController controller1 = new TextEditingController();
   TextEditingController controller2 = new TextEditingController();
   TextEditingController controller3 = new TextEditingController();
@@ -32,28 +35,46 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
   //TextEditingController controller6 = new TextEditingController();
 
   TextEditingController currController = new TextEditingController();
+  void loadingTrue() {
+    setState(() {
+      isLoading = true;
+    });
+  }
+
+  void loadingFalse() {
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   void matchOtp_reset_password() async {
+    setState(() {
+      isLoading = true;
+    });
     String otp = controller1.text +
         controller2.text +
         controller3.text +
         controller4.text;
 
     print(otp);
-    http.Response response = await http.post(
+    var response = await httpPostWithoutHeaders(
       '${Url.URL}/api/users/emailverified_forgot_password?otp=$otp',
-      body: {'email': '${widget.email}', 'otp': '$otp'},
+      {'email': '${widget.email}', 'otp': '$otp'},
     );
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
     if (response.statusCode == 200) {
       var route = new MaterialPageRoute(
           builder: (BuildContext context) => ResetPassword("enter_password"));
       Navigator.of(context).push(route);
       flutterToast(
           context, 'OTP Verification Successful', 2, ToastGravity.CENTER);
+      setState(() {
+        isLoading = false;
+      });
     } else {
       messageDialog(context, 'Incorrect OTP');
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -63,32 +84,24 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
         controller3.text +
         controller4.text;
     print(otp);
-    http.Response response = await http.post(
+    var response = await httpPostWithHeaders(
       '${Url.URL}/api/users/emailverified',
-      headers: <String, String>{
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $prefToken'
-      },
-      body:
-          jsonEncode(<dynamic, dynamic>{'email': '$prefEmail', 'otp': '$otp'}),
+      jsonEncode(<dynamic, dynamic>{'email': '$prefEmail', 'otp': '$otp'}),
     );
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
     if (response.statusCode == 300) {
       Navigator.pushNamed(context, Routes.initialization);
-    } else {}
+    } else if (response.statusCode == 404) {
+      flutterToast(context, 'Incorrect OTP', 2, ToastGravity.CENTER);
+    }
   }
 
   send_otp() async {
-    http.Response response1 = await http.post(
+    var response1 = await httpPostWithHeaders(
       '${Url.URL}/api/users/emailverify?email=${widget.email}',
-      body: jsonEncode(<dynamic, dynamic>{
+      jsonEncode(<dynamic, dynamic>{
         "email": "",
       }),
     );
-    print('Response status: ${response1.statusCode}');
-    print('Response body: ${response1.body}');
-
     if (response1.statusCode == 200) {
       print("sent otp to your mail");
     } else {
@@ -217,315 +230,334 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
       ),
     ];
 
-    return SafeArea(
-      child: WillPopScope(
-        onWillPop: () async {
-          return false;
-        },
-        child: Scaffold(
-          resizeToAvoidBottomPadding: false,
-          appBar: AppBar(
-            title: Text("OTP Verification"),
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            leading: new IconButton(
-              icon: new Icon(Icons.arrow_back),
-              onPressed: () async {
-                resetPref();
-                Navigator.pushNamed(context, Routes.signin);
+    return isLoading
+        ? LoaderCircular('Loading')
+        : SafeArea(
+            child: WillPopScope(
+              onWillPop: () async {
+                return false;
               },
-            ),
-          ),
-          body: Container(
-            child: Column(
-              children: <Widget>[
-                Flexible(
+              child: Scaffold(
+                resizeToAvoidBottomPadding: false,
+                appBar: AppBar(
+                  title: Text("OTP Verification"),
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  leading: new IconButton(
+                    icon: new Icon(Icons.arrow_back),
+                    onPressed: () async {
+                      resetPref();
+                      Navigator.pushNamed(context, Routes.signin);
+                    },
+                  ),
+                ),
+                body: Container(
                   child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              "Verify your OTP",
-                              style: TextStyle(
-                                  fontSize: 18.0, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                left: 16.0, top: 4.0, right: 16.0),
-                            child: Text(
-                              "Please type the verification code sent to your mail",
-                              style: TextStyle(
-                                  fontSize: 15.0,
-                                  fontWeight: FontWeight.normal),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                left: 30.0, top: 2.0, right: 30.0),
-                            child: Text(
-                              widget.email,
-                              style: TextStyle(
-                                fontSize: 15.0,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 15,
-                      ),
-                      InkWell(
-                        onTap: () async {
-                          send_otp();
-                        },
-                        child: Container(
-                          height: 40.0,
-                          width: 250.0,
-                          decoration: BoxDecoration(
-                              border: Border.all(
-                                color:
-                                    Theme.of(context).textTheme.caption.color,
-                              ),
-                              borderRadius: BorderRadius.circular(10.0)),
-                          child: Center(
-                            child: Row(
+                      Flexible(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Column(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                SizedBox(
-                                  width: 10,
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Text(
+                                    "Verify your OTP",
+                                    style: TextStyle(
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.bold),
+                                  ),
                                 ),
-                                Icon(Icons.send, size: 25),
-                                SizedBox(
-                                  width: 10,
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 16.0, top: 4.0, right: 16.0),
+                                  child: Text(
+                                    "Please type the verification code sent to your mail",
+                                    style: TextStyle(
+                                        fontSize: 15.0,
+                                        fontWeight: FontWeight.normal),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
-                                Text(
-                                  "Re-send OTP to Email",
-                                  style: TextStyle(fontSize: 19.0),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 30.0, top: 2.0, right: 30.0),
+                                  child: Text(
+                                    widget.email,
+                                    style: TextStyle(
+                                      fontSize: 15.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
+                            SizedBox(
+                              height: 15,
+                            ),
+                            InkWell(
+                              onTap: () async {
+                                send_otp();
+                              },
+                              child: Container(
+                                height: 40.0,
+                                width: 250.0,
+                                decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10.0)),
+                                child: Center(
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      Icon(Icons.send, size: 25),
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      Text(
+                                        "Re-send OTP to Email",
+                                        style: TextStyle(fontSize: 19.0),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            Text(
+                              "Click here to Re-send OTP to Email",
+                              style: TextStyle(fontSize: 15.0),
+                            ),
+                          ],
                         ),
+                        flex: 60,
                       ),
-                      SizedBox(
-                        height: 5,
-                      ),
-                      Text(
-                        "Click here to Re-send OTP to Email",
-                        style: TextStyle(fontSize: 15.0),
+                      Column(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            GridView.count(
+                                crossAxisCount: 6,
+                                mainAxisSpacing: 10.0,
+                                shrinkWrap: true,
+                                primary: false,
+                                scrollDirection: Axis.vertical,
+                                children: List<Container>.generate(
+                                    6,
+                                    (int index) =>
+                                        Container(child: widgetList[index]))),
+                          ]),
+                      Flexible(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            new Container(
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 5.0,
+                                    top: 10.0,
+                                    right: 5.0,
+                                    bottom: 0.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    MaterialButton(
+                                      onPressed: () {
+                                        inputTextToField("1");
+                                      },
+                                      child: Text("1",
+                                          style: TextStyle(
+                                              fontSize: 37.0,
+                                              fontWeight: FontWeight.w400),
+                                          textAlign: TextAlign.center),
+                                    ),
+                                    MaterialButton(
+                                      onPressed: () {
+                                        inputTextToField("2");
+                                      },
+                                      child: Text("2",
+                                          style: TextStyle(
+                                              fontSize: 37.0,
+                                              fontWeight: FontWeight.w400),
+                                          textAlign: TextAlign.center),
+                                    ),
+                                    MaterialButton(
+                                      onPressed: () {
+                                        inputTextToField("3");
+                                      },
+                                      child: Text("3",
+                                          style: TextStyle(
+                                              fontSize: 37.0,
+                                              fontWeight: FontWeight.w400),
+                                          textAlign: TextAlign.center),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            new Container(
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 5.0,
+                                    top: 7.0,
+                                    right: 5.0,
+                                    bottom: 0.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    MaterialButton(
+                                      onPressed: () {
+                                        inputTextToField("4");
+                                      },
+                                      child: Text("4",
+                                          style: TextStyle(
+                                              fontSize: 37.0,
+                                              fontWeight: FontWeight.w400),
+                                          textAlign: TextAlign.center),
+                                    ),
+                                    MaterialButton(
+                                      onPressed: () {
+                                        inputTextToField("5");
+                                      },
+                                      child: Text("5",
+                                          style: TextStyle(
+                                              fontSize: 37.0,
+                                              fontWeight: FontWeight.w400),
+                                          textAlign: TextAlign.center),
+                                    ),
+                                    MaterialButton(
+                                      onPressed: () {
+                                        inputTextToField("6");
+                                      },
+                                      child: Text("6",
+                                          style: TextStyle(
+                                              fontSize: 37.0,
+                                              fontWeight: FontWeight.w400),
+                                          textAlign: TextAlign.center),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            new Container(
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 5.0,
+                                    top: 7.0,
+                                    right: 5.0,
+                                    bottom: 0.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    MaterialButton(
+                                      onPressed: () {
+                                        inputTextToField("7");
+                                      },
+                                      child: Text("7",
+                                          style: TextStyle(
+                                              fontSize: 37.0,
+                                              fontWeight: FontWeight.w400),
+                                          textAlign: TextAlign.center),
+                                    ),
+                                    MaterialButton(
+                                      onPressed: () {
+                                        inputTextToField("8");
+                                      },
+                                      child: Text("8",
+                                          style: TextStyle(
+                                              fontSize: 37.0,
+                                              fontWeight: FontWeight.w400),
+                                          textAlign: TextAlign.center),
+                                    ),
+                                    MaterialButton(
+                                      onPressed: () {
+                                        inputTextToField("9");
+                                      },
+                                      child: Text("9",
+                                          style: TextStyle(
+                                              fontSize: 37.0,
+                                              fontWeight: FontWeight.w400),
+                                          textAlign: TextAlign.center),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            new Container(
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 5.0,
+                                    top: 7.0,
+                                    right: 5.0,
+                                    bottom: 0.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    MaterialButton(
+                                      onPressed: () {
+                                        deleteText();
+                                      },
+                                      child: Icon(
+                                        Icons.arrow_back,
+                                        size: 35,
+                                      ),
+                                    ),
+                                    MaterialButton(
+                                      onPressed: () {
+                                        inputTextToField("0");
+                                      },
+                                      child: Text("0",
+                                          style: TextStyle(
+                                              fontSize: 37.0,
+                                              fontWeight: FontWeight.w400),
+                                          textAlign: TextAlign.center),
+                                    ),
+                                    MaterialButton(
+                                      onPressed: () {
+                                        if (widget.type ==
+                                            "email_verification") {
+                                          matchOtp_email_verify();
+                                        } else if (widget.type ==
+                                            "reset_password") {
+                                          matchOtp_reset_password();
+                                        }
+                                      },
+                                      child: Icon(
+                                        Icons.check_circle_outline,
+                                        size: 35,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                        flex: 90,
                       ),
                     ],
                   ),
-                  flex: 60,
                 ),
-                Column(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      GridView.count(
-                          crossAxisCount: 6,
-                          mainAxisSpacing: 10.0,
-                          shrinkWrap: true,
-                          primary: false,
-                          scrollDirection: Axis.vertical,
-                          children: List<Container>.generate(
-                              6,
-                              (int index) =>
-                                  Container(child: widgetList[index]))),
-                    ]),
-                Flexible(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      new Container(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 5.0, top: 10.0, right: 5.0, bottom: 0.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              MaterialButton(
-                                onPressed: () {
-                                  inputTextToField("1");
-                                },
-                                child: Text("1",
-                                    style: TextStyle(
-                                        fontSize: 37.0,
-                                        fontWeight: FontWeight.w400),
-                                    textAlign: TextAlign.center),
-                              ),
-                              MaterialButton(
-                                onPressed: () {
-                                  inputTextToField("2");
-                                },
-                                child: Text("2",
-                                    style: TextStyle(
-                                        fontSize: 37.0,
-                                        fontWeight: FontWeight.w400),
-                                    textAlign: TextAlign.center),
-                              ),
-                              MaterialButton(
-                                onPressed: () {
-                                  inputTextToField("3");
-                                },
-                                child: Text("3",
-                                    style: TextStyle(
-                                        fontSize: 37.0,
-                                        fontWeight: FontWeight.w400),
-                                    textAlign: TextAlign.center),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      new Container(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 5.0, top: 7.0, right: 5.0, bottom: 0.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              MaterialButton(
-                                onPressed: () {
-                                  inputTextToField("4");
-                                },
-                                child: Text("4",
-                                    style: TextStyle(
-                                        fontSize: 37.0,
-                                        fontWeight: FontWeight.w400),
-                                    textAlign: TextAlign.center),
-                              ),
-                              MaterialButton(
-                                onPressed: () {
-                                  inputTextToField("5");
-                                },
-                                child: Text("5",
-                                    style: TextStyle(
-                                        fontSize: 37.0,
-                                        fontWeight: FontWeight.w400),
-                                    textAlign: TextAlign.center),
-                              ),
-                              MaterialButton(
-                                onPressed: () {
-                                  inputTextToField("6");
-                                },
-                                child: Text("6",
-                                    style: TextStyle(
-                                        fontSize: 37.0,
-                                        fontWeight: FontWeight.w400),
-                                    textAlign: TextAlign.center),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      new Container(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 5.0, top: 7.0, right: 5.0, bottom: 0.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              MaterialButton(
-                                onPressed: () {
-                                  inputTextToField("7");
-                                },
-                                child: Text("7",
-                                    style: TextStyle(
-                                        fontSize: 37.0,
-                                        fontWeight: FontWeight.w400),
-                                    textAlign: TextAlign.center),
-                              ),
-                              MaterialButton(
-                                onPressed: () {
-                                  inputTextToField("8");
-                                },
-                                child: Text("8",
-                                    style: TextStyle(
-                                        fontSize: 37.0,
-                                        fontWeight: FontWeight.w400),
-                                    textAlign: TextAlign.center),
-                              ),
-                              MaterialButton(
-                                onPressed: () {
-                                  inputTextToField("9");
-                                },
-                                child: Text("9",
-                                    style: TextStyle(
-                                        fontSize: 37.0,
-                                        fontWeight: FontWeight.w400),
-                                    textAlign: TextAlign.center),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      new Container(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 5.0, top: 7.0, right: 5.0, bottom: 0.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              MaterialButton(
-                                onPressed: () {
-                                  deleteText();
-                                },
-                                child: Icon(
-                                  Icons.arrow_back,
-                                  size: 35,
-                                ),
-                              ),
-                              MaterialButton(
-                                onPressed: () {
-                                  inputTextToField("0");
-                                },
-                                child: Text("0",
-                                    style: TextStyle(
-                                        fontSize: 37.0,
-                                        fontWeight: FontWeight.w400),
-                                    textAlign: TextAlign.center),
-                              ),
-                              MaterialButton(
-                                onPressed: () {
-                                  if (widget.type == "email_verification") {
-                                    matchOtp_email_verify();
-                                  } else if (widget.type == "reset_password") {
-                                    matchOtp_reset_password();
-                                  }
-                                },
-                                child: Icon(
-                                  Icons.check_circle_outline,
-                                  size: 35,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                  flex: 90,
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
-    );
+          );
   }
 
   void inputTextToField(String str) {
@@ -582,10 +614,12 @@ class Check extends StatefulWidget {
 
 class _CheckState extends State<Check> {
   bool isLoading = false;
-  List data = List();
   String _college;
   String image_url;
-  String designation, bio;
+//  String designation, bio;
+  var _designationController = new TextEditingController();
+  var _bioController = new TextEditingController();
+  var _collegeNameController = new TextEditingController();
   bool male = false;
   bool female = false;
   final List<String> _designations = [
@@ -602,28 +636,25 @@ class _CheckState extends State<Check> {
             : null;
     if (prefId.isNullOrEmpty() ||
         _college.isNullOrEmpty() ||
-        bio.isNullOrEmpty() ||
-        designation.isNullOrEmpty() ||
+        _bioController.isNullOrEmpty() ||
+        _designationController.isNullOrEmpty() ||
         gender.isNullOrEmpty()) {
       messageDialog(context, "Required fields can not be empty");
     } else {
       setState(() {
         isLoading = true;
       });
-      http.Response response = await http.post(
+      var response = await httpPostWithHeaders(
         '${Url.URL}/api/users/userdetails',
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $prefToken'
-        },
-        body: jsonEncode(<dynamic, dynamic>{
+        jsonEncode(<dynamic, dynamic>{
           'id': "$prefId",
           "college_id": "$_college",
-          'bio': "$bio",
-          'designation': "$designation",
+          'bio': _bioController.text,
+          'designation': _designationController.text,
           'gender': gender
         }),
       );
+
       if (response.statusCode == 200) {
         if (!_imageFile.isNullOrEmpty()) {
           Map<String, String> headers = {
@@ -735,18 +766,9 @@ class _CheckState extends State<Check> {
         });
   }
 
-  Future<List> getData() async {
-    final response = await http.get("${Url.URL}/api/colleges");
-    var resBody = json.decode(response.body.toString());
-    setState(() {
-      data = resBody;
-    });
-  }
-
   @override
   void initState() {
     loadPref();
-    getData();
     super.initState();
   }
 
@@ -757,528 +779,537 @@ class _CheckState extends State<Check> {
         onWillPop: () async {
           return false;
         },
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text("Fill Profile"),
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            leading: new IconButton(
-              icon: new Icon(Icons.arrow_back),
-              onPressed: () async {
-                resetPref();
-                Navigator.pushNamed(context, Routes.signin);
-              },
+        child: Consumer<DataRepository>(
+          builder: (context, model, child) => Scaffold(
+            appBar: AppBar(
+              title: Text("Fill Profile"),
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              leading: new IconButton(
+                icon: new Icon(Icons.arrow_back),
+                onPressed: () async {
+                  resetPref();
+                  Navigator.pushNamed(context, Routes.signin);
+                },
+              ),
             ),
-          ),
-          body: isLoading
-              ? LoaderCircular(0.25, 'Updating')
-              : SingleChildScrollView(
-                  child: Stack(
-                    children: <Widget>[
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              SizedBox(height: 10),
-                              Container(
-                                margin: EdgeInsets.symmetric(vertical: 10),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Padding(
-                                      padding:
-                                          const EdgeInsets.only(left: 20.0),
-                                      child: Text(
-                                        "Profile Picture(Optional)",
-                                        style: TextStyle(
-                                            color: Colors.grey, fontSize: 16.0),
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: <Widget>[
-                                        _imageFile == null
-                                            ? Container(
-                                                height: 100.0,
-                                                width: 100.0,
-                                                child: NoProfilePic(),
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          80.0),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                        blurRadius: 3.0,
-                                                        offset: Offset(0, 4.0),
-                                                        color: Colors.black38),
-                                                  ],
-                                                ),
-                                              )
-                                            : Container(
-                                                height: 120.0,
-                                                width: 120.0,
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          80.0),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                        blurRadius: 3.0,
-                                                        offset: Offset(0, 4.0),
-                                                        color: Colors.black38),
-                                                  ],
-                                                  image: DecorationImage(
-                                                    image: FileImage(
-                                                      _imageFile,
-                                                    ),
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                                ),
-                                              ),
-                                        Padding(
-                                          padding: EdgeInsets.only(top: 60.0),
-                                          child: IconButton(
-                                            icon: Icon(
-                                              Icons.add_a_photo,
-                                              size: 30.0,
-                                            ),
-                                            onPressed: () {
-                                              _openImagePickerModal(context);
-                                            },
-                                          ),
+            body: isLoading
+                ? LoaderCircular('Updating')
+                : SingleChildScrollView(
+                    child: Stack(
+                      children: <Widget>[
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                SizedBox(height: 10),
+                                Container(
+                                  margin: EdgeInsets.symmetric(vertical: 10),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 20.0),
+                                        child: Text(
+                                          "Profile Picture(Optional)",
+                                          style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 16.0),
                                         ),
-                                      ],
-                                    ),
-                                    SizedBox(
-                                      height: 20.0,
-                                    ),
-                                    Padding(
-                                      padding:
-                                          const EdgeInsets.only(left: 20.0),
-                                      child: Text(
-                                        "Gender",
-                                        style: TextStyle(
-                                            color: Colors.grey, fontSize: 16.0),
                                       ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                          left: 20, bottom: 10, top: 10),
-                                      child: Row(
+                                      Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Expanded(
-                                            child: Row(
-                                              children: <Widget>[
-                                                Material(
-                                                  color: Colors.transparent,
-                                                  child: InkWell(
+                                        children: <Widget>[
+                                          _imageFile == null
+                                              ? Container(
+                                                  height: 100.0,
+                                                  width: 100.0,
+                                                  child: NoProfilePic(),
+                                                  decoration: BoxDecoration(
                                                     borderRadius:
-                                                        const BorderRadius.all(
-                                                            Radius.circular(
-                                                                4.0)),
-                                                    onTap: () {
-                                                      setState(() {
-                                                        male = true;
-                                                        female = false;
-                                                      });
-                                                    },
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              8.0),
-                                                      child: Row(
-                                                        children: <Widget>[
-                                                          Icon(
-                                                            male
-                                                                ? Icons
-                                                                    .check_box
-                                                                : Icons
-                                                                    .check_box_outline_blank,
-                                                            color: male
-                                                                ? Theme.of(
-                                                                        context)
-                                                                    .textTheme
-                                                                    .caption
-                                                                    .color
-                                                                : Colors.grey
-                                                                    .withOpacity(
-                                                                        0.6),
-                                                          ),
-                                                          const SizedBox(
-                                                            width: 4,
-                                                          ),
-                                                          Text(
-                                                            "Male",
-                                                            style: TextStyle(
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .textTheme
-                                                                    .caption
-                                                                    .color),
-                                                          ),
-                                                        ],
+                                                        BorderRadius.circular(
+                                                            80.0),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                          blurRadius: 3.0,
+                                                          offset:
+                                                              Offset(0, 4.0),
+                                                          color:
+                                                              Colors.black38),
+                                                    ],
+                                                  ),
+                                                )
+                                              : Container(
+                                                  height: 120.0,
+                                                  width: 120.0,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            80.0),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                          blurRadius: 3.0,
+                                                          offset:
+                                                              Offset(0, 4.0),
+                                                          color:
+                                                              Colors.black38),
+                                                    ],
+                                                    image: DecorationImage(
+                                                      image: FileImage(
+                                                        _imageFile,
                                                       ),
+                                                      fit: BoxFit.cover,
                                                     ),
                                                   ),
                                                 ),
-                                              ],
+                                          Padding(
+                                            padding: EdgeInsets.only(top: 60.0),
+                                            child: IconButton(
+                                              icon: Icon(
+                                                Icons.add_a_photo,
+                                                size: 30.0,
+                                              ),
+                                              onPressed: () {
+                                                _openImagePickerModal(context);
+                                              },
                                             ),
                                           ),
-                                          Expanded(
-                                            child: Row(
-                                              children: <Widget>[
-                                                Material(
-                                                  color: Colors.transparent,
-                                                  child: InkWell(
-                                                    borderRadius:
-                                                        const BorderRadius.all(
-                                                            Radius.circular(
-                                                                4.0)),
-                                                    onTap: () {
-                                                      setState(() {
-                                                        female = true;
-                                                        male = false;
-                                                      });
-                                                    },
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              8.0),
-                                                      child: Row(
-                                                        children: <Widget>[
-                                                          Icon(
-                                                            female
-                                                                ? Icons
-                                                                    .check_box
-                                                                : Icons
-                                                                    .check_box_outline_blank,
-                                                            color: female
-                                                                ? Theme.of(
-                                                                        context)
-                                                                    .textTheme
-                                                                    .caption
-                                                                    .color
-                                                                : Colors.grey
-                                                                    .withOpacity(
-                                                                        0.6),
-                                                          ),
-                                                          const SizedBox(
-                                                            width: 4,
-                                                          ),
-                                                          Text(
-                                                            "Female",
-                                                            style: TextStyle(
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .textTheme
-                                                                    .caption
-                                                                    .color),
-                                                          ),
-                                                        ],
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: 20.0,
+                                      ),
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 20.0),
+                                        child: Text(
+                                          "Gender",
+                                          style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 16.0),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 20, bottom: 10, top: 10),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Expanded(
+                                              child: Row(
+                                                children: <Widget>[
+                                                  Material(
+                                                    color: Colors.transparent,
+                                                    child: InkWell(
+                                                      borderRadius:
+                                                          const BorderRadius
+                                                                  .all(
+                                                              Radius.circular(
+                                                                  4.0)),
+                                                      onTap: () {
+                                                        setState(() {
+                                                          male = true;
+                                                          female = false;
+                                                        });
+                                                      },
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(8.0),
+                                                        child: Row(
+                                                          children: <Widget>[
+                                                            Icon(
+                                                              male
+                                                                  ? Icons
+                                                                      .check_box
+                                                                  : Icons
+                                                                      .check_box_outline_blank,
+                                                              color: male
+                                                                  ? Theme.of(
+                                                                          context)
+                                                                      .textTheme
+                                                                      .caption
+                                                                      .color
+                                                                  : Colors.grey
+                                                                      .withOpacity(
+                                                                          0.6),
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 4,
+                                                            ),
+                                                            Text(
+                                                              "Male",
+                                                              style: TextStyle(
+                                                                  color: Theme.of(
+                                                                          context)
+                                                                      .textTheme
+                                                                      .caption
+                                                                      .color),
+                                                            ),
+                                                          ],
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding:
-                                          const EdgeInsets.only(left: 20.0),
-                                      child: Text(
-                                        "College",
-                                        style: TextStyle(
-                                            color: Colors.grey, fontSize: 16.0),
-                                      ),
-                                    ),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Colors.grey.withOpacity(0.5),
-                                          width: 1.0,
-                                        ),
-                                        borderRadius:
-                                            BorderRadius.circular(20.0),
-                                      ),
-                                      margin: const EdgeInsets.symmetric(
-                                          vertical: 10.0, horizontal: 5.0),
-                                      child: Row(
-                                        children: <Widget>[
-                                          new Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 10.0,
-                                                horizontal: 15.0),
-                                            child: Icon(
-                                              Icons.account_balance,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                          Container(
-                                            height: 30.0,
-                                            width: 1.0,
-                                            color: Colors.grey.withOpacity(0.5),
-                                            margin: const EdgeInsets.only(
-                                                left: 00.0, right: 10.0),
-                                          ),
-                                          new Expanded(
-                                            child: FormField(
-                                              builder: (FormFieldState state) {
-                                                return InputDecorator(
-                                                  decoration: InputDecoration(
-                                                    hintText: "Select College",
-                                                    border: InputBorder.none,
-                                                    hintStyle: TextStyle(
-                                                        color: Colors.grey),
-                                                  ),
-                                                  child:
-                                                      new DropdownButtonHideUnderline(
-                                                    child: new DropdownButton(
-                                                      hint: Text(
-                                                          "Select College"),
-                                                      isExpanded: true,
-                                                      value: _college,
-                                                      isDense: true,
-                                                      items: data.map((item) {
-                                                        return new DropdownMenuItem(
-                                                          child: new Text(
-                                                            item['name'],
-                                                          ),
-                                                          value: item['_id']
-                                                              .toString(),
-                                                        );
-                                                      }).toList(),
-                                                      onChanged: (newValue) {
-                                                        setState(() {
-                                                          _college = newValue;
-                                                          state.didChange(
-                                                              newValue);
-                                                        });
-                                                      },
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding:
-                                          const EdgeInsets.only(left: 20.0),
-                                      child: Text(
-                                        "Designation",
-                                        style: TextStyle(
-                                            color: Colors.grey, fontSize: 16.0),
-                                      ),
-                                    ),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Colors.grey.withOpacity(0.5),
-                                          width: 1.0,
-                                        ),
-                                        borderRadius:
-                                            BorderRadius.circular(20.0),
-                                      ),
-                                      margin: const EdgeInsets.symmetric(
-                                          vertical: 10.0, horizontal: 5.0),
-                                      child: Row(
-                                        children: <Widget>[
-                                          new Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 10.0,
-                                                horizontal: 15.0),
-                                            child: Icon(
-                                              Icons.accessibility_new,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                          Container(
-                                            height: 30.0,
-                                            width: 1.0,
-                                            color: Colors.grey.withOpacity(0.5),
-                                            margin: const EdgeInsets.only(
-                                                left: 00.0, right: 10.0),
-                                          ),
-                                          new Expanded(
-                                            child: FormField(
-                                              builder: (FormFieldState state) {
-                                                return InputDecorator(
-                                                  decoration: InputDecoration(
-                                                    hintText:
-                                                        "Select Designation",
-                                                    border: InputBorder.none,
-                                                    hintStyle: TextStyle(
-                                                        color: Colors.grey),
-                                                  ),
-                                                  child:
-                                                      new DropdownButtonHideUnderline(
-                                                    child: new DropdownButton(
-                                                      hint: Text(
-                                                          "Select Designation"),
-                                                      isExpanded: true,
-                                                      value: designation,
-                                                      isDense: true,
-                                                      items: _designations
-                                                          .map((value) =>
-                                                              DropdownMenuItem(
-                                                                child:
-                                                                    Text(value),
-                                                                value: value,
-                                                              ))
-                                                          .toList(),
-                                                      onChanged: (newValue) {
-                                                        setState(() {
-                                                          designation =
-                                                              newValue;
-                                                          state.didChange(
-                                                              newValue);
-                                                        });
-                                                      },
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding:
-                                          const EdgeInsets.only(left: 20.0),
-                                      child: Text(
-                                        "Bio",
-                                        style: TextStyle(
-                                            color: Colors.grey, fontSize: 16.0),
-                                      ),
-                                    ),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Colors.grey.withOpacity(0.5),
-                                          width: 1.0,
-                                        ),
-                                        borderRadius:
-                                            BorderRadius.circular(20.0),
-                                      ),
-                                      margin: const EdgeInsets.symmetric(
-                                          vertical: 10.0, horizontal: 5.0),
-                                      child: Row(
-                                        children: <Widget>[
-                                          new Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 10.0,
-                                                horizontal: 15.0),
-                                            child: Icon(
-                                              Icons.account_circle,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                          Container(
-                                            height: 30.0,
-                                            width: 1.0,
-                                            color: Colors.grey.withOpacity(0.5),
-                                            margin: const EdgeInsets.only(
-                                                left: 00.0, right: 10.0),
-                                          ),
-                                          new Expanded(
-                                            child: TextFormField(
-                                              maxLines: 5,
-                                              onChanged: (value) {
-                                                bio = value;
-                                              },
-                                              keyboardType:
-                                                  TextInputType.emailAddress,
-                                              obscureText: false,
-                                              decoration: InputDecoration(
-                                                border: InputBorder.none,
-                                                hintText: 'Enter your bio',
-                                                hintStyle: TextStyle(
-                                                    color: Colors.grey),
+                                                ],
                                               ),
                                             ),
-                                          )
-                                        ],
+                                            Expanded(
+                                              child: Row(
+                                                children: <Widget>[
+                                                  Material(
+                                                    color: Colors.transparent,
+                                                    child: InkWell(
+                                                      borderRadius:
+                                                          const BorderRadius
+                                                                  .all(
+                                                              Radius.circular(
+                                                                  4.0)),
+                                                      onTap: () {
+                                                        setState(() {
+                                                          female = true;
+                                                          male = false;
+                                                        });
+                                                      },
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(8.0),
+                                                        child: Row(
+                                                          children: <Widget>[
+                                                            Icon(
+                                                              female
+                                                                  ? Icons
+                                                                      .check_box
+                                                                  : Icons
+                                                                      .check_box_outline_blank,
+                                                              color: female
+                                                                  ? Theme.of(
+                                                                          context)
+                                                                      .textTheme
+                                                                      .caption
+                                                                      .color
+                                                                  : Colors.grey
+                                                                      .withOpacity(
+                                                                          0.6),
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 4,
+                                                            ),
+                                                            Text(
+                                                              "Female",
+                                                              style: TextStyle(
+                                                                  color: Theme.of(
+                                                                          context)
+                                                                      .textTheme
+                                                                      .caption
+                                                                      .color),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                margin: const EdgeInsets.only(top: 20.0),
-                                padding: const EdgeInsets.only(
-                                    left: 20.0, right: 20.0),
-                                child: new Row(
-                                  children: <Widget>[
-                                    new Expanded(
-                                      child: FlatButton(
-                                        shape: new RoundedRectangleBorder(
-                                            borderRadius:
-                                                new BorderRadius.circular(
-                                                    30.0)),
-                                        splashColor: Theme.of(context)
-                                            .scaffoldBackgroundColor
-                                            .withOpacity(0.6),
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .caption
-                                            .color
-                                            .withOpacity(0.5),
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 15),
-                                          child: new Row(
-                                            children: <Widget>[
-                                              new Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 20.0),
-                                                child: Text(
-                                                  "CONTINUE",
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 20.0),
+                                        child: Text(
+                                          "College",
+                                          style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 16.0),
+                                        ),
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.grey.withOpacity(0.5),
+                                            width: 1.0,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                        ),
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 10.0, horizontal: 5.0),
+                                        child: Row(
+                                          children: <Widget>[
+                                            new Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: 10.0,
+                                                  horizontal: 15.0),
+                                              child: Icon(
+                                                Icons.account_balance,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                            Container(
+                                              height: 30.0,
+                                              width: 1.0,
+                                              color:
+                                                  Colors.grey.withOpacity(0.5),
+                                              margin: const EdgeInsets.only(
+                                                  left: 00.0, right: 10.0),
+                                            ),
+                                            new Expanded(
+                                              child: TextFormField(
+                                                  controller:
+                                                      _collegeNameController,
+                                                  readOnly: true,
                                                   style: TextStyle(
-                                                      color: Theme.of(context)
-                                                          .scaffoldBackgroundColor),
+                                                    color: Theme.of(context)
+                                                        .textTheme
+                                                        .caption
+                                                        .color,
+                                                  ),
+                                                  decoration: InputDecoration(
+                                                      suffixIcon: Icon(Icons
+                                                          .arrow_drop_down_sharp),
+                                                      border: InputBorder.none,
+                                                      hintText:
+                                                          'Select College'),
+                                                  onTap: () {
+                                                    showDropdownSearchDialog(
+                                                        context: context,
+                                                        items:
+                                                            model.collegesData,
+                                                        addEnabled: false,
+                                                        onChanged: (String key,
+                                                            String value) {
+                                                          setState(() {
+                                                            _college =
+                                                                key.toString();
+                                                            _collegeNameController =
+                                                                TextEditingController(
+                                                                    text:
+                                                                        value);
+                                                          });
+                                                        });
+                                                  }),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 20.0),
+                                        child: Text(
+                                          "Designation",
+                                          style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 16.0),
+                                        ),
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.grey.withOpacity(0.5),
+                                            width: 1.0,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                        ),
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 10.0, horizontal: 5.0),
+                                        child: Row(
+                                          children: <Widget>[
+                                            new Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: 10.0,
+                                                  horizontal: 15.0),
+                                              child: Icon(
+                                                Icons.accessibility_new,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                            Container(
+                                              height: 30.0,
+                                              width: 1.0,
+                                              color:
+                                                  Colors.grey.withOpacity(0.5),
+                                              margin: const EdgeInsets.only(
+                                                  left: 00.0, right: 10.0),
+                                            ),
+                                            new Expanded(
+                                              child: TextFormField(
+                                                  controller:
+                                                      _designationController,
+                                                  readOnly: true,
+                                                  style: TextStyle(
+                                                    color: Theme.of(context)
+                                                        .textTheme
+                                                        .caption
+                                                        .color,
+                                                  ),
+                                                  cursorColor: Theme.of(context)
+                                                      .textTheme
+                                                      .caption
+                                                      .color,
+                                                  decoration: InputDecoration(
+                                                      suffixIcon: Icon(Icons
+                                                          .arrow_drop_down_sharp),
+                                                      border: InputBorder.none,
+                                                      hintText:
+                                                          'Select Designation'),
+                                                  onTap: () {
+                                                    showDropdownSearchDialog(
+                                                        context: context,
+                                                        items: model
+                                                            .designationsData,
+                                                        addEnabled: false,
+                                                        onChanged: (String key,
+                                                            String value) {
+                                                          setState(() {
+                                                            _designationController =
+                                                                TextEditingController(
+                                                                    text:
+                                                                        value);
+                                                          });
+                                                        });
+                                                  }),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 20.0),
+                                        child: Text(
+                                          "Bio",
+                                          style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 16.0),
+                                        ),
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.grey.withOpacity(0.5),
+                                            width: 1.0,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                        ),
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 10.0, horizontal: 5.0),
+                                        child: Row(
+                                          children: <Widget>[
+                                            new Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: 10.0,
+                                                  horizontal: 15.0),
+                                              child: Icon(
+                                                Icons.account_circle,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                            Container(
+                                              height: 30.0,
+                                              width: 1.0,
+                                              color:
+                                                  Colors.grey.withOpacity(0.5),
+                                              margin: const EdgeInsets.only(
+                                                  left: 00.0, right: 10.0),
+                                            ),
+                                            new Expanded(
+                                              child: TextFormField(
+                                                maxLines: 5,
+                                                controller: _bioController,
+                                                keyboardType:
+                                                    TextInputType.emailAddress,
+                                                obscureText: false,
+                                                decoration: InputDecoration(
+                                                  border: InputBorder.none,
+                                                  hintText: 'Enter your bio',
+                                                  hintStyle: TextStyle(
+                                                      color: Colors.grey),
                                                 ),
                                               ),
-                                              new Expanded(
-                                                child: Container(),
-                                              ),
-                                              Icon(
-                                                Icons.arrow_forward,
-                                                color: Theme.of(context)
-                                                    .scaffoldBackgroundColor,
-                                              )
-                                            ],
-                                          ),
+                                            )
+                                          ],
                                         ),
-                                        onPressed: () async {
-                                          next();
-                                        },
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: 10),
-                            ],
+                                Container(
+                                  margin: const EdgeInsets.only(top: 20.0),
+                                  padding: const EdgeInsets.only(
+                                      left: 20.0, right: 20.0),
+                                  child: new Row(
+                                    children: <Widget>[
+                                      new Expanded(
+                                        child: FlatButton(
+                                          shape: new RoundedRectangleBorder(
+                                              borderRadius:
+                                                  new BorderRadius.circular(
+                                                      30.0)),
+                                          splashColor: Theme.of(context)
+                                              .scaffoldBackgroundColor
+                                              .withOpacity(0.6),
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .caption
+                                              .color
+                                              .withOpacity(0.5),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 15),
+                                            child: new Row(
+                                              children: <Widget>[
+                                                new Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          left: 20.0),
+                                                  child: Text(
+                                                    "CONTINUE",
+                                                    style: TextStyle(
+                                                        color: Theme.of(context)
+                                                            .scaffoldBackgroundColor),
+                                                  ),
+                                                ),
+                                                new Expanded(
+                                                  child: Container(),
+                                                ),
+                                                Icon(
+                                                  Icons.arrow_forward,
+                                                  color: Theme.of(context)
+                                                      .scaffoldBackgroundColor,
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                          onPressed: () async {
+                                            next();
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
+          ),
         ),
       ),
     );

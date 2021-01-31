@@ -3,14 +3,43 @@ import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../providers/index.dart';
 import 'index.dart';
 
 final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+Future<DateTime> dateTimePicker(BuildContext context) async {
+  final date = await showDatePicker(
+      context: context,
+      firstDate: DateTime.now(),
+      initialDate: DateTime.now(),
+      lastDate: DateTime(2100));
+  if (date != null) {
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(DateTime.now()),
+    );
+    return DateTime(
+            date.year, date.month, date.day, time?.hour ?? 0, time?.minute ?? 0)
+        .toLocal();
+  }
+  return null;
+}
 
-getFirebaseToken(BuildContext context) async {
+Future<void> scheduleNotification(BuildContext context, int id, String title,
+    String subtitle, DateTime datetime, String payload) async {
+  LocalNotificationsProvider.scheduleNotifications(context,
+      id: id,
+      title: title,
+      subtitle: subtitle,
+      date: datetime,
+      payload: payload);
+}
+
+Future<void> getFirebaseToken(BuildContext context) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   _firebaseMessaging.getToken().then((deviceToken) {
     print("FirebaseToken");
@@ -19,18 +48,7 @@ getFirebaseToken(BuildContext context) async {
   });
 }
 
-sendFirebaseToken(BuildContext context) async {
-  http.Response response = await http.post(
-    '${Url.URL}/api/add_firebase_notification_token_to_user',
-    headers: <String, String>{
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $prefToken'
-    },
-    body: jsonEncode(<dynamic, dynamic>{'token': prefFirebaseMessagingToken}),
-  );
-}
-
-updateSeenNotifications(BuildContext context) async {
+Future<void> updateSeenNotifications(BuildContext context) async {
   final response = await http.get(
     "${Url.URL}/api/update_notification_status",
     headers: {
@@ -40,4 +58,19 @@ updateSeenNotifications(BuildContext context) async {
   );
   final responseJson = json.decode(response.body);
   print(responseJson);
+}
+
+prefSaveInt(String key, int value) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setInt(key, value);
+}
+
+prefSaveString(String key, String value) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString(key, value);
+}
+
+prefSaveBool(String key, bool value) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setBool(key, value);
 }

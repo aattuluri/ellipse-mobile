@@ -4,6 +4,7 @@ import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/index.dart';
+import '../../providers/index.dart';
 import '../../repositories/index.dart';
 import '../../util/index.dart';
 import '../widgets/index.dart';
@@ -17,7 +18,6 @@ class _CertificatesState extends State<Certificates> {
   @override
   void initState() {
     loadPref();
-
     super.initState();
   }
 
@@ -33,11 +33,9 @@ class _CertificatesState extends State<Certificates> {
             IconButton(
                 icon: Icon(
                   LineIcons.refresh,
-                  color: Theme.of(context).textTheme.caption.color,
-                  size: 27,
                 ),
                 onPressed: () {
-                  context.read<EventsRepository>().refreshData();
+                  context.read<EventsRepository>().init();
                 }),
           ],
           centerTitle: true,
@@ -50,17 +48,14 @@ class _CertificatesState extends State<Certificates> {
                 child: EmptyData('No Certificates', "", LineIcons.certificate),
               )
             : ListView.builder(
-                physics: NeverScrollableScrollPhysics(),
                 padding: EdgeInsets.symmetric(horizontal: 0.0),
                 scrollDirection: Axis.vertical,
                 shrinkWrap: true,
                 itemCount: model.allRegistrations.length,
                 itemBuilder: (BuildContext context, int index) {
-                  final eventIndex = context
-                      .read<EventsRepository>()
-                      .getEventIndex(model.allRegistrations[index].event_id);
-                  final Events _event =
-                      context.watch<EventsRepository>().getEvent(eventIndex);
+                  final Events _event = context
+                      .watch<EventsRepository>()
+                      .event(model.allRegistrations[index].eventId);
                   return CertificateTile(
                       _event, model.allRegistrations[index], () {});
                 }),

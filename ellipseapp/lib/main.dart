@@ -1,3 +1,4 @@
+import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -20,20 +21,24 @@ class App extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => ImageQualityProvider()),
         ChangeNotifierProvider(create: (_) => EventsRepository()),
         ChangeNotifierProvider(create: (_) => UserDetailsRepository()),
         ChangeNotifierProvider(create: (_) => NotificationsRepository()),
         ChangeNotifierProvider(create: (_) => DataRepository()),
+        ChangeNotifierProvider(create: (_) => SearchProvider()),
+        ChangeNotifierProvider(create: (_) => DataProvider()),
+        ChangeNotifierProvider(create: (_) => LocalNotificationsProvider()),
       ],
       child: Consumer<ThemeProvider>(
-        builder: (context, theme, child) => MaterialApp(
-          title: 'Ellipse',
-          theme: theme.requestTheme(Themes.light),
-          darkTheme: theme.requestTheme(Themes.dark),
-          debugShowCheckedModeBanner: false,
-          onGenerateRoute: Routes.generateRoute,
-          onUnknownRoute: Routes.errorRoute,
+        builder: (context, theme, child) => FeatureDiscovery(
+          child: MaterialApp(
+            title: 'Ellipse',
+            theme: theme.requestTheme(Themes.light),
+            darkTheme: theme.requestTheme(Themes.dark),
+            debugShowCheckedModeBanner: false,
+            onGenerateRoute: Routes.generateRoute,
+            onUnknownRoute: Routes.errorRoute,
+          ),
         ),
       ),
     );

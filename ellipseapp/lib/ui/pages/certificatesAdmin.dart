@@ -4,24 +4,14 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
-import 'package:http/http.dart' as http;
 import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/index.dart';
+import '../../providers/index.dart';
 import '../../repositories/index.dart';
 import '../../util/index.dart';
 import '../widgets/index.dart';
-
-class IconTab {
-  IconTab({
-    this.name,
-    this.icon,
-  });
-
-  final String name;
-  final IconData icon;
-}
 
 class CertificatesAdmin extends StatefulWidget {
   final String event_id;
@@ -55,19 +45,13 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
     setState(() {
       isloading = true;
     });
-    http.Response response = await http.post(
+    var response = await httpPostWithHeaders(
       '${Url.URL}/api/event/generate_certificates',
-      headers: <String, String>{
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $prefToken'
-      },
-      body: jsonEncode(<String, dynamic>{
+      jsonEncode(<String, dynamic>{
         'eventId': '$event_id',
         'participants': selectedParticipants,
       }),
     );
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
     if (response.statusCode == 200) {
       loadRegisteredEvents();
       Navigator.of(context).pop(true);
@@ -84,16 +68,13 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
       HttpHeaders.contentTypeHeader: "application/json"
     };
     String event_id = widget.event_id.trim().toString();
-    var response = await http.get(
-        "${Url.URL}/api/event/registeredEvents?id=$event_id",
-        headers: headers);
-    print('Response status: ${response.statusCode}');
+    var response = await httpGetWithHeaders(
+        "${Url.URL}/api/event/registeredEvents?id=$event_id");
     if (response.statusCode == 200) {
       setState(() {
         participants = json.decode(response.body);
       });
       for (var i = 0; i < participants.length; i++) {
-        Map<String, dynamic> data = participants[i]['data'];
         if (participants[i]['certificate_status'] == "not_generated") {
           this.setState(() => pending.add(participants[i]));
         } else if (participants[i]['certificate_status'] == "generated") {
@@ -112,25 +93,18 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
     setState(() {
       isloading = true;
     });
-    http.Response response = await http.post(
+    var response = await httpPostWithHeaders(
       '${Url.URL}/api/event/update_certificate_title',
-      headers: <String, String>{
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $prefToken'
-      },
-      body: jsonEncode(<dynamic, dynamic>{
+      jsonEncode(<dynamic, dynamic>{
         'eventId': id,
         'title': title,
       }),
     );
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
     if (response.statusCode == 200) {
-      context.read<EventsRepository>().refreshData();
+      context.read<EventsRepository>().init();
       setState(() {
         isloading = false;
       });
-      //tab_controller.animateTo(0);
       Navigator.of(context).pop(true);
       messageDialog(context, "Certificate details updated Successfully");
     }
@@ -140,7 +114,7 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
   void initState() {
     loadPref();
     tab_controller = new TabController(
-      length: 3,
+      length: tabs.length,
       vsync: this,
     );
     loadRegisteredEvents();
@@ -149,14 +123,12 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
 
   @override
   Widget build(BuildContext context) {
-    final eventIndex =
-        context.watch<EventsRepository>().getEventIndex(widget.event_id);
     final Events _event =
-        context.watch<EventsRepository>().getEvent(eventIndex);
+        context.watch<EventsRepository>().event(widget.event_id);
 
     Map<String, dynamic> certificateDetails = _event.certificate;
     return isloading
-        ? LoaderCircular(0.25, "Loading")
+        ? LoaderCircular("Loading")
         : participants.isEmpty
             ? Container(
                 height: double.infinity,
@@ -281,9 +253,10 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                         ],
                                       ),
                                     ),
-                                    RaisedButton(
-                                      child: Text("Publish"),
-                                      onPressed: selectedParticipants.isEmpty
+                                    RButton(
+                                      "Publish",
+                                      10,
+                                      selectedParticipants.isEmpty
                                           ? () {
                                               messageDialog(context,
                                                   "Participants not selected");
@@ -298,10 +271,6 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
 
                                               publish();
                                             },
-                                      textColor: Colors.black,
-                                      color: Theme.of(context).accentColor,
-                                      padding:
-                                          EdgeInsets.fromLTRB(10, 10, 10, 10),
                                     ),
                                   ],
                                 ),
@@ -565,16 +534,13 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                           SizedBox(
                             height: 10,
                           ),
-                          Center(
-                            child: OutlineButton(
-                              onPressed: () {
-                                updateCertDetails(_event.id,
-                                    certTitle == "" ? _event.name : certTitle);
-                              },
-                              child: Text(
-                                "Update",
-                              ),
-                            ),
+                          RButton(
+                            "Update",
+                            13,
+                            () {
+                              updateCertDetails(_event.eventId,
+                                  certTitle == "" ? _event.name : certTitle);
+                            },
                           ),
                         ],
                       ),

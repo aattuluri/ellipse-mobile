@@ -1,43 +1,53 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:csv/csv.dart';
+import 'package:excel/excel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart' as pathProvider;
 
+import '../../providers/index.dart';
 import '../../util/index.dart';
 import '../widgets/index.dart';
 
 class Participants extends StatefulWidget {
-  final String event_id;
-  Participants(this.event_id);
+  final String eventId;
+  Participants(this.eventId);
   @override
   _ParticipantsState createState() => _ParticipantsState();
 }
 
 class _ParticipantsState extends State<Participants>
     with TickerProviderStateMixin {
+  final ScrollController _scrollController1 = ScrollController();
+  final ScrollController _scrollController2 = ScrollController();
   bool expanded = false;
   bool isloading = false;
+  List<List<String>> keys = [];
+  List<List<dynamic>> values = [];
   List<dynamic> participants = [];
   loadRegisteredEvents() async {
     setState(() {
       isloading = true;
     });
-    Map<String, String> headers = {
-      HttpHeaders.authorizationHeader: "Bearer $prefToken",
-      HttpHeaders.contentTypeHeader: "application/json"
-    };
-    String event_id = widget.event_id.trim().toString();
-    var response = await http.get(
-        "${Url.URL}/api/event/registeredEvents?id=$event_id",
-        headers: headers);
-    print('Response status: ${response.statusCode}');
+    String eventId = widget.eventId.trim().toString();
+    var response = await httpGetWithHeaders(
+        "${Url.URL}/api/event/registeredEvents?id=$eventId");
     if (response.statusCode == 200) {
       setState(() {
         participants = json.decode(response.body);
       });
+      for (var i = 0; i < participants.length; i++) {
+        Map<String, dynamic> data = participants[i]['data'];
+        setState(() {
+          keys.add(data.keys.toSet().toList());
+          values.add(data.values.toSet().toList());
+        });
+      }
     } else {
       throw Exception('Failed to load data');
     }
@@ -55,77 +65,145 @@ class _ParticipantsState extends State<Participants>
 
   @override
   Widget build(BuildContext context) {
-    return isloading
-        ? LoaderCircular(0.25, "Loading")
-        : participants.isEmpty
-            ? Container(
-                height: double.infinity,
-                width: double.infinity,
-                color: Theme.of(context).scaffoldBackgroundColor,
-                child: EmptyData(
-                    'No Participants\nRegistered', "", LineIcons.users),
-              )
-            : Container(
-                height: double.infinity,
-                width: double.infinity,
-                color: Theme.of(context).scaffoldBackgroundColor,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          padding: EdgeInsets.symmetric(horizontal: 0.0),
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        heroTag: "Export",
+        onPressed: () async {
+          generalSheet(
+            context,
+            title: "Export As",
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                BottomSheetItem("Excel Sheet", LineIcons.file_excel_o,
+                    () async {
+                  if (participants.isNotEmpty) {
+                    try {
+                      var excel = Excel.createExcel();
+                      Map<String, dynamic> d = participants[0]['data'];
+                      List<String> keys = d.keys.toList();
+                      excel.appendRow('Sheet1', keys);
+                      for (var i = 0; i < participants.length; i++) {
+                        Map<String, dynamic> data = participants[i]['data'];
+                        List<dynamic> values = data.values.toList();
+                        excel.appendRow('Sheet1', values);
+                      }
+                      excel.encode().then((onValue) async {
+                        final Directory directory = await pathProvider
+                            .getApplicationDocumentsDirectory();
+                        final String path = directory.path;
+                        final File file = File('$path/participants.xlsx');
+                        await file.writeAsBytes(onValue, flush: true);
+                        await OpenFile.open('$path/participants.xlsx');
+                        Navigator.pop(context);
+                      });
+                    } catch (e) {
+                      print(e);
+                    }
+                  } else {
+                    flutterToast(context, 'No participants for your event', 2,
+                        ToastGravity.BOTTOM);
+                  }
+                }),
+                Divider(height: 1),
+                BottomSheetItem("CSV File", Icons.insert_drive_file_outlined,
+                    () async {
+                  List<List<String>> csvData = [];
+                  Map<String, dynamic> d = participants[0]['data'];
+                  List<String> keys = d.keys.toList();
+                  csvData.add(keys);
+                  for (var i = 0; i < participants.length; i++) {
+                    Map<String, dynamic> data = participants[i]['data'];
+                    List<String> val = [];
+                    List<dynamic> values = data.values.toList();
+                    for (var i = 0; i < values.length; i++) {
+                      val.add(values[i].toString());
+                    }
+                    csvData.add(val);
+                  }
+                  String csv = ListToCsvConverter().convert(csvData);
+                  final Directory directory =
+                      await pathProvider.getApplicationDocumentsDirectory();
+                  final String path = directory.path;
+                  final File file = File('$path/participants.csv');
+                  await file.writeAsString(csv, flush: true);
+                  await OpenFile.open('$path/participants.csv');
+                  Navigator.pop(context);
+                }),
+              ],
+            ),
+          );
+        },
+        child: Icon(Icons.input),
+      ),
+      body: isloading
+          ? LoaderCircular("Loading")
+          : participants.isEmpty
+              ? Container(
+                  height: double.infinity,
+                  width: double.infinity,
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  child: EmptyData(
+                      'No Participants\nRegistered', "", LineIcons.users),
+                )
+              : Container(
+                  height: double.infinity,
+                  width: double.infinity,
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  child: Scrollbar(
+                    controller: _scrollController1,
+                    isAlwaysShown: true,
+                    thickness: 5,
+                    radius: Radius.circular(50),
+                    child: SingleChildScrollView(
+                      controller: _scrollController1,
+                      scrollDirection: Axis.horizontal,
+                      child: Scrollbar(
+                        controller: _scrollController2,
+                        isAlwaysShown: true,
+                        thickness: 5,
+                        radius: Radius.circular(50),
+                        child: SingleChildScrollView(
+                          controller: _scrollController2,
                           scrollDirection: Axis.vertical,
-                          shrinkWrap: true,
-                          itemCount: participants.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            Map<String, dynamic> data =
-                                participants[index]['data'];
-                            List<String> keys = data.keys.toList();
-                            List<dynamic> values = data.values.toList();
-                            return ExpansionTile(
-                              initiallyExpanded: expanded ? true : false,
-                              title: Text(
-                                data["Name"],
-                              ),
-                              subtitle: Text(
-                                '***************@gmail.com',
-                                //data["Email"],
-                              ),
-                              children: <Widget>[
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Column(
-                                  children: <Widget>[
-                                    for (var i = 0; i < keys.length; i++) ...[
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 15),
-                                        child: RowText(
-                                          keys[i].toString(),
-                                          keys[i].toString() == "Email"
-                                              ? '***************@gmail.com'
-                                              : values[i].toString(),
-                                        ),
-                                      ),
-                                    ]
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: 15,
+                          child: DataTable(
+                            columnSpacing: 20.0,
+                            horizontalMargin: 15.0,
+                            columns: <DataColumn>[
+                              for (var i = 0; i < keys[0].length; i++) ...[
+                                DataColumn(
+                                  label: Text(
+                                    keys[0][i],
+                                    maxLines: 2,
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
                                 ),
                               ],
-                            );
-                          }),
-                      SizedBox(
-                        height: 20,
-                      )
-                    ],
+                            ],
+                            rows: <DataRow>[
+                              for (var i = 0; i < values.length; i++) ...[
+                                DataRow(
+                                  cells: <DataCell>[
+                                    for (var j = 0;
+                                        j < values[i].length;
+                                        j++) ...[
+                                      DataCell(Text(
+                                        values[i][j],
+                                        maxLines: 2,
+                                      )),
+                                    ],
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              );
+    );
   }
 }

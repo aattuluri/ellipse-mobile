@@ -3,12 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
 
+import '../../providers/index.dart';
 import '../../repositories/index.dart';
-import '../../util/index.dart';
 import '../widgets/index.dart';
-
-Widget get _loadingIndicator =>
-    Center(child: const CircularProgressIndicator());
 
 class RegisteredEvents extends StatefulWidget {
   @override
@@ -16,8 +13,7 @@ class RegisteredEvents extends StatefulWidget {
 }
 
 class _RegisteredEventsState extends State<RegisteredEvents> {
-  bool isloading = false;
-
+  bool isSearching = false;
   @override
   void initState() {
     loadPref();
@@ -26,42 +22,68 @@ class _RegisteredEventsState extends State<RegisteredEvents> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<EventsRepository>(builder: (context, model, child) {
+    return Consumer2<EventsRepository, SearchProvider>(
+        builder: (context, event, search, child) {
       return SafeArea(
         child: Scaffold(
-          appBar: AppBar(
-            iconTheme: Theme.of(context).iconTheme,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            elevation: 4,
-            title: Text(
-              "Registered Events",
-              style: TextStyle(
-                  color: Theme.of(context).textTheme.caption.color,
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold),
-            ),
-            actions: [
-              IconButton(
-                  icon: Icon(
-                    LineIcons.refresh,
-                    color: Theme.of(context).textTheme.caption.color,
-                    size: 27,
+          appBar: isSearching
+              ? AppBar(
+                  title: SearchAppBar(
+                    hintText: 'Search',
+                    onChanged: (value) {
+                      Provider.of<SearchProvider>(context, listen: false)
+                          .changeSearchText(value);
+                    },
                   ),
-                  onPressed: () {
-                    context.read<EventsRepository>().refreshData();
-                    Scaffold.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Events Refreshed"),
-                        duration: Duration(seconds: 1),
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  centerTitle: true,
+                  actions: [
+                    TextButton(
+                        onPressed: () {
+                          Provider.of<SearchProvider>(context, listen: false)
+                              .reset();
+                          setState(() {
+                            isSearching = false;
+                          });
+                        },
+                        child: Text('Cancel'))
+                  ],
+                )
+              : AppBar(
+                  iconTheme: Theme.of(context).iconTheme,
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  elevation: 4,
+                  title: Text(
+                    "Registered Events",
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.caption.color,
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  actions: [
+                    IconButton(
+                        icon: Icon(
+                          LineIcons.refresh,
+                        ),
+                        onPressed: () {
+                          context.read<EventsRepository>().init();
+                        }),
+                    IconButton(
+                      icon: Icon(
+                        Icons.search,
                       ),
-                    );
-                  }),
-            ],
-            centerTitle: true,
-          ),
-          body: model.isLoading || model.loadingFailed
-              ? _loadingIndicator
-              : model.allRegistrations.isEmpty
+                      onPressed: () {
+                        setState(() {
+                          isSearching = true;
+                        });
+                      },
+                    ),
+                  ],
+                  centerTitle: true,
+                ),
+          body: event.isLoading
+              ? LoaderCircular("Loading Events")
+              : event.allRegistrations.isEmpty
                   ? Container(
                       height: double.infinity,
                       width: double.infinity,
@@ -76,15 +98,15 @@ class _RegisteredEventsState extends State<RegisteredEvents> {
                       scrollDirection: Axis.vertical,
                       shrinkWrap: true,
                       children: <Widget>[
-                        for (var i = 0; i < model.allEvents.length; i++) ...[
-                          for (var j = 0;
-                              j < model.allRegistrations.length;
-                              j++) ...[
-                            if (model.allRegistrations[j].user_id == prefId &&
-                                model.allRegistrations[j].event_id ==
-                                    model.allEvents[i].id) ...[
-                              EventTileGeneral(true, i, "info_page")
-                            ]
+                        for (var i = 0; i < event.allEvents.length; i++) ...[
+                          if (event.allEvents[i].registered &&
+                              (!isSearching ||
+                                  event.allEvents[i].name
+                                      .toLowerCase()
+                                      .contains(search.searchText
+                                          .toLowerCase()
+                                          .trim()))) ...[
+                            EventTileGeneral(event.allEvents[i])
                           ]
                         ]
                       ],

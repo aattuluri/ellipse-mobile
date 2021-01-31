@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../providers/index.dart';
 import '../../repositories/index.dart';
 import '../../util/index.dart';
 import '../widgets/index.dart';
@@ -52,8 +53,7 @@ class _EventSearchState extends State<EventSearch>
               autofocus: true,
               cursorColor: Theme.of(context).textTheme.caption.color,
               decoration: InputDecoration(
-                // border: OutlineInputBorder(),
-                hintText: 'Search...',
+                hintText: 'Search',
                 suffixIcon: InkWell(
                   onTap: () {
                     setState(() {
@@ -86,17 +86,19 @@ class _EventSearchState extends State<EventSearch>
             shrinkWrap: true,
             children: <Widget>[
               for (var i = 0; i < model.allEvents?.length; i++)
-                if ((model.allEvents[i].o_allowed ||
-                        model.allEvents[i].college_id == prefCollegeId) &&
+                if ((model.allEvents[i].oAllowed ||
+                        model.allEvents[i].collegeId == prefCollegeId) &&
                     model.allEvents[i].status == "active" &&
                     model.allEvents[i].name
                         .toLowerCase()
                         .contains(_searchText.toLowerCase()) &&
-                    model.allEvents[i].finish_time.isAfter(DateTime.now())) ...[
+                    model.allEvents[i].finishTime.isAfter(DateTime.now())) ...[
                   EventSearchItem(
                       model.allEvents[i].imageUrl, model.allEvents[i].name, () {
-                    Navigator.pushNamed(context, Routes.info_page,
-                        arguments: {'index': i, 'type': 'user'});
+                    Navigator.pushNamed(context, Routes.info_page, arguments: {
+                      'type': 'user',
+                      'event_': model.allEvents[i]
+                    });
                   })
                 ]
             ],

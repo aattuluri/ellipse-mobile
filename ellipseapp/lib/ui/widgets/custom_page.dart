@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:latlong/latlong.dart';
 import 'package:provider/provider.dart';
 
-import '../../repositories/base.dart';
+import '../../repositories/baseRepository.dart';
 import 'header_map.dart';
 
 /// Centered [CircularProgressIndicator] widget.

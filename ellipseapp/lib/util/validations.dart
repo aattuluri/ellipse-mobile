@@ -1,5 +1,6 @@
-extension Extension on Object {
-  bool isNullOrEmpty() => this == null || this == "" || this == "undefined";
+extension Validations on Object {
+  bool isNullOrEmpty() =>
+      this == null || this == "" || this == "undefined" || this == 'null';
 
   bool isEmptyList(List list) => list.isEmpty;
 

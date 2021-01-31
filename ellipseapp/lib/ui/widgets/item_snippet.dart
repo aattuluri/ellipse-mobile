@@ -22,12 +22,14 @@ class ItemSnippet extends StatelessWidget {
         children: <Widget>[
           Icon(
             icon,
-            size: 16,
+            // size: 16,
             color: Theme.of(context).textTheme.caption.color,
           ),
           Separator.spacer(space: 6),
           Text(
             text,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
             style: TextStyle(
               fontSize: 15,
               fontFamily: 'ProductSans',

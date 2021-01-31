@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../util/index.dart';
@@ -60,12 +59,9 @@ class _ResetPasswordState extends State<ResetPassword> {
       setState(() {
         verification_email = preferences.getString("verification_email");
       });
-      http.Response response = await http.post(
-        '${Url.URL}/api/users/reset_password',
-        body: {'email': '$verification_email', 'password': '$password'},
-      );
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      var response = await httpPostWithoutHeaders(
+          '${Url.URL}/api/users/reset_password',
+          {'email': '$verification_email', 'password': '$password'});
       if (response.statusCode == 200) {
         Navigator.pushNamed(context, Routes.signin);
         messageDialog(context, 'Password Reset Successful');
@@ -272,11 +268,11 @@ class _ResetPasswordState extends State<ResetPassword> {
                                               ),
                                             ),
                                             onPressed: () async {
-                                              Map data = {'email': email};
-                                              http.Response response =
-                                                  await http.post(
-                                                      "${Url.URL}/api/check_email_exists",
-                                                      body: data);
+                                              var response =
+                                                  await httpPostWithoutHeaders(
+                                                "${Url.URL}/api/check_email_exists",
+                                                {'email': email},
+                                              );
                                               if (response.statusCode == 200) {
                                                 SharedPreferences
                                                     sharedPreferences =

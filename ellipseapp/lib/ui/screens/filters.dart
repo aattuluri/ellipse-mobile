@@ -1,37 +1,57 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../providers/index.dart';
 
 class Filters extends StatefulWidget {
   const Filters({Key key, this.onApplyClick}) : super(key: key);
-
-  final Function(bool, List, bool, bool) onApplyClick;
+  final Function(List) onApplyClick;
 
   @override
   _FiltersState createState() => _FiltersState();
 }
 
 class _FiltersState extends State<Filters> {
-  List<String> filters = ["offline", "online", "free", "paid"];
-  double distValue = 50.0;
-  bool mycollege = true;
-  bool allcolleges = false;
+  List<String> filters = [];
   bool all = true;
   bool online = true;
   bool offline = true;
   bool paid = true;
   bool free = true;
-  String all1 = "";
-  String online1 = "";
-  String offline1 = "";
-  String paid1 = "";
-  String free1 = "";
+  @override
+  void initState() {
+    loadPref();
+    setState(() {
+      filters = Provider.of<DataProvider>(context, listen: false).filters;
+    });
+    setState(() {
+      all = filters.contains("Offline") &&
+          filters.contains("Online") &&
+          filters.contains("Free") &&
+          filters.contains("Paid");
+      online = filters.contains("Online");
+      offline = filters.contains("Offline");
+      paid = filters.contains("Paid");
+      free = filters.contains("Free");
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          elevation: 4,
+          leading: IconButton(
+              icon: Icon(
+                Icons.close,
+                color: Theme.of(context).textTheme.caption.color,
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              }),
           title: Text(
             "Filters",
             style: TextStyle(
@@ -58,7 +78,7 @@ class _FiltersState extends State<Filters> {
                           padding: const EdgeInsets.only(
                               left: 16, right: 16, top: 16, bottom: 8),
                           child: Text(
-                            'Filter by type',
+                            'Filters',
                             textAlign: TextAlign.left,
                             style: TextStyle(
                                 color: Colors.grey,
@@ -95,6 +115,13 @@ class _FiltersState extends State<Filters> {
                                                       offline = false;
                                                       paid = false;
                                                       free = false;
+                                                      filters.remove('Offline');
+                                                      filters.remove('Online');
+                                                      filters.remove('Free');
+                                                      filters.remove('Paid');
+                                                      filters = filters
+                                                          .toSet()
+                                                          .toList();
                                                     })
                                                   : setState(() {
                                                       all = true;
@@ -102,6 +129,13 @@ class _FiltersState extends State<Filters> {
                                                       offline = true;
                                                       paid = true;
                                                       free = true;
+                                                      filters.add('Offline');
+                                                      filters.add('Online');
+                                                      filters.add('Free');
+                                                      filters.add('Paid');
+                                                      filters = filters
+                                                          .toSet()
+                                                          .toList();
                                                     });
                                             },
                                             child: Padding(
@@ -162,7 +196,7 @@ class _FiltersState extends State<Filters> {
                                                   ? setState(() {
                                                       this.setState(() =>
                                                           filters.remove(
-                                                              "offline"));
+                                                              "Offline"));
 
                                                       offline = false;
                                                       all = false;
@@ -170,7 +204,7 @@ class _FiltersState extends State<Filters> {
                                                   : setState(() {
                                                       this.setState(() =>
                                                           filters
-                                                              .add("offline"));
+                                                              .add("Offline"));
                                                       offline = true;
                                                     });
                                               online && offline && free && paid
@@ -230,14 +264,14 @@ class _FiltersState extends State<Filters> {
                                                   ? setState(() {
                                                       this.setState(() =>
                                                           filters.remove(
-                                                              "online"));
+                                                              "Online"));
                                                       online = false;
                                                       all = false;
                                                     })
                                                   : setState(() {
                                                       this.setState(() =>
                                                           filters
-                                                              .add("online"));
+                                                              .add("Online"));
                                                       online = true;
                                                     });
                                               online && offline && free && paid
@@ -304,13 +338,13 @@ class _FiltersState extends State<Filters> {
                                                   ? setState(() {
                                                       this.setState(() =>
                                                           filters
-                                                              .remove("free"));
+                                                              .remove("Free"));
                                                       free = false;
                                                       all = false;
                                                     })
                                                   : setState(() {
                                                       this.setState(() =>
-                                                          filters.add("free"));
+                                                          filters.add("Free"));
                                                       free = true;
                                                     });
                                               online && offline && free && paid
@@ -370,13 +404,13 @@ class _FiltersState extends State<Filters> {
                                                   ? setState(() {
                                                       this.setState(() =>
                                                           filters
-                                                              .remove("paid"));
+                                                              .remove("Paid"));
                                                       paid = false;
                                                       all = false;
                                                     })
                                                   : setState(() {
                                                       this.setState(() =>
-                                                          filters.add("paid"));
+                                                          filters.add("Paid"));
                                                       paid = true;
                                                     });
                                               online && offline && free && paid
@@ -466,7 +500,7 @@ class _FiltersState extends State<Filters> {
                                       children: <Widget>[
                                         Expanded(
                                           child: Text(
-                                            "My College",
+                                            prefCollegeName,
                                             style: TextStyle(
                                                 color: Theme.of(context)
                                                     .textTheme
@@ -475,7 +509,8 @@ class _FiltersState extends State<Filters> {
                                           ),
                                         ),
                                         CupertinoSwitch(
-                                          activeColor: mycollege
+                                          activeColor: filters
+                                                  .contains(prefCollegeId)
                                               ? Theme.of(context)
                                                   .textTheme
                                                   .caption
@@ -483,22 +518,33 @@ class _FiltersState extends State<Filters> {
                                               : Colors.grey.withOpacity(0.6),
                                           onChanged: (bool value) {
                                             setState(() {
-                                              mycollege = value;
+                                              if (!filters
+                                                  .contains(prefCollegeId)) {
+                                                filters.add(prefCollegeId);
+                                              }
                                             });
-                                            if (allcolleges == true &&
+                                            /*
+                                            setState(() {
+                                              myCollege = value;
+                                            });
+                                            if (allColleges == true &&
                                                 value == true) {
                                               setState(() {
-                                                allcolleges = false;
+                                                filters.add(prefCollegeId);
+                                                allColleges = false;
                                               });
                                             }
-                                            if (allcolleges == false &&
+                                            if (allColleges == false &&
                                                 value == false) {
                                               setState(() {
-                                                allcolleges = true;
+                                                filters.remove(prefCollegeId);
+                                                allColleges = true;
                                               });
                                             }
+                                            */
                                           },
-                                          value: mycollege,
+                                          value:
+                                              filters.contains(prefCollegeId),
                                         ),
                                       ],
                                     ),
@@ -521,7 +567,8 @@ class _FiltersState extends State<Filters> {
                                           ),
                                         ),
                                         CupertinoSwitch(
-                                          activeColor: allcolleges
+                                          activeColor: !filters
+                                                  .contains(prefCollegeId)
                                               ? Theme.of(context)
                                                   .textTheme
                                                   .caption
@@ -529,22 +576,32 @@ class _FiltersState extends State<Filters> {
                                               : Colors.grey.withOpacity(0.6),
                                           onChanged: (bool value) {
                                             setState(() {
-                                              allcolleges = value;
+                                              if (filters
+                                                  .contains(prefCollegeId)) {
+                                                filters.remove(prefCollegeId);
+                                              }
                                             });
-                                            if (mycollege == true &&
+                                            /*
+                                            setState(() {
+                                              allColleges = value;
+                                            });
+                                            if (myCollege == true &&
                                                 value == true) {
                                               setState(() {
-                                                mycollege = false;
+                                                filters.remove(prefCollegeId);
+                                                myCollege = false;
                                               });
                                             }
-                                            if (mycollege == false &&
+                                            if (myCollege == false &&
                                                 value == false) {
                                               setState(() {
-                                                mycollege = true;
+                                                filters.add(prefCollegeId);
+                                                myCollege = true;
                                               });
-                                            }
+                                            }*/
                                           },
-                                          value: allcolleges,
+                                          value:
+                                              !filters.contains(prefCollegeId),
                                         ),
                                       ],
                                     ),
@@ -581,11 +638,10 @@ class _FiltersState extends State<Filters> {
                     highlightColor: Colors.transparent,
                     onTap: () {
                       try {
-                        widget.onApplyClick(
-                            all, filters, mycollege, allcolleges);
+                        widget.onApplyClick(filters);
                         Navigator.of(context).pop(true);
-                      } catch (_) {
-                        print("error");
+                      } catch (e) {
+                        print(e);
                       }
                     },
                     child: Center(

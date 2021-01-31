@@ -4,11 +4,11 @@ import 'dart:ui';
 
 import 'package:date_time_picker/date_time_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
 
 import '../../models/index.dart';
+import '../../providers/index.dart';
 import '../../repositories/index.dart';
 import '../../util/index.dart';
 import '../widgets/index.dart';
@@ -83,7 +83,7 @@ class DynamicWidgetItem extends StatelessWidget {
             builder: (FormFieldState state) {
               return InputDecorator(
                 decoration: InputDecoration(
-                    border: OutlineInputBorder(), labelText: "Event Type"),
+                    border: OutlineInputBorder(), labelText: title),
                 child: new DropdownButtonHideUnderline(
                   child: new DropdownButton(
                     hint: Text("${title}"),
@@ -315,15 +315,17 @@ class DynamicWidgetItem extends StatelessWidget {
 }
 
 class RegistrationForm extends StatefulWidget {
-  final int index;
+  final String eventId;
   final List data;
-  RegistrationForm(this.index, this.data);
+  RegistrationForm(this.eventId, this.data);
   @override
   _RegistrationFormState createState() => _RegistrationFormState();
 }
 
 class _RegistrationFormState extends State<RegistrationForm>
     with TickerProviderStateMixin {
+  bool isLoading = false;
+  bool formFilled = false;
   List<Field> form_data = [];
   String title = "", field = "", option = "";
   ScrollController scrollController;
@@ -332,34 +334,23 @@ class _RegistrationFormState extends State<RegistrationForm>
 
   register(UserDetails userdetails, Events event) async {
     listDynamic.forEach((widget) {
-      print("");
-      print(widget.title);
-      print(widget.filled);
       data[widget.title.toString()] = widget.filled;
     });
     data["Name"] = userdetails.name;
     data["Email"] = userdetails.email;
     if (data.containsKey('College')) {
-      data["College"] = userdetails.college_name;
+      data["College"] = userdetails.collegeName;
     } else {}
-
     print(data);
-
-    http.Response response = await http.post(
-      '${Url.URL}/api/event/register?id=${event.id}',
-      headers: <String, String>{
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $prefToken'
-      },
-      body: jsonEncode(<String, Object>{'data': data}),
+    var response = await httpPostWithHeaders(
+      '${Url.URL}/api/event/register?id=${event.eventId}',
+      jsonEncode(<String, Object>{'data': data}),
     );
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
     if (response.statusCode == 200) {
-      context.read<EventsRepository>().refreshData();
-      //Navigator.pushReplacementNamed(context, Routes.info_page,
-      //     arguments: {'index': widget.index, 'type': 'user'});
-      //}
+      context.read<EventsRepository>().init();
+      setState(() {
+        isLoading = false;
+      });
       Navigator.of(context).pop(true);
       messageDialog(context, "Registered Successfully");
     }
@@ -403,73 +394,110 @@ class _RegistrationFormState extends State<RegistrationForm>
   @override
   Widget build(BuildContext context) {
     final Events _event =
-        context.watch<EventsRepository>().getEvent(widget.index);
+        context.watch<EventsRepository>().event(widget.eventId);
     final UserDetails _userdetails =
         context.watch<UserDetailsRepository>().getUserDetails(0);
-    return Container(
-      height: double.infinity,
-      width: double.infinity,
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-              child: CardPage.body(
-                title: "Fill Form",
-                body: RowLayout(
-                  children: <Widget>[
-                    Container(
-                      width: double.infinity,
-                      child: ListView.builder(
-                        physics: NeverScrollableScrollPhysics(),
-                        //physics: ClampingScrollPhysics(),
-                        itemCount: listDynamic.length,
-                        itemBuilder: (context, index) {
-                          return Column(
-                            children: [
-                              listDynamic[index],
-                              SizedBox(
-                                width: 10,
-                              ),
-                            ],
-                          );
-                        },
-                        shrinkWrap: true,
-                        scrollDirection: Axis.vertical,
+    return isLoading
+        ? LoaderCircular('Registering')
+        : Container(
+            height: double.infinity,
+            width: double.infinity,
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                    child: CardPage.body(
+                      title: "Fill Form",
+                      body: RowLayout(
+                        children: <Widget>[
+                          Container(
+                            width: double.infinity,
+                            child: ListView.builder(
+                              physics: NeverScrollableScrollPhysics(),
+                              //physics: ClampingScrollPhysics(),
+                              itemCount: listDynamic.length,
+                              itemBuilder: (context, index) {
+                                return Column(
+                                  children: [
+                                    listDynamic[index],
+                                    SizedBox(
+                                      width: 10,
+                                    ),
+                                  ],
+                                );
+                              },
+                              shrinkWrap: true,
+                              scrollDirection: Axis.vertical,
+                            ),
+                          ),
+                          Acceptance(
+                              'By registering for the event,I accept the ',
+                              false),
+                          RButton('Register', 13, () {
+                            for (var i = 0; i <= listDynamic.length - 1; i++) {
+                              print(listDynamic[i].title);
+                              print(listDynamic[i].filled);
+                              if (
+                                  //listDynamic[i].field != "radiobuttons" &&
+                                  listDynamic[i].field != "checkboxes" &&
+                                      listDynamic[i].title != "Email" &&
+                                      listDynamic[i].title != "Name" &&
+                                      listDynamic[i].title != "College" &&
+                                      (listDynamic[i].filled == '' ||
+                                          listDynamic[i].filled == null ||
+                                          listDynamic[i]
+                                                  .filled
+                                                  .toString()
+                                                  .length ==
+                                              0)) {
+                                messageDialog(
+                                    context,
+                                    '${listDynamic[i].title}' +
+                                        " " +
+                                        'should be filled');
+                                setState(() {
+                                  formFilled = false;
+                                });
+                                break;
+                              } else if (listDynamic[i].field ==
+                                  "radiobuttons") {
+                                List<String> flist = listDynamic[i].filled;
+                                if (flist.isEmpty) {
+                                  messageDialog(
+                                      context,
+                                      '${listDynamic[i].title}' +
+                                          " " +
+                                          'should be filled');
+                                  setState(() {
+                                    formFilled = false;
+                                  });
+                                  break;
+                                }
+                              } else {
+                                setState(() {
+                                  formFilled = true;
+                                });
+                              }
+                            }
+                            setState(() {});
+                            print(formFilled);
+                            if (formFilled) {
+                              setState(() {
+                                isLoading = true;
+                              });
+                              register(_userdetails, _event);
+                            } else {}
+                          }),
+                        ],
                       ),
                     ),
-                    Center(
-                      child: Container(
-                        width: 150,
-                        height: 50,
-                        margin: EdgeInsets.only(top: 10.0),
-                        child: RaisedButton(
-                            color: Theme.of(context)
-                                .textTheme
-                                .caption
-                                .color
-                                .withOpacity(0.3),
-                            child: Text(
-                              'Register',
-                              style: TextStyle(
-                                  color:
-                                      Theme.of(context).textTheme.caption.color,
-                                  fontSize: 22.0,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            onPressed: () async {
-                              register(_userdetails, _event);
-                            }),
-                      ),
-                    )
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
+          );
   }
 }
