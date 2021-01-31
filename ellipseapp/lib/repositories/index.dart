@@ -1,5 +1,5 @@
-export 'base.dart';
-export 'data.dart';
-export 'events.dart';
-export 'notifications.dart';
-export 'userdetails.dart';
+export 'baseRepository.dart';
+export 'dataRepository.dart';
+export 'eventsRepository.dart';
+export 'notificationsRepository.dart';
+export 'userdetailsRepository.dart';

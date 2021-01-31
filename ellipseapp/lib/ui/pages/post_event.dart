@@ -4,19 +4,19 @@ import 'dart:io';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:date_time_picker/date_time_picker.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:mime/mime.dart';
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
 import 'package:rxdart/subjects.dart';
 
+import '../../models/index.dart';
+import '../../providers/index.dart';
 import '../../repositories/index.dart';
 import '../../util/index.dart';
 import '../../util/routes.dart';
@@ -34,45 +34,36 @@ class PostEvent extends StatefulWidget {
 
 class _PostEventState extends State<PostEvent>
     with SingleTickerProviderStateMixin {
-  final _formKey = GlobalKey<FormState>();
-  List<String> errors = [];
+  bool isLoading = false;
   List reg_form = [];
-  // List<Field1> fetched_form = [];
   final List<String> _eventtypes = ["Technical", "Cultural"];
   final List<String> _requirements = ["Laptop", "Internet"];
   final List<String> _themes = ["Coding", "Writing"];
   final List<String> _venueTypes = ["College", "Other"];
   List fetched_form;
-  List colleges = List();
+  bool hasRounds = false;
+  List rounds = [];
+  List<Round> roundsUi = [];
+  Map<String, dynamic> colleges = {};
   List<String> selected_requirements = [];
   List<String> selected_themes = [];
-  bool _isUploading = false;
+  bool isUploading = false;
   bool offline = false;
   bool online = false;
   bool free = false;
   bool paid = false;
   bool o_allowed = false;
+  bool team = false;
   bool link = false;
   bool form = false;
   String event_mode;
   String payment_type;
   String _college;
   String _venueType;
-  String event_type;
   String theme;
   String reg_mode = "";
   String requirement;
   String selected = "";
-
-  Future<List> getData() async {
-    final response = await http.get("${Url.URL}/api/colleges");
-    var resBody = json.decode(response.body.toString());
-
-    setState(() {
-      colleges = resBody;
-    });
-  }
-
   final _picker = ImagePicker();
   final int initPage = 0;
   PageController _pageController;
@@ -88,8 +79,12 @@ class _PostEventState extends State<PostEvent>
 
   @override
   void initState() {
-    getData();
+    setState(() {
+      _college = prefCollegeId;
+      _collegeNameController.text = prefCollegeName;
+    });
     loadPref();
+
     super.initState();
     _currentPageSubject = BehaviorSubject<int>.seeded(initPage);
     _pageController = PageController(initialPage: initPage);
@@ -135,14 +130,10 @@ class _PostEventState extends State<PostEvent>
   File _imageFile;
 
   // To track the file uploading state
-
   void _getImage(BuildContext context, ImageSource source) async {
     final pickedFile = await _picker.getImage(source: source, imageQuality: 70);
-    //final File file = File(pickedFile.path);
-    //File file = await FilePicker.getFile(type: FileType.image);
     setState(() {
       _imageFile = File(pickedFile.path);
-      //_imageFile = file;
     });
     // Closes the bottom sheet
     Navigator.pop(context);
@@ -151,13 +142,18 @@ class _PostEventState extends State<PostEvent>
   var _nameController = new TextEditingController();
   var _aboutController = new TextEditingController();
   var _descriptionController = new TextEditingController();
+  var _eventTypeController = new TextEditingController();
   var _start_timeController = new TextEditingController();
   var _finish_timeController = new TextEditingController();
   var _reg_last_dateController = new TextEditingController();
   var _reg_linkController = new TextEditingController();
   var _registration_feeController = new TextEditingController();
+  var _collegeNameController = new TextEditingController();
   var _venueController = new TextEditingController();
   var _platform_detailsController = new TextEditingController();
+  var _minTeamSizeController = new TextEditingController();
+  var _maxTeamSizeController = new TextEditingController();
+
   void _openImagePickerModal(BuildContext context) {
     final flatButtonColor = Theme.of(context).primaryColor;
     print('Image Picker Modal Called');
@@ -208,6 +204,7 @@ class _PostEventState extends State<PostEvent>
         });
   }
 
+/*
   Future<Uri> createDynamicLink(String id) async {
     final DynamicLinkParameters parameters = DynamicLinkParameters(
       // This should match firebase but without the username query param
@@ -228,15 +225,14 @@ class _PostEventState extends State<PostEvent>
     );
     return shortenedLink.shortUrl;
   }
-
+*/
   post_event() async {
     if (_imageFile == null ||
         _nameController.text.isNullOrEmpty() ||
         _descriptionController.text.isNullOrEmpty() ||
         _aboutController.text.isNullOrEmpty() ||
-        event_type.isNullOrEmpty() ||
-        // isEmptyList(selected_requirements) ||
-        // isEmptyList(selected_themes) ||
+        _eventTypeController.isNullOrEmpty() ||
+        _collegeNameController.isNullOrEmpty() ||
         _start_timeController.text.isNullOrEmpty() ||
         _finish_timeController.text.isNullOrEmpty() ||
         _reg_last_dateController.text.isNullOrEmpty() ||
@@ -263,22 +259,18 @@ class _PostEventState extends State<PostEvent>
       );
     } else {
       setState(() {
-        _isUploading = true;
+        isUploading = true;
       });
-      http.Response response = await http.post(
+      var response = await httpPostWithHeaders(
         '${Url.URL}/api/events',
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $prefToken'
-        },
-        body: jsonEncode(<String, dynamic>{
+        jsonEncode(<String, dynamic>{
           "poster_url": null,
           "user_id": "$prefId",
           "college_id": "$_college",
           "name": _nameController.text,
           "description": _descriptionController.text,
           "about": _aboutController.text,
-          "event_type": "$event_type",
+          "event_type": _eventTypeController.text,
           "event_mode": "$event_mode",
           "fee_type": "$payment_type",
           "venue": _venueController.text,
@@ -288,6 +280,12 @@ class _PostEventState extends State<PostEvent>
           "tags": selected_themes,
           "platform_details": _platform_detailsController.text,
           "o_allowed": o_allowed,
+          "isTeamed": team,
+          "rounds": rounds,
+          "team_size": <dynamic, dynamic>{
+            'min_team_size': _minTeamSizeController.text,
+            'max_team_size': _maxTeamSizeController.text
+          },
           "start_time":
               DateTime.parse(_start_timeController.text).toUtc().toString(),
           "finish_time":
@@ -299,9 +297,8 @@ class _PostEventState extends State<PostEvent>
           "reg_fields": reg_form
         }),
       );
+
       var jsonResponse = json.decode(response.body);
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
       print(jsonResponse['eventId']);
       String eventId = jsonResponse['eventId'];
       if (response.statusCode == 200) {
@@ -334,23 +331,16 @@ class _PostEventState extends State<PostEvent>
             setState(() {
               _imageFile = null;
             });
-            // createDynamicLink(eventId);
-            context.read<EventsRepository>().refreshData();
+            context.read<EventsRepository>().init();
             Navigator.pushNamed(
               context,
               Routes.start,
-              arguments: {'current_tab': 0},
+              arguments: {'currentTab': 0},
             );
             setState(() {
-              _isUploading = false;
+              isUploading = false;
             });
             messageDialog(context, 'Event Posted successfully');
-            /*alertDialog(
-                context,
-                "Post Event",
-                "-Event posted successfully" +
-                    "\n-Your event will be verified and accepted within few hours" +
-                    "\n-Manage your events in posted events panel in your profile");*/
             print("Image Uploaded");
           }
         } catch (e) {
@@ -360,11 +350,12 @@ class _PostEventState extends State<PostEvent>
     }
   }
 
-  final format = DateFormat("yyyy-MM-dd HH:mm");
   @override
   Widget build(BuildContext context) {
-    if (_isUploading) {
-      return LoaderCircular(0.25, "Uploading");
+    if (isUploading) {
+      return LoaderCircular("Uploading");
+    } else if (isLoading) {
+      return LoaderCircular("Loading");
     } else {
       return Consumer<DataRepository>(
         builder: (context, model, child) => Scaffold(
@@ -379,7 +370,41 @@ class _PostEventState extends State<PostEvent>
                   fontWeight: FontWeight.bold),
             ),
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            actions: [],
+            actions: [
+              FlatButton(
+                color: Theme.of(context).cardColor,
+                child: Text(
+                  'POST\nEVENT',
+                  style: TextStyle(
+                      color: Theme.of(context).accentColor,
+                      fontWeight: FontWeight.bold),
+                ),
+                onPressed: () {
+                  if (_imageFile == null) {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: new Text("Post Event"),
+                          content: new Text("Event Poster can not be empty"),
+                          actions: <Widget>[
+                            new FlatButton(
+                              child: new Text("Ok"),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  } else {
+                    SystemChannels.textInput.invokeMethod('TextInput.hide');
+                    post_event();
+                  }
+                },
+              ),
+            ],
             centerTitle: true,
           ),
           body: Column(
@@ -388,7 +413,7 @@ class _PostEventState extends State<PostEvent>
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 5.0),
                 child: Container(
-                  height: 50,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: Colors.black38,
                     borderRadius: BorderRadius.circular(35),
@@ -601,14 +626,6 @@ class _PostEventState extends State<PostEvent>
                                         .color,
                                   ),
                                   controller: _nameController,
-                                  validator: (value) {
-                                    if (value.isEmpty) {
-                                      this.setState(() => errors
-                                          .add("Name field cannot be empty"));
-                                      //return "Password field cannot be empty";
-                                    }
-                                    return null;
-                                  },
                                   cursorColor:
                                       Theme.of(context).textTheme.caption.color,
                                   decoration: InputDecoration(
@@ -646,72 +663,71 @@ class _PostEventState extends State<PostEvent>
                                       labelText: "About"),
                                   maxLines: 6,
                                 ),
-                                FormField(
-                                  builder: (FormFieldState state) {
-                                    return InputDecorator(
-                                      decoration: InputDecoration(
-                                          border: OutlineInputBorder(),
-                                          labelText: "Event Type"),
-                                      child: new DropdownButtonHideUnderline(
-                                        child: new DropdownButton(
-                                          hint: Text("Select Event Type"),
-                                          isExpanded: true,
-                                          value: event_type,
-                                          isDense: true,
-                                          items: model.eventTypes
-                                              .map((value) => DropdownMenuItem(
-                                                    child: Text(value),
-                                                    value: value,
-                                                  ))
-                                              .toList(),
-                                          onChanged: (newValue) {
+                                TextFormField(
+                                    controller: _eventTypeController,
+                                    readOnly: true,
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color,
+                                    ),
+                                    decoration: InputDecoration(
+                                        suffixIcon:
+                                            Icon(Icons.arrow_drop_down_sharp),
+                                        border: OutlineInputBorder(),
+                                        labelText: "Event Type",
+                                        hintText: 'Select Event Type'),
+                                    onTap: () {
+                                      showDropdownSearchDialog(
+                                          context: context,
+                                          items: model.eventTypesData,
+                                          addEnabled: false,
+                                          onChanged:
+                                              (String key, String value) {
                                             setState(() {
-                                              event_type = newValue;
-                                              state.didChange(newValue);
+                                              _eventTypeController =
+                                                  TextEditingController(
+                                                      text: value);
                                             });
-                                          },
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                FormField(
-                                  builder: (FormFieldState state) {
-                                    return InputDecorator(
-                                      decoration: InputDecoration(
-                                          border: OutlineInputBorder(),
-                                          labelText: "College"),
-                                      child: new DropdownButtonHideUnderline(
-                                        child: new DropdownButton(
-                                          hint: Text("Select College"),
-                                          isExpanded: true,
-                                          value: _college,
-                                          isDense: true,
-                                          items: colleges.map((item) {
-                                            return new DropdownMenuItem(
-                                              child: new Text(
-                                                item['name'],
-                                              ),
-                                              value: item['_id'].toString(),
-                                            );
-                                          }).toList(),
-                                          onChanged: (newValue) {
+                                          });
+                                    }),
+                                TextFormField(
+                                    controller: _collegeNameController,
+                                    readOnly: true,
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color,
+                                    ),
+                                    decoration: InputDecoration(
+                                        suffixIcon:
+                                            Icon(Icons.arrow_drop_down_sharp),
+                                        border: OutlineInputBorder(),
+                                        labelText: "College",
+                                        hintText: 'Select College'),
+                                    onTap: () {
+                                      showDropdownSearchDialog(
+                                          context: context,
+                                          items: model.collegesData,
+                                          addEnabled: false,
+                                          onChanged:
+                                              (String key, String value) {
                                             setState(() {
-                                              _college = newValue;
-                                              state.didChange(newValue);
+                                              _college = key.toString();
+                                              _collegeNameController =
+                                                  TextEditingController(
+                                                      text: value);
                                             });
-                                          },
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
+                                          });
+                                    }),
                               ]),
                             ),
                             CardPage.body(
                               body: RowLayout(children: <Widget>[
                                 Text(
-                                  'Other college students allowed?',
+                                  'Participation',
                                   style: TextStyle(
                                       fontWeight: FontWeight.w400,
                                       fontSize: 15,
@@ -721,7 +737,7 @@ class _PostEventState extends State<PostEvent>
                                           .color
                                           .withOpacity(0.9)),
                                 ),
-                                Row(
+                                Column(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -753,7 +769,7 @@ class _PostEventState extends State<PostEvent>
                                         ),
                                       ),
                                       Text(
-                                        'Yes',
+                                        'Open for all',
                                         style: TextStyle(
                                             fontWeight: FontWeight.w400,
                                             fontSize: 16,
@@ -790,8 +806,9 @@ class _PostEventState extends State<PostEvent>
                                           tristate: false,
                                         ),
                                       ),
-                                      Text(
-                                        'No',
+                                      AutoSizeText(
+                                        'Only for \n' + prefCollegeName,
+                                        minFontSize: 5,
                                         style: TextStyle(
                                             fontWeight: FontWeight.w400,
                                             fontSize: 16,
@@ -806,6 +823,146 @@ class _PostEventState extends State<PostEvent>
                                 ),
                               ]),
                             ),
+                            CardPage.body(
+                              body: RowLayout(children: <Widget>[
+                                Text(
+                                  'Participation Type',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 15,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color
+                                          .withOpacity(0.9)),
+                                ),
+                                Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Row(children: <Widget>[
+                                      Transform.scale(
+                                        scale: 1.2,
+                                        child: Checkbox(
+                                          hoverColor:
+                                              Theme.of(context).primaryColor,
+                                          focusColor:
+                                              Theme.of(context).primaryColor,
+                                          value: !team,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              team = false;
+                                            });
+                                          },
+                                          activeColor: Theme.of(context)
+                                              .textTheme
+                                              .caption
+                                              .color
+                                              .withOpacity(0.2),
+                                          checkColor: Theme.of(context)
+                                              .textTheme
+                                              .caption
+                                              .color,
+                                          tristate: false,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Individual',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 16,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .caption
+                                                .color
+                                                .withOpacity(0.9)),
+                                      ),
+                                    ]),
+                                    Row(children: <Widget>[
+                                      Transform.scale(
+                                        scale: 1.2,
+                                        child: Checkbox(
+                                          hoverColor:
+                                              Theme.of(context).primaryColor,
+                                          focusColor:
+                                              Theme.of(context).primaryColor,
+                                          value: team,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              team = true;
+                                            });
+                                          },
+                                          activeColor: Theme.of(context)
+                                              .textTheme
+                                              .caption
+                                              .color
+                                              .withOpacity(0.2),
+                                          checkColor: Theme.of(context)
+                                              .textTheme
+                                              .caption
+                                              .color,
+                                          tristate: false,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Team',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 16,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .caption
+                                                .color
+                                                .withOpacity(0.9)),
+                                      ),
+                                    ]),
+                                  ],
+                                ),
+                                if (team) ...[
+                                  RowLayout(
+                                    children: <Widget>[
+                                      TextFormField(
+                                        keyboardType: TextInputType.number,
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .caption
+                                              .color,
+                                        ),
+                                        controller: _minTeamSizeController,
+                                        cursorColor: Theme.of(context)
+                                            .textTheme
+                                            .caption
+                                            .color,
+                                        decoration: InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            labelText: "Minimum team size"),
+                                        maxLines: 1,
+                                      ),
+                                      TextFormField(
+                                        keyboardType: TextInputType.number,
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .caption
+                                              .color,
+                                        ),
+                                        controller: _maxTeamSizeController,
+                                        cursorColor: Theme.of(context)
+                                            .textTheme
+                                            .caption
+                                            .color,
+                                        decoration: InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            labelText: "Maximum team size"),
+                                        maxLines: 1,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ]),
+                            ),
                           ],
                         ),
                       ),
@@ -817,7 +974,7 @@ class _PostEventState extends State<PostEvent>
                         child: Column(
                           children: <Widget>[
                             CardPage.body(
-                              title: "Requirements",
+                              title: "Prerequisites",
                               body: RowLayout(
                                 children: <Widget>[
                                   Container(
@@ -897,88 +1054,16 @@ class _PostEventState extends State<PostEvent>
                                   ),
                                   InkWell(
                                       onTap: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (_) => RoundDialog(
-                                            title: "Add Requirement",
-                                            children: <Widget>[
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 5),
-                                                child: Column(
-                                                  children: [
-                                                    TextField(
-                                                      autocorrect: false,
-                                                      decoration:
-                                                          InputDecoration(
-                                                        suffixIcon: InkWell(
-                                                          onTap: () {
-                                                            this.setState(() =>
-                                                                selected_requirements
-                                                                    .add(selected
-                                                                        .toString()));
-                                                            Navigator.pop(
-                                                                context);
-                                                          },
-                                                          child: Icon(Icons.add,
-                                                              size: 25),
-                                                        ),
-                                                        labelText:
-                                                            "Add Requirement",
-                                                        hintText:
-                                                            "add your own requirement",
-                                                      ),
-                                                      onChanged: (value) {
-                                                        selected = value;
-                                                      },
-                                                    ),
-                                                    SizedBox(
-                                                      height: 10,
-                                                    ),
-                                                    Text(
-                                                        "Select requirements from below list"),
-                                                    Column(
-                                                      children: model
-                                                          .requirements
-                                                          .map((item) {
-                                                        return InkWell(
-                                                          onTap: () {
-                                                            this.setState(() =>
-                                                                selected_requirements
-                                                                    .add(item
-                                                                        .toString()));
-                                                            Navigator.pop(
-                                                                context);
-                                                          },
-                                                          child: Column(
-                                                            children: [
-                                                              Center(
-                                                                child: Padding(
-                                                                  padding: const EdgeInsets
-                                                                          .symmetric(
-                                                                      vertical:
-                                                                          10),
-                                                                  child:
-                                                                      new Text(
-                                                                    item,
-                                                                    style: TextStyle(
-                                                                        fontSize:
-                                                                            20),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        );
-                                                      }).toList(),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
+                                        showDropdownSearchDialog(
+                                            context: context,
+                                            items: model.requirementsData,
+                                            addEnabled: true,
+                                            onChanged:
+                                                (String key, String value) {
+                                              this.setState(() =>
+                                                  selected_requirements
+                                                      .add(value.toString()));
+                                            });
                                       },
                                       child: Container(
                                         decoration: BoxDecoration(
@@ -1078,86 +1163,16 @@ class _PostEventState extends State<PostEvent>
                                   ),
                                   InkWell(
                                       onTap: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (_) => RoundDialog(
-                                            title: "Add Tag",
-                                            children: <Widget>[
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 5),
-                                                child: Column(
-                                                  children: [
-                                                    TextField(
-                                                      autocorrect: false,
-                                                      decoration:
-                                                          InputDecoration(
-                                                        suffixIcon: InkWell(
-                                                          onTap: () {
-                                                            this.setState(() =>
-                                                                selected_themes
-                                                                    .add(selected
-                                                                        .toString()));
-                                                            Navigator.pop(
-                                                                context);
-                                                          },
-                                                          child: Icon(Icons.add,
-                                                              size: 25),
-                                                        ),
-                                                        labelText: "Add Tag",
-                                                        hintText:
-                                                            "add your own theme",
-                                                      ),
-                                                      onChanged: (value) {
-                                                        selected = value;
-                                                      },
-                                                    ),
-                                                    SizedBox(
-                                                      height: 10,
-                                                    ),
-                                                    Text(
-                                                        "Select tags from below list"),
-                                                    Column(
-                                                      children: model.tags
-                                                          .map((item) {
-                                                        return InkWell(
-                                                          onTap: () {
-                                                            this.setState(() =>
-                                                                selected_themes
-                                                                    .add(item
-                                                                        .toString()));
-                                                            Navigator.pop(
-                                                                context);
-                                                          },
-                                                          child: Column(
-                                                            children: [
-                                                              Center(
-                                                                child: Padding(
-                                                                  padding: const EdgeInsets
-                                                                          .symmetric(
-                                                                      vertical:
-                                                                          10),
-                                                                  child:
-                                                                      new Text(
-                                                                    item,
-                                                                    style: TextStyle(
-                                                                        fontSize:
-                                                                            20),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        );
-                                                      }).toList(),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
+                                        showDropdownSearchDialog(
+                                            context: context,
+                                            items: model.tagsData,
+                                            addEnabled: true,
+                                            onChanged:
+                                                (String key, String value) {
+                                              this.setState(() =>
+                                                  selected_themes
+                                                      .add(value.toString()));
+                                            });
                                       },
                                       child: Container(
                                         decoration: BoxDecoration(
@@ -1360,6 +1375,110 @@ class _PostEventState extends State<PostEvent>
                                         ]),
                                       )
                                     : Container(),
+                            CardPage.body(
+                              title: "Rounds",
+                              body: RowLayout(children: <Widget>[
+                                Row(children: <Widget>[
+                                  Transform.scale(
+                                    scale: 1.2,
+                                    child: Checkbox(
+                                      hoverColor:
+                                          Theme.of(context).primaryColor,
+                                      focusColor:
+                                          Theme.of(context).primaryColor,
+                                      value: hasRounds,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          hasRounds = value;
+                                        });
+                                      },
+                                      activeColor: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color
+                                          .withOpacity(0.2),
+                                      checkColor: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color,
+                                      tristate: false,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Event has Rounds',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16,
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .caption
+                                            .color
+                                            .withOpacity(0.9)),
+                                  ),
+                                ]),
+                                for (var i = 0; i < roundsUi.length; i++) ...[
+                                  ListTile(
+                                    title: Text(roundsUi[i].title),
+                                    subtitle: Text(roundsUi[i].description),
+                                    trailing: IconButton(
+                                      icon: Icon(Icons.close),
+                                      onPressed: () {
+                                        setState(() {
+                                          roundsUi.remove(roundsUi[i]);
+                                          rounds.removeAt(i);
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ],
+                                if (hasRounds) ...[
+                                  OutlinedIconButton(
+                                    text: 'Add Round ' +
+                                        ((rounds.length) + 1).toString(),
+                                    icon: Icons.add,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => EventRounds(
+                                                  title: ((rounds.length) + 1)
+                                                      .toString(),
+                                                  callBack: (Round round) {
+                                                    setState(() {
+                                                      rounds.add(<String,
+                                                          dynamic>{
+                                                        "title": round.title,
+                                                        "description":
+                                                            round.description,
+                                                        "start_date":
+                                                            round.startDate,
+                                                        "end_date":
+                                                            round.endDate,
+                                                        "link": round.link,
+                                                        "fields": round.fields
+                                                      });
+                                                    });
+                                                    setState(() {
+                                                      roundsUi.add(Round(
+                                                          title: round.title,
+                                                          description:
+                                                              round.description,
+                                                          startDate:
+                                                              round.startDate,
+                                                          endDate:
+                                                              round.endDate,
+                                                          link: round.link,
+                                                          fields:
+                                                              round.fields));
+                                                    });
+                                                  },
+                                                )),
+                                      );
+                                    },
+                                  ),
+                                ]
+                              ]),
+                            ),
                             CardPage.body(
                               title: "Payment",
                               body: RowLayout(children: <Widget>[
@@ -1725,17 +1844,6 @@ class _PostEventState extends State<PostEvent>
                                             .caption
                                             .color,
                                         decoration: InputDecoration(
-                                            suffixIcon: Padding(
-                                              padding: const EdgeInsets.only(
-                                                  right: 5),
-                                              child: InkWell(
-                                                onTap: () {},
-                                                child: Icon(
-                                                  Icons.content_paste,
-                                                  size: 25,
-                                                ),
-                                              ),
-                                            ),
                                             border: OutlineInputBorder(),
                                             labelText: "Registration Link"),
                                         maxLines: 5,
@@ -1763,7 +1871,11 @@ class _PostEventState extends State<PostEvent>
                                                 .color
                                                 .withOpacity(0.9)),
                                       ),
-                                      InkWell(
+                                      OutlinedIconButton(
+                                        text: reg_form.isNotEmpty
+                                            ? "Your Form"
+                                            : "Create Form",
+                                        icon: Icons.format_align_justify,
                                         onTap: () {
                                           var route = new MaterialPageRoute(
                                             builder: (BuildContext context) =>
@@ -1793,88 +1905,17 @@ class _PostEventState extends State<PostEvent>
                                           );
                                           Navigator.of(context).push(route);
                                         },
-                                        child: Container(
-                                          height: 40.0,
-                                          width: 170.0,
-                                          decoration: BoxDecoration(
-                                              border: Border.all(
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .caption
-                                                    .color,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(10.0)),
-                                          child: Center(
-                                            child: Row(
-                                              children: [
-                                                SizedBox(
-                                                  width: 10,
-                                                ),
-                                                Icon(Icons.edit, size: 25),
-                                                SizedBox(
-                                                  width: 10,
-                                                ),
-                                                AutoSizeText(
-                                                  reg_form.isNotEmpty
-                                                      ? "Your Form"
-                                                      : "Create Form",
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
                                       ),
                                     ]),
                                   )
                                 : Container(),
-                            Container(
-                                width: 200,
-                                height: 50,
-                                color: Theme.of(context).cardColor,
-                                margin: EdgeInsets.only(top: 10.0),
-                                child: RaisedButton(
-                                    color: Theme.of(context).cardColor,
-                                    child: AutoSizeText(
-                                      'Post Event',
-                                      style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    onPressed: () async {
-                                      if (_imageFile == null) {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              title: new Text("Post Event"),
-                                              content: new Text(
-                                                  "Event Poster can not be empty"),
-                                              actions: <Widget>[
-                                                new FlatButton(
-                                                  child: new Text("Ok"),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      } else {
-                                        SystemChannels.textInput
-                                            .invokeMethod('TextInput.hide');
-                                        post_event();
-                                      }
-                                    })),
+                            Acceptance(
+                                'By posting the event,I accept the ', false),
+                            // RButton('Post Event', 15, () {}),
                           ],
                         ),
                       ),
                     ),
-                    ////////////////////////////////////////////////////////////////////////////////////////////
                   ],
                 ),
               ),

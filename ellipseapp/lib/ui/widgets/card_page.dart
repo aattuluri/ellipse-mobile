@@ -8,6 +8,28 @@ class CardPage extends StatelessWidget {
 
   const CardPage(this.body);
 
+  factory CardPage.card({
+    Widget leading,
+    Widget subtitle,
+  }) {
+    return CardPage(
+      Row(
+        children: [
+          if (leading != null) leading,
+          Expanded(
+            child: RowLayout(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              space: 5,
+              children: <Widget>[
+                subtitle,
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   factory CardPage.header({
     Widget leading,
     Widget subtitle,
@@ -18,11 +40,10 @@ class CardPage extends StatelessWidget {
       RowLayout(children: <Widget>[
         Row(children: <Widget>[
           if (leading != null) leading,
-          Separator.spacer(space: 12),
           Expanded(
             child: RowLayout(
               crossAxisAlignment: CrossAxisAlignment.start,
-              space: 8,
+              space: 5,
               children: <Widget>[
                 Text(
                   title,

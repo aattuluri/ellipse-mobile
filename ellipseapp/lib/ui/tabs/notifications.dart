@@ -1,3 +1,4 @@
+import 'package:EllipseApp/providers/searchProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
@@ -12,76 +13,124 @@ class NotificationsTab extends StatefulWidget {
   _NotificationsTabState createState() => _NotificationsTabState();
 }
 
-class _NotificationsTabState extends State<NotificationsTab> {
+class _NotificationsTabState extends State<NotificationsTab>
+    with SingleTickerProviderStateMixin {
+  bool isSearching = false;
   @override
   void initState() {
-    context.read<NotificationsRepository>().refreshData();
     updateSeenNotifications(context);
     super.initState();
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Consumer<NotificationsRepository>(builder: (context, model, child) {
+    return Consumer2<NotificationsRepository, SearchProvider>(
+        builder: (context, notification, search, child) {
       return Scaffold(
-        appBar: AppBar(
-          iconTheme: Theme.of(context).iconTheme,
-          elevation: 5,
-          title: Text(
-            "Notifications",
-            style: TextStyle(color: Theme.of(context).textTheme.caption.color),
-          ),
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          actions: [
-            IconButton(
-                icon: Icon(
-                  LineIcons.refresh,
-                  color: Theme.of(context).textTheme.caption.color,
-                  size: 27,
+        appBar: isSearching
+            ? AppBar(
+                automaticallyImplyLeading: false,
+                title: SearchAppBar(
+                  hintText: 'Search',
+                  onChanged: (value) {
+                    Provider.of<SearchProvider>(context, listen: false)
+                        .changeSearchText(value);
+                  },
                 ),
-                onPressed: () {
-                  context.read<NotificationsRepository>().refreshData();
-                }),
-          ],
-          automaticallyImplyLeading: false,
-          centerTitle: true,
-        ),
-        body: model.allNotifications.isEmpty
-            ? EmptyData('No notifications', "You don't have notifications",
-                Icons.notifications_none)
-            : ListView(
-                physics: ClampingScrollPhysics(),
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                children: <Widget>[
-                  for (var i = 0; i < model.allNotifications.length; i++) ...[
-                    NotificationItem(
-                      num: model.allNotifications.length - i,
-                      status: model.allNotifications[i].status,
-                      onTap: () {
-                        final _event = context
-                            .read<EventsRepository>()
-                            .getEventIndex(model.allNotifications[i].event_id);
-                        final Events event_ =
-                            context.read<EventsRepository>().getEvent(_event);
-                        if (_event.toString().validNumeric()) {
-                          Navigator.pushNamed(context, Routes.info_page,
-                              arguments: {
-                                'index': _event,
-                                'type': 'user',
-                                'event_': event_
-                              });
-                        }
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                centerTitle: true,
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Provider.of<SearchProvider>(context, listen: false)
+                            .reset();
+                        setState(() {
+                          isSearching = false;
+                        });
                       },
-                      time: model.allNotifications[i].time
-                          .toString()
-                          .toDate(context),
-                      title: model.allNotifications[i].title,
-                      description: model.allNotifications[i].description,
-                    )
-                  ]
+                      child: Text('Cancel'))
                 ],
+              )
+            : AppBar(
+                iconTheme: Theme.of(context).iconTheme,
+                elevation: 5,
+                title: Text(
+                  "Notifications",
+                  style: TextStyle(
+                      color: Theme.of(context).textTheme.caption.color),
+                ),
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                actions: [
+                  IconButton(
+                      icon: Icon(
+                        LineIcons.refresh,
+                      ),
+                      onPressed: () {
+                        context.read<NotificationsRepository>().refreshData();
+                      }),
+                  IconButton(
+                    icon: Icon(
+                      Icons.search,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        isSearching = true;
+                      });
+                    },
+                  ),
+                ],
+                automaticallyImplyLeading: false,
+                centerTitle: true,
               ),
+        body: notification.isLoading || notification.loadingFailed
+            ? LoaderCircular("Loading Notifications")
+            : notification.allNotifications.isEmpty
+                ? EmptyData('No notifications', "You don't have notifications",
+                    Icons.notifications_none)
+                : ListView(
+                    physics: ClampingScrollPhysics(),
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    children: <Widget>[
+                      for (var i = 0;
+                          i < notification.allNotifications.length;
+                          i++) ...[
+                        if (!isSearching ||
+                            notification.allNotifications[i].title
+                                .toLowerCase()
+                                .contains(search.searchText
+                                    .toLowerCase()
+                                    .trim())) ...[
+                          NotificationItem(
+                            num: notification.allNotifications.length - i,
+                            status: notification.allNotifications[i].status,
+                            onTap: () {
+                              final Events _event = context
+                                  .read<EventsRepository>()
+                                  .event(
+                                      notification.allNotifications[i].eventId);
+                              Navigator.pushNamed(context, Routes.info_page,
+                                  arguments: {
+                                    'type': 'user',
+                                    'event_': _event
+                                  });
+                            },
+                            time: notification.allNotifications[i].time
+                                .toString()
+                                .toDate(context),
+                            title: notification.allNotifications[i].title,
+                            description:
+                                notification.allNotifications[i].description,
+                          )
+                        ]
+                      ]
+                    ],
+                  ),
       );
     });
   }

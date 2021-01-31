@@ -1,16 +1,16 @@
 class Url {
   /////STAGING//////
 
-  //static String URL = "https://staging.ellipseapp.com";
-  //static String WEBSOCKET_URL = "wss://staging.ellipseapp.com/ws";
-  //static String DYNAMIC_LINK_REMOVE =
-  //"https://staging.ellipseapp.com/un/event/";
+  static String URL = "https://staging.ellipseapp.com";
+  static String WEBSOCKET_URL = "wss://staging.ellipseapp.com/ws";
+  static String DYNAMIC_LINK_REMOVE =
+      "https://staging.ellipseapp.com/un/event/";
 
   /////PRODUCTION/////
 
-  static String URL = "https://ellipseapp.com";
-  static String WEBSOCKET_URL = "wss://ellipseapp.com/ws";
-  static String DYNAMIC_LINK_REMOVE = "https://ellipseapp.com/un/event/";
+  //static String URL = "https://ellipseapp.com";
+  //static String WEBSOCKET_URL = "wss://ellipseapp.com/ws";
+  //static String DYNAMIC_LINK_REMOVE = "https://ellipseapp.com/un/event/";
 
   /////LOCALHOST/////
 /*

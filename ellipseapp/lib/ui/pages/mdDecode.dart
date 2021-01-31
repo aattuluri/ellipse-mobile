@@ -69,7 +69,7 @@ class _MdDecodeState extends State<MdDecode> {
         centerTitle: true,
       ),
       body: isLoading
-          ? LoaderCircular(0.25, 'Loading')
+          ? LoaderCircular('Loading')
           : Markdown(
               data: data,
               styleSheet:

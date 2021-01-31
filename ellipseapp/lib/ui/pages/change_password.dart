@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../providers/index.dart';
 import '../../util/index.dart';
 import '../screens/index.dart';
 import '../widgets/index.dart';
@@ -23,13 +21,7 @@ class _ChangePasswordState extends State<ChangePassword>
   String opassword = "", npassword = "";
 
   forgot_password() async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    Map<String, String> headers = {
-      HttpHeaders.authorizationHeader: "Bearer $prefToken",
-      HttpHeaders.contentTypeHeader: "application/json"
-    };
-    var response =
-        await http.post("${Url.URL}/api/users/logout", headers: headers);
+    var response = await httpPostWithHeaders("${Url.URL}/api/users/logout", '');
     resetPref();
     var route = new MaterialPageRoute(
         builder: (BuildContext context) => ResetPassword("enter_email"));
@@ -40,20 +32,14 @@ class _ChangePasswordState extends State<ChangePassword>
     setState(() {
       isloading = true;
     });
-    http.Response response1 = await http.post(
+    var response1 = await httpPostWithHeaders(
       '${Url.URL}/api/users/updatepassword',
-      headers: <String, String>{
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $prefToken'
-      },
-      body: jsonEncode(<dynamic, dynamic>{
+      jsonEncode(<dynamic, dynamic>{
         'email': prefEmail,
         'cPassword': '$opassword',
         'nPassword': '$npassword'
       }),
     );
-    print('Response status: ${response1.statusCode}');
-    print('Response body: ${response1.body}');
     if (response1.statusCode == 200) {
       setState(() {
         isloading = false;
@@ -81,7 +67,7 @@ class _ChangePasswordState extends State<ChangePassword>
   @override
   Widget build(BuildContext context) {
     return isloading
-        ? LoaderCircular(0.25, 'Updating')
+        ? LoaderCircular('Updating')
         : SafeArea(
             child: Scaffold(
               appBar: AppBar(
@@ -139,36 +125,15 @@ class _ChangePasswordState extends State<ChangePassword>
                         SizedBox(
                           height: 20,
                         ),
-                        Container(
-                            width: 200,
-                            height: 50,
-                            margin: EdgeInsets.only(top: 10.0),
-                            child: RaisedButton(
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .caption
-                                  .color
-                                  .withOpacity(0.3),
-                              onPressed: () {
-                                setState(() {
-                                  isloading = true;
-                                });
-                                change_password1(opassword, npassword);
-                                setState(() {
-                                  isloading = false;
-                                });
-                              },
-                              child: Text(
-                                'Change',
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .caption
-                                        .color,
-                                    fontSize: 22.0,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            )),
+                        RButton('Save', 13, () {
+                          setState(() {
+                            isloading = true;
+                          });
+                          change_password1(opassword, npassword);
+                          setState(() {
+                            isloading = false;
+                          });
+                        }),
                         SizedBox(height: 20),
                         Center(
                           child: FlatButton(

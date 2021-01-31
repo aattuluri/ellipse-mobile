@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class CreateRegFormTile extends StatelessWidget {
+class DynamicFormTile extends StatelessWidget {
   final String text1, text2;
   final IconData icon;
   final Function onTap;
-  const CreateRegFormTile(this.icon, this.text1, this.text2, this.onTap);
+  const DynamicFormTile(this.icon, this.text1, this.text2, this.onTap);
 
   @override
   Widget build(BuildContext context) {

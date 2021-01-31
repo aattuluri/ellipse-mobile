@@ -1,5 +1,5 @@
 export 'calendar.dart';
+export 'chat.dart';
 export 'home.dart';
-export 'menu_drawer.dart';
 export 'notifications.dart';
 export 'profile.dart';

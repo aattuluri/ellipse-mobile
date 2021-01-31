@@ -48,7 +48,7 @@ Future generalDialog(BuildContext context,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       barrierColor: Colors.black54,
       transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (context, animaiton, secondaryAnimation) =>
+      pageBuilder: (context, animation, secondaryAnimation) =>
           AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle(
           statusBarIconBrightness: Brightness.light,
@@ -81,37 +81,42 @@ Future generalSheet(BuildContext context, {Widget child, String title}) async =>
       context: context,
       builder: (context) {
         final statusHeight = MediaQuery.of(context).padding.top;
-        return SafeArea(
-          child: ConstrainedBox(
-            constraints:
-                BoxConstraints(maxHeight: context.height - statusHeight - 80),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  height: 4,
-                  width: 25,
-                  margin: EdgeInsets.only(top: 10.0, bottom: 2.0),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(2.0),
-                      color: Theme.of(context)
-                          .textTheme
-                          .caption
-                          .color
-                          .withOpacity(0.3)),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(
-                      left: 50, right: 50, top: 6.0, bottom: 15),
-                  child: Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.clip,
+        return AnimatedPadding(
+          padding: MediaQuery.of(context).viewInsets,
+          duration: const Duration(milliseconds: 5),
+          curve: Curves.decelerate,
+          child: SafeArea(
+            child: ConstrainedBox(
+              constraints:
+                  BoxConstraints(maxHeight: context.height - statusHeight - 80),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 4,
+                    width: 25,
+                    margin: EdgeInsets.only(top: 10.0, bottom: 2.0),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(2.0),
+                        color: Theme.of(context)
+                            .textTheme
+                            .caption
+                            .color
+                            .withOpacity(0.3)),
                   ),
-                ),
-                Flexible(child: SingleChildScrollView(child: child)),
-              ],
+                  Padding(
+                    padding: EdgeInsets.only(
+                        left: 50, right: 50, top: 6.0, bottom: 15),
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.clip,
+                    ),
+                  ),
+                  Flexible(child: SingleChildScrollView(child: child)),
+                ],
+              ),
             ),
           ),
         );

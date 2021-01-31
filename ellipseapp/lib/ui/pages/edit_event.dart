@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -14,14 +13,15 @@ import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
 
 import '../../models/index.dart';
+import '../../providers/index.dart';
 import '../../repositories/index.dart';
 import '../../util/index.dart';
 import '../widgets/index.dart';
 
 class EditEvent extends StatefulWidget {
-  final int index;
+  final String id;
 
-  const EditEvent(this.index);
+  const EditEvent(this.id);
   @override
   _EditEventState createState() => _EditEventState();
 }
@@ -40,21 +40,11 @@ class _EditEventState extends State<EditEvent> {
   String payment_type = "";
   String _college;
   String _venueType;
-  String event_type;
   String theme;
   String requirement;
   String reg_mode;
   String selected = "";
   final _picker = ImagePicker();
-
-  Future<List> getData() async {
-    final response = await http.get("${Url.URL}/api/colleges");
-    var resBody = json.decode(response.body.toString());
-
-    setState(() {
-      colleges = resBody;
-    });
-  }
 
   @override
   // To store the file provided by the image_picker
@@ -65,8 +55,6 @@ class _EditEventState extends State<EditEvent> {
 
   void _getImage(BuildContext context, ImageSource source) async {
     final pickedFile = await _picker.getImage(source: source, imageQuality: 70);
-    // final File file = File(pickedFile.path);
-
     setState(() {
       _imageFile = File(pickedFile.path);
     });
@@ -79,7 +67,7 @@ class _EditEventState extends State<EditEvent> {
   var _aboutController = new TextEditingController();
   var _start_timeController = new TextEditingController();
   var _finish_timeController = new TextEditingController();
-  var _event_typeController = new TextEditingController();
+  var _eventTypeController = new TextEditingController();
   var _reg_last_dateController = new TextEditingController();
   var _reg_linkController = new TextEditingController();
   var _event_modeController = new TextEditingController();
@@ -141,6 +129,7 @@ class _EditEventState extends State<EditEvent> {
     if (_nameController.text.isNullOrEmpty() ||
         _descriptionController.text.isNullOrEmpty() ||
         _aboutController.text.isNullOrEmpty() ||
+        _eventTypeController.text.isNullOrEmpty() ||
         //isEmptyList(selected_requirements) ||
         //isEmptyList(selected_themes) ||
         _start_timeController.text.isNullOrEmpty() ||
@@ -174,15 +163,10 @@ class _EditEventState extends State<EditEvent> {
       String e_m = event_mode != "" ? event_mode : _event_modeController.text;
       String p_t =
           payment_type != "" ? payment_type : _payment_typeController.text;
-      String e_t = event_type == null ? _event_typeController.text : event_type;
       bool o_a = o_allowed == null ? o_allowed_ : o_allowed;
-      var response = await http.post(
+      var response = await httpPostWithHeaders(
         '${Url.URL}/api/updateevent',
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $prefToken'
-        },
-        body: jsonEncode(<String, dynamic>{
+        jsonEncode(<String, dynamic>{
           "eventId": id,
           "name": _nameController.text,
           "description": _descriptionController.text,
@@ -193,7 +177,7 @@ class _EditEventState extends State<EditEvent> {
           "registration_end_time":
               DateTime.parse(_reg_last_dateController.text).toUtc().toString(),
           "event_mode": "$e_m",
-          "event_type": "$e_t",
+          "event_type": _eventTypeController.text,
           "reg_link": _reg_linkController.text,
           "fee": _registration_feeController.text.toString(),
           "platform_details": _platform_detailsController.text,
@@ -207,7 +191,6 @@ class _EditEventState extends State<EditEvent> {
           "venue": _venueController.text,
         }),
       );
-      var jsonResponse = json.decode(response.body);
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
       if (response.statusCode == 200) {
@@ -268,51 +251,53 @@ class _EditEventState extends State<EditEvent> {
     setState(() {
       _isUploading = false;
     });
-    context.read<EventsRepository>().refreshData();
+    context.read<EventsRepository>().init();
     Navigator.of(context).pop(true);
     messageDialog(context, 'Event Updated successfully');
+  }
+
+  loadFields() async {
+    final Events _event = context.read<EventsRepository>().event(widget.id);
+    _nameController = TextEditingController(text: _event.name);
+    _descriptionController =
+        new TextEditingController(text: _event.description);
+    _aboutController = new TextEditingController(text: _event.about);
+    _eventTypeController = new TextEditingController(text: _event.eventType);
+    _start_timeController =
+        new TextEditingController(text: _event.startTime.toString());
+    _finish_timeController =
+        new TextEditingController(text: _event.finishTime.toString());
+    _reg_last_dateController =
+        new TextEditingController(text: _event.regLastDate.toString());
+    _reg_linkController = new TextEditingController(text: _event.regLink);
+    _registration_feeController =
+        new TextEditingController(text: _event.registrationFee);
+    _venueController = new TextEditingController(text: _event.venue);
+    _platform_detailsController =
+        new TextEditingController(text: _event.platformDetails);
+
+    _event_modeController = new TextEditingController(text: _event.eventMode);
+    _payment_typeController =
+        new TextEditingController(text: _event.paymentType);
+    this.setState(() => selected_requirements = _event.requirements);
+    this.setState(() => selected_themes = _event.tags);
   }
 
   @override
   void initState() {
     loadPref();
-    getData();
+    loadFields();
     super.initState();
   }
 
   final format = DateFormat("yyyy-MM-dd HH:mm ");
   @override
   Widget build(BuildContext context) {
-    final Events _event =
-        context.watch<EventsRepository>().getEvent(widget.index);
-    _nameController = TextEditingController(text: _event.name);
-    _descriptionController =
-        new TextEditingController(text: _event.description);
-    _aboutController = new TextEditingController(text: _event.about);
-    _event_typeController = new TextEditingController(text: _event.event_type);
-    _start_timeController =
-        new TextEditingController(text: _event.start_time.toString());
-    _finish_timeController =
-        new TextEditingController(text: _event.finish_time.toString());
-    _reg_last_dateController =
-        new TextEditingController(text: _event.reg_last_date.toString());
-    _reg_linkController = new TextEditingController(text: _event.reg_link);
-    _registration_feeController =
-        new TextEditingController(text: _event.registration_fee);
-    _venueController = new TextEditingController(text: _event.venue);
-    _platform_detailsController =
-        new TextEditingController(text: _event.platform_details);
-
-    _event_modeController = new TextEditingController(text: _event.event_mode);
-    _payment_typeController =
-        new TextEditingController(text: _event.payment_type);
-    this.setState(() => selected_requirements = _event.requirements);
-    this.setState(() => selected_themes = _event.tags);
-
+    final Events _event = context.watch<EventsRepository>().event(widget.id);
     return _isUploading
-        ? LoaderCircular(0.25, "Uploading")
+        ? LoaderCircular("Uploading")
         : Consumer<DataRepository>(
-            builder: (context, model, child) => Container(
+            builder: (context, data, child) => Container(
               height: double.infinity,
               width: double.infinity,
               color: Theme.of(context).scaffoldBackgroundColor,
@@ -425,36 +410,33 @@ class _EditEventState extends State<EditEvent> {
                                   labelText: "About"),
                               maxLines: 6,
                             ),
-                            FormField(
-                              builder: (FormFieldState state) {
-                                return InputDecorator(
-                                  decoration: InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      labelText: "Event Type"),
-                                  child: new DropdownButtonHideUnderline(
-                                    child: new DropdownButton(
-                                      hint: Text(_event.event_type),
-                                      isExpanded: true,
-                                      value: event_type,
-                                      isDense: true,
-                                      items: model.eventTypes
-                                          .map((value) => DropdownMenuItem(
-                                                child: Text(value),
-                                                value: value,
-                                              ))
-                                          .toList(),
-                                      onChanged: (newValue) {
+                            TextFormField(
+                                controller: _eventTypeController,
+                                readOnly: true,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).textTheme.caption.color,
+                                ),
+                                decoration: InputDecoration(
+                                    suffixIcon:
+                                        Icon(Icons.arrow_drop_down_sharp),
+                                    border: OutlineInputBorder(),
+                                    labelText: "Event Type",
+                                    hintText: 'Select Event Type'),
+                                onTap: () {
+                                  showDropdownSearchDialog(
+                                      context: context,
+                                      items: data.eventTypesData,
+                                      addEnabled: false,
+                                      onChanged: (String key, String value) {
                                         setState(() {
-                                          event_type = newValue;
-                                          state.didChange(newValue);
+                                          _eventTypeController =
+                                              TextEditingController(
+                                                  text: value);
+                                          //_eventTypeController.text = text;
                                         });
-                                      },
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-
+                                      });
+                                }),
                             /*FormField(
                               builder: (FormFieldState state) {
                                 return InputDecorator(
@@ -514,7 +496,7 @@ class _EditEventState extends State<EditEvent> {
                                       focusColor:
                                           Theme.of(context).primaryColor,
                                       value: o_allowed == null
-                                          ? _event.o_allowed
+                                          ? _event.oAllowed
                                           : o_allowed,
                                       onChanged: (value) {
                                         setState(() {
@@ -553,7 +535,7 @@ class _EditEventState extends State<EditEvent> {
                                       focusColor:
                                           Theme.of(context).primaryColor,
                                       value: o_allowed == null
-                                          ? !_event.o_allowed
+                                          ? !_event.oAllowed
                                           : !o_allowed,
                                       onChanged: (value) {
                                         setState(() {
@@ -588,7 +570,7 @@ class _EditEventState extends State<EditEvent> {
                           ]),
                         ),
                         CardPage.body(
-                          title: "Requirements",
+                          title: "Prerequisites",
                           body: RowLayout(
                             children: <Widget>[
                               Container(
@@ -662,83 +644,15 @@ class _EditEventState extends State<EditEvent> {
                               ),
                               InkWell(
                                   onTap: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (_) => RoundDialog(
-                                        title: "Add Requirement",
-                                        children: <Widget>[
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 5),
-                                            child: Column(
-                                              children: [
-                                                TextField(
-                                                  autocorrect: false,
-                                                  decoration: InputDecoration(
-                                                    suffixIcon: InkWell(
-                                                      onTap: () {
-                                                        this.setState(() =>
-                                                            selected_requirements
-                                                                .add(selected
-                                                                    .toString()));
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: Icon(Icons.add,
-                                                          size: 25),
-                                                    ),
-                                                    labelText:
-                                                        "Add Requirement",
-                                                    hintText:
-                                                        "add your own requirement",
-                                                  ),
-                                                  onChanged: (value) {
-                                                    selected = value;
-                                                  },
-                                                ),
-                                                SizedBox(
-                                                  height: 10,
-                                                ),
-                                                Text(
-                                                    "Select requirements from below list"),
-                                                Column(
-                                                  children: model.requirements
-                                                      .map((item) {
-                                                    return InkWell(
-                                                      onTap: () {
-                                                        this.setState(() =>
-                                                            selected_requirements
-                                                                .add(item
-                                                                    .toString()));
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: Column(
-                                                        children: [
-                                                          Center(
-                                                            child: Padding(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                          .symmetric(
-                                                                      vertical:
-                                                                          10),
-                                                              child: new Text(
-                                                                item,
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        20),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    );
-                                                  }).toList(),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
+                                    showDropdownSearchDialog(
+                                        context: context,
+                                        items: data.requirementsData,
+                                        addEnabled: true,
+                                        onChanged: (String key, String value) {
+                                          this.setState(() =>
+                                              selected_requirements
+                                                  .add(value.toString()));
+                                        });
                                   },
                                   child: Container(
                                     decoration: BoxDecoration(
@@ -833,81 +747,14 @@ class _EditEventState extends State<EditEvent> {
                               ),
                               InkWell(
                                   onTap: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (_) => RoundDialog(
-                                        title: "Add Tag",
-                                        children: <Widget>[
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 5),
-                                            child: Column(
-                                              children: [
-                                                TextField(
-                                                  autocorrect: false,
-                                                  decoration: InputDecoration(
-                                                    suffixIcon: InkWell(
-                                                      onTap: () {
-                                                        this.setState(() =>
-                                                            selected_themes.add(
-                                                                selected
-                                                                    .toString()));
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: Icon(Icons.add,
-                                                          size: 25),
-                                                    ),
-                                                    labelText: "Add Tag",
-                                                    hintText:
-                                                        "add your own tag",
-                                                  ),
-                                                  onChanged: (value) {
-                                                    selected = value;
-                                                  },
-                                                ),
-                                                SizedBox(
-                                                  height: 10,
-                                                ),
-                                                Text(
-                                                    "Select tags from below list"),
-                                                Column(
-                                                  children:
-                                                      model.tags.map((item) {
-                                                    return InkWell(
-                                                      onTap: () {
-                                                        this.setState(() =>
-                                                            selected_themes.add(
-                                                                item.toString()));
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: Column(
-                                                        children: [
-                                                          Center(
-                                                            child: Padding(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                          .symmetric(
-                                                                      vertical:
-                                                                          10),
-                                                              child: new Text(
-                                                                item,
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        20),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    );
-                                                  }).toList(),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
+                                    showDropdownSearchDialog(
+                                        context: context,
+                                        items: data.tagsData,
+                                        addEnabled: true,
+                                        onChanged: (String key, String value) {
+                                          this.setState(() => selected_themes
+                                              .add(value.toString()));
+                                        });
                                   },
                                   child: Container(
                                     decoration: BoxDecoration(
@@ -1323,7 +1170,7 @@ class _EditEventState extends State<EditEvent> {
                             ],
                           ),
                         ),
-                        _event.reg_mode == "link"
+                        _event.regMode == "link"
                             ? CardPage.body(
                                 title: "Event Registration Link",
                                 body: RowLayout(children: <Widget>[
@@ -1348,27 +1195,13 @@ class _EditEventState extends State<EditEvent> {
                                 ]),
                               )
                             : Container(),
-                        Container(
-                          width: 200,
-                          height: 50,
-                          margin: EdgeInsets.only(top: 10.0),
-                          child: RaisedButton(
-                            child: Text(
-                              'Save',
-                              style: TextStyle(
-                                  color:
-                                      Theme.of(context).textTheme.caption.color,
-                                  fontSize: 22.0,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            onPressed: () {
-                              edit_event(_event.id, _event.o_allowed,
-                                  _event.venueType);
-                            },
-                            color: Theme.of(context).cardColor,
-                            textColor:
-                                Theme.of(context).textTheme.caption.color,
-                          ),
+                        RButton(
+                          "Save",
+                          15,
+                          () {
+                            edit_event(_event.eventId, _event.oAllowed,
+                                _event.venueType);
+                          },
                         ),
                         SizedBox(height: 25)
                       ],

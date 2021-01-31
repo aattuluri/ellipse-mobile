@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -28,7 +29,6 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
   // Settings indexes
   Themes _themeIndex;
   logout() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
     Map<String, String> headers = {
       HttpHeaders.authorizationHeader: "Bearer $prefToken",
       HttpHeaders.contentTypeHeader: "application/json"
@@ -38,7 +38,6 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
   }
 
   logoutofAll() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
     Map<String, String> headers = {
       HttpHeaders.authorizationHeader: "Bearer $prefToken",
       HttpHeaders.contentTypeHeader: "application/json"
@@ -182,21 +181,17 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        _feedbackItem(Icons.message, "Give Feedback", () {
+                        BottomSheetItem("Give Feedback", Icons.message, () {
                           Navigator.pushNamed(context, Routes.help_support);
                         }),
                         Divider(height: 1),
-                        _feedbackItem(LineIcons.whatsapp, "Join Whatsapp", () {
+                        BottomSheetItem("Join Whatsapp", LineIcons.whatsapp,
+                            () {
                           'https://chat.whatsapp.com/FO8wG0wtNJCCHCdjDIrwIf'
                               .launchUrl;
                         }),
-                        /*Divider(height: 1),
-                        _feedbackItem(Icons.mail_outline, "Mail Us", () {
-                          'mailto:support@ellipseapp.com?subject=Feedback'
-                              .launchUrl;
-                        }),*/
                         Divider(height: 1),
-                        _feedbackItem(LineIcons.star_o, "Rate on Play Store",
+                        BottomSheetItem("Rate on Play Store", LineIcons.star_o,
                             () {
                           'https://play.google.com/store/apps/details?id=com.ellipse.ellipseapp'
                               .launchUrl;
@@ -233,6 +228,19 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
                 onTap: () {
                   Navigator.pushNamed(context, Routes.intro);
                 }),
+            ListCell.icon(
+                icon: Icons.clear_all,
+                title: "Clear Feature Discovery",
+                subtitle: "Clear Feature Discovery History",
+                onTap: () async {
+                  FeatureDiscovery.clearPreferences(context, <String>{
+                    homeTabEventsSearch,
+                    homeTabEventsFilter,
+                    infoPageSliderMenu,
+                    profileTabSettings,
+                    homeTabPostEvent
+                  });
+                }),
             Center(
               child: OutlineButton(
                 onPressed: () {
@@ -262,15 +270,6 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
             SizedBox(
               height: 5,
             ),
-            /*ListCell.icon(
-                icon: Icons.share,
-                title: "Test",
-                subtitle: "Test",
-                onTap: () async {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => TestScreen()));
-                }),
-            */
           ],
         ),
       );
@@ -291,16 +290,4 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
     // Hides dialog
     Navigator.of(context).pop();
   }
-
-  Widget _feedbackItem(IconData icon, String name, Function onTap) => ListTile(
-        onTap: onTap,
-        contentPadding: EdgeInsets.symmetric(horizontal: 30),
-        leading: Icon(
-          icon,
-        ),
-        title: Text(
-          name,
-          maxLines: 1,
-        ),
-      );
 }
