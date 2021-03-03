@@ -45,11 +45,11 @@ class RButton extends StatelessWidget {
   }
 }
 
-class OutlinedButton extends StatelessWidget {
+class OutlinedTextButton extends StatelessWidget {
   final String text;
   final Function onTap;
 
-  const OutlinedButton(this.text, this.onTap);
+  const OutlinedTextButton(this.text, this.onTap);
 
   @override
   Widget build(BuildContext context) {

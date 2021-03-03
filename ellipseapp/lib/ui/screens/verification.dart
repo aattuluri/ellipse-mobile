@@ -31,8 +31,6 @@ class OtpPageEmailVerifyState extends State<OtpPageEmailVerify>
   TextEditingController controller2 = new TextEditingController();
   TextEditingController controller3 = new TextEditingController();
   TextEditingController controller4 = new TextEditingController();
-  //TextEditingController controller5 = new TextEditingController();
-  //TextEditingController controller6 = new TextEditingController();
 
   TextEditingController currController = new TextEditingController();
   void loadingTrue() {
@@ -616,18 +614,11 @@ class _CheckState extends State<Check> {
   bool isLoading = false;
   String _college;
   String image_url;
-//  String designation, bio;
   var _designationController = new TextEditingController();
   var _bioController = new TextEditingController();
   var _collegeNameController = new TextEditingController();
   bool male = false;
   bool female = false;
-  final List<String> _designations = [
-    "Student",
-    "Faculty",
-    "Club",
-    "Institution"
-  ];
   next() async {
     String gender = male
         ? "Male"

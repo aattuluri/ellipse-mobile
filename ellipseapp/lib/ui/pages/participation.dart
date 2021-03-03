@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
 import 'dart:ui';
@@ -8,7 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:row_collection/row_collection.dart';
-import 'package:web_socket_channel/io.dart';
+
+//import 'package:web_socket_channel/io.dart';
 
 import '../../models/index.dart';
 import '../../providers/index.dart';
@@ -25,8 +25,6 @@ class Participation extends StatefulWidget {
 
 class _ParticipationState extends State<Participation>
     with TickerProviderStateMixin {
-  Timer timer;
-  IOWebSocketChannel channel;
   TabController tabController;
   final List tabs = [
     IconTab(name: "Team", icon: Icons.people_outline),
@@ -35,7 +33,6 @@ class _ParticipationState extends State<Participation>
   bool isLoading = false;
   bool inTeam = false;
   bool isAdmin = false;
-  ScrollController scrollController;
   Registrations reg;
   Teams team;
   List<Teams> availableTeams = [];
@@ -290,6 +287,11 @@ class _ParticipationState extends State<Participation>
                                   '${availableTeams[i].name}',
                               1,
                               ToastGravity.CENTER);
+                        } else if (availableTeams[i].members.length >=
+                            (double.parse(widget.event_.parseTeamSize().maxSize)
+                                .toInt())) {
+                          flutterToast(context, 'Already team filled', 1,
+                              ToastGravity.CENTER);
                         } else {
                           setState(() {
                             isLoading = true;
@@ -302,6 +304,31 @@ class _ParticipationState extends State<Participation>
                             }),
                           );
                           if (response4.statusCode == 200) {
+                            String userId=prefId;
+                            sockets.send(json.encode({
+                              'action': "team_status_update_status",
+                              'team_id': availableTeams[i].teamId,
+                              'users': availableTeams[i].members,
+                              'msg': {
+                                'user_id': '$userId',
+                              }
+                            }));
+                            String datetime =
+                                DateTime.now().toIso8601String().toString();
+                            sockets.send(json.encode({
+                              'action': "team_status_update_message",
+                              'team_id': availableTeams[i].teamId,
+                              'msg': {
+                                'id': datetime,
+                                'user_id': prefId,
+                                'user_name': '',
+                                'user_pic': '',
+                                'message_type': 'team_status_update_message',
+                                'message': prefName +
+                                    " has requested to join the team",
+                                'date': datetime
+                              }
+                            }));
                             loadTeams();
                             setState(() {
                               isLoading = false;
@@ -324,40 +351,36 @@ class _ParticipationState extends State<Participation>
 
   webSocketConnect() async {
     SystemChannels.textInput.invokeMethod('TextInput.hide');
-    channel = IOWebSocketChannel.connect('${Url.WEBSOCKET_URL}');
-    print(channel.toString());
     String userId = prefId;
-    channel.sink.add(json.encode({
+    sockets.send(json.encode({
       'action': "join_team_update_status",
-      //'event_id': widget.id,
       'msg': {
         'user_id': '$userId',
       }
     }));
+  }
 
-    channel.stream.listen((data) {
-      var response = json.decode(data);
-      print(data.toString());
-      dynamic msg = response['msg'];
-      String action = response['action'];
-      if (action == "receive_event_chat_message") {
-      } else {}
-    });
+  onMessage(String data) async {
+    var response = json.decode(data);
+    print(data.toString());
+    dynamic msg = response['msg'];
+    String action = response['action'];
+    if (action == "receive_team_update_message") {
+      loadTeams();
+    } else {}
   }
 
   load() async {
     setState(() {
       isLoading = true;
     });
-    await webSocketConnect();
     await loadTeams();
+    await webSocketConnect();
     setState(() {
       isLoading = false;
     });
-
-    timer =
-        Timer.periodic(Duration(seconds: 500), (Timer t) => webSocketConnect());
   }
+
 
   @override
   void initState() {
@@ -367,7 +390,21 @@ class _ParticipationState extends State<Participation>
       vsync: this,
     );
     load();
+    sockets.addListener(onMessage);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    String userId = prefId;
+    sockets.send(json.encode({
+      'action': "close_team_update_status_socket",
+      'msg': {
+        'user_id': '$userId',
+      }
+    }));
+    sockets.removeListener(onMessage);
+    super.dispose();
   }
 
   @override
@@ -495,7 +532,16 @@ class _ParticipationState extends State<Participation>
                                           setState(() {
                                             inTeam = false;
                                           });
-                                          loadTeams();
+                                          String userId=prefId;
+                                          sockets.send(json.encode({
+                                            'action': "team_status_update_status",
+                                            'team_id': team.teamId,
+                                            'users': team.members,
+                                            'msg': {
+                                              'user_id': '$userId',
+                                            }
+                                          }));
+                                          //loadTeams();
                                           setState(() {});
                                         } else {}
                                       }),
@@ -544,7 +590,23 @@ class _ParticipationState extends State<Participation>
                                               }),
                                             );
                                             if (response4.statusCode == 200) {
-                                              loadTeams();
+                                              String userId=prefId;
+                                              List<dynamic> members=team.members;
+                                              setState(() {
+                                                members.add('${requestedMembers[i].id}');
+                                              });
+                                              sockets.send(json.encode({
+                                                'action': "team_status_update_status",
+                                                'team_id': team.teamId,
+                                                'users': members,
+                                                'msg': {
+                                                  'user_id': '$userId',
+                                                }
+                                              }));
+                                              setState(() {
+                                                isLoading = false;
+                                              });
+                                             // loadTeams();
                                             }
                                           }),
                                           subtitle: Text(
@@ -629,7 +691,7 @@ class _ParticipationState extends State<Participation>
                                                 'Leave', CupertinoIcons.minus,
                                                 () async {
                                                 setState(() {
-                                                  isLoading = true;
+                                                  //isLoading = true;
                                                 });
                                                 var response6 =
                                                     await httpPostWithHeaders(
@@ -642,7 +704,40 @@ class _ParticipationState extends State<Participation>
                                                 );
                                                 if (response6.statusCode ==
                                                     200) {
-                                                  loadTeams();
+                                                  String userId=prefId;
+                                                  sockets.send(json.encode({
+                                                    'action': "team_status_update_status",
+                                                    'team_id': team.teamId,
+                                                    'users': team.members,
+                                                    'msg': {
+                                                      'user_id': '$userId',
+                                                    }
+                                                  }));
+                                                  String datetime =
+                                                      DateTime.now()
+                                                          .toIso8601String()
+                                                          .toString();
+                                                  sockets.send(json.encode({
+                                                    'action':
+                                                        "team_status_update_message",
+                                                    'team_id': team.teamId,
+                                                    'users': team.members,
+                                                    'msg': {
+                                                      'id': datetime,
+                                                      'user_id': prefId,
+                                                      'user_name': '',
+                                                      'user_pic': '',
+                                                      'message_type':
+                                                          'team_status_update_message',
+                                                      'message': prefName +
+                                                          " has left the team",
+                                                      'date': datetime
+                                                    }
+                                                  }));
+                                                  setState(() {
+                                                    isLoading = false;
+                                                  });
+                                                  //loadTeams();
                                                 }
                                               })
                                             : teamMembers[i].id != prefId &&
@@ -667,7 +762,42 @@ class _ParticipationState extends State<Participation>
                                                     );
                                                     if (response6.statusCode ==
                                                         200) {
-                                                      loadTeams();
+                                                      String userId=prefId;
+                                                      sockets.send(json.encode({
+                                                        'action': "team_status_update_status",
+                                                        'team_id': team.teamId,
+                                                        'users': team.members,
+                                                        'msg': {
+                                                          'user_id': '$userId',
+                                                        }
+                                                      }));
+                                                      String datetime =
+                                                          DateTime.now()
+                                                              .toIso8601String()
+                                                              .toString();
+                                                      sockets.send(json.encode({
+                                                        'action':
+                                                            "team_status_update_message",
+                                                        'team_id': team.teamId,
+                                                        'users': team.members,
+                                                        'msg': {
+                                                          'id': datetime,
+                                                          'user_id': prefId,
+                                                          'user_name': '',
+                                                          'user_pic': '',
+                                                          'message_type':
+                                                              'team_status_update_message',
+                                                          'message': teamMembers[
+                                                                      i]
+                                                                  .name +
+                                                              " was removed from team",
+                                                          'date': datetime
+                                                        }
+                                                      }));
+                                                      setState(() {
+                                                        isLoading = false;
+                                                      });
+                                                      //loadTeams();
                                                     }
                                                   })
                                                 : SizedBox.shrink(),
@@ -741,7 +871,22 @@ class _ParticipationState extends State<Participation>
                                               }),
                                             );
                                             if (response6.statusCode == 200) {
+                                              String userId=prefId;
+                                              sockets.send(json.encode(<String,dynamic>{
+                                                'action': "team_status_update_status",
+                                                'team_id': myRequests[i].teamId,
+                                                'users': myRequests[i].members,
+                                                'msg': {
+                                                  'user_id': '$userId',
+                                                }
+                                              }));
+                                              setState(() {
+                                                //isLoading = false;
+                                              });
                                               loadTeams();
+                                              setState(() {
+
+                                              });
                                             }
                                           }),
                                           contentPadding: EdgeInsets.symmetric(
@@ -765,10 +910,12 @@ class _ParticipationState extends State<Participation>
                             ),
                     ),
                   ),
-                  ///////Tab2/////
                   inTeam && !isLoading
                       ? ChatScreen(type: 'teamChat', id: team.teamId)
-                      : Container(),
+                      : EmptyData(
+                      'Not a member of team',
+                      "",
+                      Icons.chat)
                 ]),
     );
   }

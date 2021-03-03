@@ -3,22 +3,22 @@ import 'package:flutter/material.dart';
 void showDialogWidget({BuildContext context, String title, Widget child}) {
   showDialog<dynamic>(
       context: context,
-      builder: (BuildContext context) => Dialog(
+      builder: (BuildContext context) => DialogWidget(
             title: title,
             child: child,
           ));
 }
 
-class Dialog extends StatefulWidget {
+class DialogWidget extends StatefulWidget {
   final String title;
   final Widget child;
 
-  Dialog({this.title, this.child});
+  DialogWidget({this.title, this.child});
   @override
-  State createState() => new DialogState();
+  State createState() => new DialogWidgetState();
 }
 
-class DialogState extends State<Dialog> {
+class DialogWidgetState extends State<DialogWidget> {
   @override
   void initState() {
     super.initState();
@@ -26,38 +26,50 @@ class DialogState extends State<Dialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedPadding(
-      padding: MediaQuery.of(context).viewInsets,
-      duration: Duration(milliseconds: 100),
-      curve: Curves.bounceIn,
-      child: Padding(
-        padding: const EdgeInsets.all(5.0),
-        child: Material(
-          // shape: RoundedRectangleBorder(
-          //  borderRadius: BorderRadius.circular(10.0),
-          // ),
-          color: Theme.of(context).cardColor,
-          // borderRadius: BorderRadius.all(Radius.circular(10)),
-          child: Column(
-            children: [
-              AppBar(
-                elevation: 0,
-                title: Text(widget.title),
-                leading: IconButton(
-                    icon: Icon(
-                      Icons.close,
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    }),
-                backgroundColor: Theme.of(context).cardColor,
-                centerTitle: true,
-              ),
-              widget.child
-            ],
-          ),
-        ),
+    final h = MediaQuery.of(context).size.height;
+    final w = MediaQuery.of(context).size.width;
+    return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        title: Text(widget.title),
+        leading: IconButton(
+            icon: Icon(
+              Icons.close,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            }),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        centerTitle: true,
       ),
+      body: widget.child,
+      /*Container(
+        //height: h * 0.5,
+        //width: w * 0.8,
+        /*constraints: BoxConstraints(
+            minHeight: h * 0.8,
+            minWidth: w * 0.8,
+            maxHeight: h * 0.8,
+            maxWidth: w * 0.8),*/
+        child: Column(
+          children: [
+            AppBar(
+              elevation: 0,
+              title: Text(widget.title),
+              leading: IconButton(
+                  icon: Icon(
+                    Icons.close,
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  }),
+              backgroundColor: Theme.of(context).cardColor,
+              centerTitle: true,
+            ),
+            widget.child
+          ],
+        ),
+      ),*/
     );
   }
 }

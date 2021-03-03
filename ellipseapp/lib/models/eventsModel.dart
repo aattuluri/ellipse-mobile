@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:EllipseApp/providers/index.dart';
+
+import 'index.dart';
 
 class Events {
   final String eventId,
@@ -19,11 +23,14 @@ class Events {
       regMode,
       regLink,
       shareLink,
+      rules,
+  themes,
       status;
   final Object certificate, teamSize;
   final List filters;
-  final bool oAllowed, registered, isTeamed, admin, moderator;
-  final List requirements, tags, regFields, moderators, rounds;
+  final bool oAllowed, registered, isTeamed, admin, moderator, user;
+  final List requirements, tags, regFields, moderators, prizes;
+  final List<RoundModel> rounds;
   final DateTime startTime, finishTime, regLastDate, postedOn;
 
   Events(
@@ -43,6 +50,7 @@ class Events {
       this.venueType,
       this.requirements,
       this.tags,
+        this.themes,
       this.registrationFee,
       this.platformDetails,
       this.oAllowed,
@@ -58,7 +66,10 @@ class Events {
       this.shareLink,
       this.status,
       this.admin,
+      this.user,
       this.rounds,
+      this.rules,
+      this.prizes,
       this.moderator,
       this.moderators,
       this.filters,
@@ -92,12 +103,15 @@ class Events {
         regFields: json['reg_fields'],
         regLink: json['reg_link'],
         status: json['status'],
-        rounds: json['rounds'],
+        rounds: [for (final item in json['rounds']) RoundModel.fromJson(item)],
         certificate: json['certificate'],
         isTeamed: json['isTeamed'],
         teamSize: json['team_size'],
         shareLink: json['share_link'],
         registered: json['registered'],
+        rules: json['rules'],
+        themes: json['themes'],
+        prizes: json['prizes'],
         startTime: DateTime.parse(sTime).toLocal(),
         finishTime: DateTime.parse(fTime).toLocal(),
         regLastDate: DateTime.parse(rLTime).toLocal(),
@@ -106,7 +120,32 @@ class Events {
           json['reg_mode'].toString(),
           json['fee_type'].toString()
         ],
+        user:
+            (json['user_id'] != prefId && !json['moderators'].contains(prefId)),
         admin: json['user_id'] == prefId,
         moderator: json['moderators'].contains(prefId));
+  }
+  List<FormFieldModel> parseRoundFields(String title) {
+    List<FormFieldModel> formFields = [];
+    for (var i = 0; i < rounds.length; i++) {
+      if (rounds[i].title == title) {
+        formFields = rounds[i].fields;
+      }
+    }
+    return formFields;
+  }
+
+  List<FormFieldModel> parseRegFields() {
+    List<FormFieldModel> formFields = [];
+    formFields = [for (final item in regFields) FormFieldModel.fromJson(item)];
+    return formFields;
+  }
+
+  TeamSize parseTeamSize() {
+    Map<String, dynamic> tS = teamSize;
+    TeamSize eventTeamSize = TeamSize(
+        minSize: tS['min_team_size'].toString(),
+        maxSize: tS['max_team_size'].toString());
+    return eventTeamSize;
   }
 }

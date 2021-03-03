@@ -11,23 +11,6 @@ import '../providers/index.dart';
 import 'index.dart';
 
 final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
-Future<DateTime> dateTimePicker(BuildContext context) async {
-  final date = await showDatePicker(
-      context: context,
-      firstDate: DateTime.now(),
-      initialDate: DateTime.now(),
-      lastDate: DateTime(2100));
-  if (date != null) {
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(DateTime.now()),
-    );
-    return DateTime(
-            date.year, date.month, date.day, time?.hour ?? 0, time?.minute ?? 0)
-        .toLocal();
-  }
-  return null;
-}
 
 Future<void> scheduleNotification(BuildContext context, int id, String title,
     String subtitle, DateTime datetime, String payload) async {

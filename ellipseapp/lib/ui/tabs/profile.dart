@@ -62,7 +62,7 @@ class _ProfileTabState extends State<ProfileTab> with TickerProviderStateMixin {
               child: IconButton(
                 tooltip: 'Settings',
                 splashRadius: 20,
-                icon: Icon(LineIcons.cog),
+                icon: Icon(Icons.settings),
                 onPressed: () async {
                   Navigator.pushNamed(context, Routes.settings);
                 },

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
 import 'dart:ui';
@@ -12,7 +11,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
 import 'package:provider/provider.dart';
-import 'package:web_socket_channel/io.dart';
 
 import '../../models/index.dart';
 import '../../providers/index.dart';
@@ -29,12 +27,10 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  Timer timer;
-  IOWebSocketChannel channel;
   String tempDate = '';
   bool isLoading = false;
   List<Widget> listChatTiles = [];
-  ScrollController scrollController;
+  final ScrollController scrollController = ScrollController();
   bool message = false;
   var textController = new TextEditingController();
   messageFieldState() {
@@ -52,11 +48,21 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   processMessage(dynamic msg) async {
+    Events _event;
+    if(widget.type == 'eventChat'){
+      setState(() {
+      _event = context.read<EventsRepository>().event(widget.id);
+      });
+    }
     String senderPic = msg['user_pic'];
     String messageType = msg['message_type'];
     String senderName = messageType == 'team_status_update_message'
         ? 'Ellipse Bot'
-        : msg['user_name'];
+        : widget.type == 'eventChat'
+            ? (msg['user_id'] == _event.userId)
+                ? msg['user_name'] + " (Admin)"
+                : msg['user_name']
+            : msg['user_name'];
     String message = msg['message'];
     String dt = msg['date'].toString();
     String senderId = msg['user_id'];
@@ -97,9 +103,10 @@ class _ChatScreenState extends State<ChatScreen> {
                 time: time),
           ),
         ));
-
-    scrollController.animateTo(0.0,
-        duration: Duration(milliseconds: 1), curve: Curves.bounceIn);
+    if (scrollController.hasClients) {
+      scrollController.animateTo(0.0,
+          duration: Duration(milliseconds: 1), curve: Curves.bounceIn);
+    }
   }
 
   loadMessages() async {
@@ -118,11 +125,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   webSocketConnect() async {
-    channel = IOWebSocketChannel.connect('${Url.WEBSOCKET_URL}');
-    print(channel.toString());
     String userId = prefId;
     if (widget.type == 'eventChat') {
-      channel.sink.add(json.encode({
+      sockets.send(json.encode({
         'action': 'join_event_room',
         'event_id': widget.id,
         'msg': {
@@ -130,7 +135,7 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }));
     } else if (widget.type == 'teamChat') {
-      channel.sink.add(json.encode({
+      sockets.send(json.encode({
         'action': "join_team_room",
         'team_id': widget.id,
         'msg': {
@@ -138,18 +143,19 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }));
     } else {}
-    channel.stream.listen((data) {
-      var response = json.decode(data);
-      print(data.toString());
-      dynamic msg = response['msg'];
-      String action = response['action'];
-      if (action == "receive_event_chat_message") {
-        print(msg);
-        processMessage(msg);
-      } else if (action == "receive_team_message") {
-        processMessage(msg);
-      } else {}
-    });
+  }
+
+  onMessage(String data) {
+    var response = json.decode(data);
+    print(data.toString());
+    dynamic msg = response['msg'];
+    String action = response['action'];
+    if (action == "receive_event_chat_message") {
+      print(msg);
+      processMessage(msg);
+    } else if (action == "receive_team_message") {
+      processMessage(msg);
+    } else {}
   }
 
   load() async {
@@ -157,21 +163,18 @@ class _ChatScreenState extends State<ChatScreen> {
       isLoading = true;
       textController.text = "";
     });
-    await webSocketConnect();
     await loadMessages();
+    await webSocketConnect();
     setState(() {
       isLoading = false;
     });
-
-    timer =
-        Timer.periodic(Duration(seconds: 500), (Timer t) => webSocketConnect());
   }
 
   @override
   void initState() {
     SystemChannels.textInput.invokeMethod('TextInput.hide');
-    scrollController = ScrollController();
     loadPref();
+    sockets.addListener(onMessage);
     messageFieldState();
     load();
 
@@ -180,9 +183,25 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    channel.sink.close().then(
-          (value) => print("Disconnected from WebSocket"),
-        );
+    String userId = prefId;
+    if (widget.type == 'eventChat') {
+      sockets.send(json.encode({
+        'action': "close_event_socket",
+        'event_id': widget.id,
+        'msg': {
+          'user_id': '$userId',
+        }
+      }));
+    } else if (widget.type == 'teamChat') {
+      sockets.send(json.encode({
+        'action': "close_event_socket",
+        'team_id': widget.id,
+        'msg': {
+          'user_id': '$userId',
+        }
+      }));
+    } else {}
+    sockets.removeListener(onMessage);
     super.dispose();
   }
 
@@ -239,7 +258,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           DateTime.now().toIso8601String().toString();
                       if (textController.text.isNotEmpty) {
                         if (widget.type == 'eventChat') {
-                          channel.sink.add(json.encode({
+                          sockets.send(json.encode({
                             'action': "send_event_message",
                             'event_id': widget.id,
                             'msg': {
@@ -253,7 +272,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             }
                           }));
                         } else if (widget.type == 'teamChat') {
-                          channel.sink.add(json.encode({
+                          sockets.send(json.encode({
                             'action': "send_team_message",
                             'team_id': widget.id,
                             'msg': {

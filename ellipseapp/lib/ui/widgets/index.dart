@@ -34,3 +34,4 @@ export 'slide_menu_item.dart';
 export 'slider_menu.dart';
 export 'timeLineTile.dart';
 export 'timeline.dart';
+export 'doubleScrollWidget.dart';

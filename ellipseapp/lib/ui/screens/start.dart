@@ -1,5 +1,7 @@
+import 'package:EllipseApp/providers/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,8 +41,14 @@ class _StartScreenState extends State<StartScreen>
     });
   }
 
+  ws() async {
+    await sockets.reset();
+  }
+
   @override
   void initState() {
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    ws();
     loadNotificationsCount();
     controller = new TabController(length: tabCount, vsync: this);
     currentTab = widget.currentTab;
@@ -87,60 +95,65 @@ class _StartScreenState extends State<StartScreen>
         return false;
       },
       child: Consumer<DataRepository>(
-        builder: (context, data, child) => data.isLoading || data.loadingFailed
-            ? LoaderCircular("Loading")
-            : Scaffold(
-                body: currentPage,
-                bottomNavigationBar: Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        width: 1.0,
-                        color: Theme.of(context).cardColor,
-                      ),
-                    ),
-                  ),
-                  child: TabBar(
-                    labelColor: Theme.of(context).accentColor,
-                    unselectedLabelColor: Theme.of(context).iconTheme.color,
-                    onTap: (index) async {
-                      setState(() {
-                        currentTab = index;
-                        currentPage = pages[index];
-                      });
-                      if (index == 2) {
-                        setState(() {
-                          notificationsCount = 0;
-                        });
-                      }
-                    },
-                    indicatorColor: Colors.transparent,
-                    controller: controller,
-                    isScrollable: false,
-                    physics: NeverScrollableScrollPhysics(),
-                    tabs: <Widget>[
-                      Tab(icon: Icon(LineIcons.home)),
-                      // Tab(icon: Icon(Icons.home_rounded)),
-                      Tab(icon: Icon(LineIcons.calendar_o)),
-                      //Tab(icon: Icon(Icons.calendar_today_outlined)),
-                      Tab(icon: Icon(Icons.chat_outlined)),
-                      Tab(
-                        icon: IconBadge(
-                          icon: Icon(LineIcons.bell),
-                          // icon: Icon(Icons.notifications),
-                          // itemCount: 4,
-                          itemCount: notificationsCount,
-                          badgeColor: Colors.blueGrey.withOpacity(0.9),
-                          itemColor: Colors.white,
-                          hideZero: true,
-                          maxCount: 500,
+        builder: (context, data, child) => Consumer<UserDetailsRepository>(
+          builder: (context, userDetails, child) => data.isLoading ||
+                  data.loadingFailed ||
+                  userDetails.isLoading ||
+                  userDetails.loadingFailed
+              ? LoaderCircular("Loading")
+              : Scaffold(
+                  body: currentPage,
+                  bottomNavigationBar: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          width: 1.0,
+                          color: Theme.of(context).cardColor,
                         ),
                       ),
-                      Tab(icon: Icon(Icons.person_outline)),
-                    ],
+                    ),
+                    child: TabBar(
+                      labelColor: Theme.of(context).accentColor,
+                      unselectedLabelColor: Theme.of(context).iconTheme.color,
+                      onTap: (index) async {
+                        setState(() {
+                          currentTab = index;
+                          currentPage = pages[index];
+                        });
+                        if (index == 2) {
+                          setState(() {
+                            notificationsCount = 0;
+                          });
+                        }
+                      },
+                      indicatorColor: Colors.transparent,
+                      controller: controller,
+                      isScrollable: false,
+                      physics: NeverScrollableScrollPhysics(),
+                      tabs: <Widget>[
+                        Tab(icon: Icon(LineIcons.home)),
+                        // Tab(icon: Icon(Icons.home_rounded)),
+                        Tab(icon: Icon(LineIcons.calendar_o)),
+                        //Tab(icon: Icon(Icons.calendar_today_outlined)),
+                        Tab(icon: Icon(Icons.chat_outlined)),
+                        Tab(
+                          icon: IconBadge(
+                            icon: Icon(LineIcons.bell),
+                            // icon: Icon(Icons.notifications),
+                            // itemCount: 4,
+                            itemCount: notificationsCount,
+                            badgeColor: Colors.blueGrey.withOpacity(0.9),
+                            itemColor: Colors.white,
+                            hideZero: true,
+                            maxCount: 500,
+                          ),
+                        ),
+                        Tab(icon: Icon(Icons.person_outline)),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+        ),
       ),
     );
   }

@@ -42,6 +42,11 @@ class _ChatTabState extends State<ChatTab> with TickerProviderStateMixin {
     });
   }
 
+  String getEventName(String id) {
+    final Events _event = context.watch<EventsRepository>().event(id);
+    return _event.name;
+  }
+
   @override
   void initState() {
     loadPref();
@@ -144,6 +149,7 @@ class _ChatTabState extends State<ChatTab> with TickerProviderStateMixin {
                         for (var i = 0; i < model.allEvents.length; i++) ...[
                           if ((model.allEvents[i].registered ||
                                   model.allEvents[i].regMode == 'link') &&
+                              model.allEvents[i].status == 'active' &&
                               (!isSearching ||
                                   model.allEvents[i].name
                                       .toLowerCase()
@@ -221,9 +227,10 @@ class _ChatTabState extends State<ChatTab> with TickerProviderStateMixin {
                                 ),
                                 maxLines: 2,
                               ),
-                              subtitle: Text(
-                                  myTeams[i].members.length.toString() +
-                                      ' members in team'),
+                              subtitle: Text("Event : "+getEventName(myTeams[i].eventId)),
+                              // subtitle: Text(
+                              //  myTeams[i].members.length.toString() +
+                              //      ' members in team'),
                               leading: Container(
                                 height: 40,
                                 width: 40,

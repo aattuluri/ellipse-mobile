@@ -18,7 +18,10 @@ class ChangePassword extends StatefulWidget {
 class _ChangePasswordState extends State<ChangePassword>
     with TickerProviderStateMixin {
   bool isloading = false;
-  String opassword = "", npassword = "";
+  bool _secureText1 = true;
+  bool _secureText2 = true;
+  bool _secureText3 = true;
+  String opassword = "", npassword = "", cnpassword = "";
 
   forgot_password() async {
     var response = await httpPostWithHeaders("${Url.URL}/api/users/logout", '');
@@ -44,12 +47,12 @@ class _ChangePasswordState extends State<ChangePassword>
       setState(() {
         isloading = false;
       });
-      messageDialog(context, 'Password updated successfully');
+      messageDialog(context, 'Password changed successfully');
     } else if (response1.statusCode == 401) {
       setState(() {
         isloading = false;
       });
-      messageDialog(context, 'Invalid Password');
+      messageDialog(context, 'Entered old password is incorrect');
     }
   }
 
@@ -95,12 +98,28 @@ class _ChangePasswordState extends State<ChangePassword>
                           onChanged: (value) {
                             opassword = value;
                           },
+                          obscureText: _secureText1,
                           style: TextStyle(
                             color: Theme.of(context).textTheme.caption.color,
                           ),
                           cursorColor:
                               Theme.of(context).textTheme.caption.color,
                           decoration: InputDecoration(
+                              suffixIcon: IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _secureText1 = !_secureText1;
+                                  });
+                                },
+                                icon: Icon(
+                                    _secureText1
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color),
+                              ),
                               border: OutlineInputBorder(),
                               labelText: "Current Password"),
                           maxLines: 1,
@@ -112,12 +131,28 @@ class _ChangePasswordState extends State<ChangePassword>
                           onChanged: (value) {
                             npassword = value;
                           },
+                          obscureText: _secureText2,
                           style: TextStyle(
                             color: Theme.of(context).textTheme.caption.color,
                           ),
                           cursorColor:
                               Theme.of(context).textTheme.caption.color,
                           decoration: InputDecoration(
+                              suffixIcon: IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _secureText2 = !_secureText2;
+                                  });
+                                },
+                                icon: Icon(
+                                    _secureText2
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color),
+                              ),
                               border: OutlineInputBorder(),
                               labelText: "New Password"),
                           maxLines: 1,
@@ -125,14 +160,49 @@ class _ChangePasswordState extends State<ChangePassword>
                         SizedBox(
                           height: 20,
                         ),
+                        TextFormField(
+                          onChanged: (value) {
+                            cnpassword = value;
+                          },
+                          obscureText: _secureText3,
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.caption.color,
+                          ),
+                          cursorColor:
+                          Theme.of(context).textTheme.caption.color,
+                          decoration: InputDecoration(
+                              suffixIcon: IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _secureText3 = !_secureText3;
+                                  });
+                                },
+                                icon: Icon(
+                                    _secureText3
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color),
+                              ),
+                              border: OutlineInputBorder(),
+                              labelText: "Confirm Password"),
+                          maxLines: 1,
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
                         RButton('Save', 13, () {
-                          setState(() {
-                            isloading = true;
-                          });
-                          change_password1(opassword, npassword);
-                          setState(() {
-                            isloading = false;
-                          });
+                          if (npassword.toString().length < 6) {
+                            messageDialog(context,
+                                "Password length should be \natleast 6 characters");
+                          } else if (npassword != cnpassword) {
+                            messageDialog(context,
+                                "Password and Confirm password should be same");
+                          } else {
+                            change_password1(opassword, npassword);
+                          }
                         }),
                         SizedBox(height: 20),
                         Center(

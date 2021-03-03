@@ -1,4 +1,3 @@
-export 'authScreens.dart';
 export 'chatScreen.dart';
 export 'connectivity_error.dart';
 export 'error.dart';
@@ -9,6 +8,8 @@ export 'initialization.dart';
 export 'intro.dart';
 export 'reset_password.dart';
 export 'settings.dart';
+export 'signin.dart';
+export 'signup.dart';
 export 'splash_screen.dart';
 export 'start.dart';
 export 'test_screen.dart';

@@ -1,6 +1,10 @@
 extension Validations on Object {
   bool isNullOrEmpty() =>
-      this == null || this == "" || this == "undefined" || this == 'null';
+      this == null ||
+      this == "" ||
+      this == "undefined" ||
+      this == 'null' ||
+      this == '[]';
 
   bool isEmptyList(List list) => list.isEmpty;
 

@@ -9,10 +9,12 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart' as pathProvider;
-
+import 'package:provider/provider.dart';
 import '../../providers/index.dart';
 import '../../util/index.dart';
 import '../widgets/index.dart';
+import '../../models/index.dart';
+import '../../repositories/index.dart';
 
 class Participants extends StatefulWidget {
   final String eventId;
@@ -30,7 +32,10 @@ class _ParticipantsState extends State<Participants>
   List<List<String>> keys = [];
   List<List<dynamic>> values = [];
   List<dynamic> participants = [];
+  List<List<FilledData>> filledData = [];
   loadRegisteredEvents() async {
+    final Events _event =
+        context.read<EventsRepository>().event(widget.eventId);
     setState(() {
       isloading = true;
     });
@@ -41,11 +46,22 @@ class _ParticipantsState extends State<Participants>
       setState(() {
         participants = json.decode(response.body);
       });
+      List<Registrations> registrations = (json.decode(response.body) as List)
+          .map((data) => Registrations.fromJson(data))
+          .toList();
+      for (var i = 0; i < registrations.length; i++) {
+        setState(() {
+          filledData
+              .add(registrations[i].parseFilledData(_event.parseRegFields()));
+        });
+      }
+      print('filledData');
+      print(filledData);
       for (var i = 0; i < participants.length; i++) {
         Map<String, dynamic> data = participants[i]['data'];
         setState(() {
-          keys.add(data.keys.toSet().toList());
-          values.add(data.values.toSet().toList());
+          keys.add(data.keys.toList());
+          values.add(data.values.toList());
         });
       }
     } else {
@@ -171,28 +187,39 @@ class _ParticipantsState extends State<Participants>
                             columnSpacing: 20.0,
                             horizontalMargin: 15.0,
                             columns: <DataColumn>[
-                              for (var i = 0; i < keys[0].length; i++) ...[
+                              for (var i = 0; i < filledData[0].length; i++) ...[
                                 DataColumn(
                                   label: Text(
-                                    keys[0][i],
+                                    filledData[0][i].key.toString(),
                                     maxLines: 2,
                                     style:
-                                        TextStyle(fontWeight: FontWeight.bold),
+                                    TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
                             ],
                             rows: <DataRow>[
-                              for (var i = 0; i < values.length; i++) ...[
+                              for (var i = 0; i < filledData.length; i++) ...[
                                 DataRow(
                                   cells: <DataCell>[
                                     for (var j = 0;
-                                        j < values[i].length;
-                                        j++) ...[
-                                      DataCell(Text(
-                                        values[i][j],
-                                        maxLines: 2,
-                                      )),
+                                    j < filledData[i].length;
+                                    j++) ...[
+                                      if(filledData[i][j].field=='file' && !filledData[i][j].value.toString().isNullOrEmpty() )...[
+                                        DataCell(
+                                          RButton("open file",10,(){
+                                           // print(filledData[i][j].value);
+                                            "${Url.URL}/api/event/registration/get_file?id=${filledData[i][j].value.toString()}".launchUrl;
+                                          }),
+                                        ),
+                                      ]
+                                      else...[ DataCell(
+                                        Text(
+                                          filledData[i][j].key=='Email'?"****************@gmail.com":filledData[i][j].value.toString() ?? " ",
+                                          maxLines: 2,
+                                        ),
+                                      ),]
+
                                     ],
                                   ],
                                 ),

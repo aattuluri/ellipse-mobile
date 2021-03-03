@@ -38,7 +38,7 @@ class EventTileGeneralState extends State<EventTileGeneral>
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(context, Routes.info_page,
-            arguments: {'type': 'user', 'event_': _event});
+            arguments: {'event_': _event});
       },
       child: Card(
         elevation: 5,
@@ -148,7 +148,7 @@ class EventTileAdminState extends State<EventTileAdmin>
         Navigator.pushNamed(
           context,
           Routes.info_page,
-          arguments: {'type': 'admin', 'event_': _event},
+          arguments: {'event_': _event},
         );
       },
       child: Card(

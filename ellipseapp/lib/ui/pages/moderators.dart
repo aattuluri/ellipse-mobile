@@ -42,7 +42,7 @@ class _EventModeratorsState extends State<EventModerators>
       );
       if (response4.statusCode == 200) {
         Provider.of<EventsRepository>(context, listen: false).init();
-        loadModerators();
+        Navigator.pop(context);
         setState(() {
           isLoading = false;
         });
@@ -193,7 +193,7 @@ class _EventModeratorsState extends State<EventModerators>
                             Provider.of<EventsRepository>(context,
                                     listen: false)
                                 .init();
-                            loadModerators();
+                            Navigator.pop(context);
                             setState(() {
                               isLoading = false;
                             });
