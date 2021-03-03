@@ -9,15 +9,6 @@ String prefId = "",
     prefFirebaseMessagingToken = "";
 int prefNotificationsCount = 0;
 bool prefLoggedIn;
-saveInt(String title, int number) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setInt(title, number);
-}
-
-saveString(String title, String string) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setString(title, string);
-}
 
 loadPref() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();

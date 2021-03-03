@@ -36,19 +36,13 @@ class _TimelineState extends State<Timeline> with TickerProviderStateMixin {
           date: _event.startTime.toString().toDate(context)));
       if (_event.rounds.isNotEmpty) {
         for (var i = 0; i < _event.rounds.length; i++) {
-          Round r = Round(
-              title: _event.rounds[i]['title'],
-              description: _event.rounds[i]['description'],
-              startDate: DateTime.parse(_event.rounds[i]['start_date']),
-              endDate: DateTime.parse(_event.rounds[i]['end_date']),
-              link: _event.rounds[i]['link'],
-              fields: _event.rounds[i]['fields']);
+
           timeLineTiles.add(TimeLineListTile(
-              title: r.title + ' Start Date',
-              date: r.startDate.toString().toDate(context)));
+              title: _event.rounds[i].title + ' Start Date',
+              date: _event.rounds[i].startDate.toString().toDate(context)));
           timeLineTiles.add(TimeLineListTile(
-              title: r.title + ' End Date',
-              date: r.endDate.toString().toDate(context)));
+              title: _event.rounds[i].title + ' End Date',
+              date: _event.rounds[i].endDate.toString().toDate(context)));
         }
       } else {}
 
@@ -63,23 +57,19 @@ class _TimelineState extends State<Timeline> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final Events _event = context.watch<EventsRepository>().event(widget.id);
-    return Scaffold(
-      body: Container(
-        child: ListView(
-          scrollDirection: Axis.vertical,
-          padding: EdgeInsets.symmetric(horizontal: 10),
-          children: <Widget>[
-            for (var i = 0; i < timeLineTiles.length; i++) ...[
-              TimeLineTile(
-                  index: i,
-                  title: timeLineTiles[i].title,
-                  date: timeLineTiles[i].date,
-                  isFirst: i == 0,
-                  isLast: i == timeLineTiles.length - 1)
-            ],
-          ],
-        ),
-      ),
+    return ListView(
+      scrollDirection: Axis.vertical,
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      children: <Widget>[
+        for (var i = 0; i < timeLineTiles.length; i++) ...[
+          TimeLineTile(
+              index: i,
+              title: timeLineTiles[i].title,
+              date: timeLineTiles[i].date,
+              isFirst: i == 0,
+              isLast: i == timeLineTiles.length - 1)
+        ],
+      ],
     );
   }
 }

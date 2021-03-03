@@ -1,5 +1,14 @@
+import 'dart:io';
+
+import 'package:EllipseApp/models/formFieldModel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+class FilledData {
+  String field, key;
+  dynamic value;
+  FilledData({this.field, this.key, this.value});
+}
 
 class TimeLineListTile {
   String title;
@@ -8,29 +17,33 @@ class TimeLineListTile {
   TimeLineListTile({this.title, this.date});
 }
 
+class TeamSize {
+  String minSize, maxSize;
+  TeamSize({this.minSize, this.maxSize});
+}
+
 class Member {
   String id, name, college, username, userPic;
   Member({this.id, this.name, this.college, this.username, this.userPic});
 }
 
+class FormFile {
+  String title;
+  File file;
+
+  FormFile({@required this.title, @required this.file});
+}
+
 class Field {
+  bool req;
   String title;
   String field;
   List options;
-  Field({this.title, this.field, this.options});
-}
-
-class Round {
-  String title, description, link;
-  DateTime startDate, endDate;
-  List<Object> fields;
-  Round(
-      {this.title,
-      this.description,
-      this.startDate,
-      this.endDate,
-      this.link,
-      this.fields});
+  Field(
+      {@required this.req,
+      @required this.title,
+      @required this.field,
+      @required this.options});
 }
 
 class ChatMessage {

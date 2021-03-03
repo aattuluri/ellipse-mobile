@@ -16,7 +16,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../providers/index.dart';
 import '../../repositories/index.dart';
 import '../../util/index.dart';
-import '../../util/routes.dart';
 import '../screens/index.dart';
 import '../widgets/index.dart';
 
@@ -56,7 +55,6 @@ class _InitializationState extends State<Initialization>
       print("internet  available");
       return true;
     } else if (connectivityResult == ConnectivityResult.none) {
-      // I am connected to a wifi network.
       Navigator.pushNamed(context, Routes.connection_error);
       print("Error in connection");
       return false;
@@ -141,7 +139,7 @@ class _InitializationState extends State<Initialization>
       );
       final responseJson = json.decode(responsen.body);
       print("Notifications Count");
-      saveInt("notificationsCount", responseJson);
+      prefSaveInt("notificationsCount", responseJson);
       print(responseJson);
 
       http.Response response;
@@ -165,15 +163,7 @@ class _InitializationState extends State<Initialization>
               OtpPageEmailVerify(prefEmail, "email_verification"),
         );
         Navigator.of(context).push(route);
-      } else if (response.statusCode == 402) {
-        var route = new MaterialPageRoute(
-          builder: (BuildContext context) => Check(),
-        );
-        Navigator.of(context).push(route);
-      } else if (response.statusCode == 403) {
-        setState(() {
-          preferences.setString("collegeId", "${response.body}".toString());
-        });
+      } else if (response.statusCode == 200) {
         _firebaseMessaging.getToken().then((deviceToken) async {
           await http.post(
             '${Url.URL}/api/add_firebase_notification_token_to_user',

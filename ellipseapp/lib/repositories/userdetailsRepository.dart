@@ -33,6 +33,7 @@ class UserDetailsRepository extends BaseRepository {
           .toList();
       prefs.setString("name", allUserDetails[0].name);
       prefs.setString("collegeName", allUserDetails[0].collegeName);
+      prefs.setString("collegeId", allUserDetails[0].collegeId);
       print("UserDetails loaded");
       notifyListeners();
       finishLoading();

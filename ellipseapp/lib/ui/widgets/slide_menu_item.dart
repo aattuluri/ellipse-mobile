@@ -1,10 +1,38 @@
 import 'package:flutter/material.dart';
 
-class SlideMenuItem1 extends StatelessWidget {
+class SlideMenuHeader extends StatelessWidget {
+  final String text;
+  const SlideMenuHeader(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          margin: EdgeInsetsDirectional.only(
+            start: 10.0,
+            bottom: 10,
+            top: 10,
+          ),
+          child: Text(text,
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.w500,
+              )),
+        ),
+        SizedBox(height: 3),
+      ],
+    );
+  }
+}
+
+class SlideMenuItem extends StatelessWidget {
   final String text1, text2;
   final IconData icon;
   final Function onTap;
-  const SlideMenuItem1(this.icon, this.text1, this.text2, this.onTap);
+  const SlideMenuItem(this.icon, this.text1, this.text2, this.onTap);
 
   @override
   Widget build(BuildContext context) {

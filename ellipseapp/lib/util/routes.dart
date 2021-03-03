@@ -75,11 +75,10 @@ class Routes {
             builder: (_) => CalendarTab(),
           );
         case info_page:
-          final type = args['type'] as String;
           final event_ = args['event_'] as Events;
           return MaterialPageRoute(
             settings: routeSettings,
-            builder: (_) => InfoPage(type, event_),
+            builder: (_) => InfoPage(event_),
           );
         case post_event:
           return MaterialPageRoute(

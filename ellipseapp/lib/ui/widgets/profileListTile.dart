@@ -47,11 +47,9 @@ class ProfileListTile extends StatelessWidget {
           color: Theme.of(context).textTheme.caption.color,
         ),
       ),
-      // trailing: trailing,
       contentPadding: EdgeInsets.symmetric(
         horizontal: 16,
       ),
-      onTap: () {},
     );
   }
 }

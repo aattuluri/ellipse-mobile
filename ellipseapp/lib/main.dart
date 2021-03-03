@@ -8,6 +8,7 @@ import 'repositories/index.dart';
 import 'util/index.dart';
 
 void main() async {
+  await sockets.connect();
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);

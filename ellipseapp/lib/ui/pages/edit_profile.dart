@@ -108,16 +108,12 @@ class _EditProfileState extends State<EditProfile> {
   edit_profile(String gender_) async {
     if (_nameController.text.isNullOrEmpty() ||
         _usernameController.text.isNullOrEmpty() ||
-        _emailController.isNullOrEmpty() ||
-        _phonenoController.text.isNullOrEmpty() ||
-        _bioController.text.isNullOrEmpty() ||
-        _designationController.text.isNullOrEmpty() ||
-        gender_.isNullOrEmpty()) {
+        _emailController.isNullOrEmpty() ) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: new Text("Post Event"),
+            title: new Text("Edit Profile"),
             content: new Text("Required fields can not be empty"),
             actions: <Widget>[
               new FlatButton(
@@ -185,7 +181,8 @@ class _EditProfileState extends State<EditProfile> {
             print(e);
             return null;
           }
-        } else {
+        } /////////////////////////////
+        else {
           done();
         }
       } else {

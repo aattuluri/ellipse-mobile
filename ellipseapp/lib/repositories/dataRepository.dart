@@ -15,8 +15,9 @@ class DataRepository extends BaseRepository {
   final List<String> designations = [
     "Student",
     "Faculty",
-    "Club",
-    "Institution"
+    "Club/Organization",
+    "Institution",
+    "Others"
   ];
   Map<String, dynamic> designationsData = {};
   Map<String, dynamic> collegesData = {};
@@ -37,7 +38,6 @@ class DataRepository extends BaseRepository {
       startLoading();
       print("Started Loading data");
       // Receives the data and parse it
-
       http.Response response1 =
           await httpGetWithoutHeaders("${Url.URL}/api/colleges");
       List<dynamic> colleges = json.decode(response1.body.toString());
@@ -45,7 +45,7 @@ class DataRepository extends BaseRepository {
       for (var i = 0; i < colleges.length; i++) {
         collegesData[colleges[i]['_id']] = colleges[i]['name'];
       }
-      print('collges');
+      print('colleges');
       print(collegesData);
       for (var i = 0; i < designations.length; i++) {
         designationsData[designations[i]] = designations[i];
@@ -62,7 +62,6 @@ class DataRepository extends BaseRepository {
             .map((data) => Data1.fromJson(data))
             .toList();
         for (var i = 0; i < allData.length; i++) {
-          // print(allData1[i].type + "---" + allData1[i].title);
           String title = allData[i].title.toString();
           if (allData[i].type == "EventRequirements") {
             requirements.add(title);

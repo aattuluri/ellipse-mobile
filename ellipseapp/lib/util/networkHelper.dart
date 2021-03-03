@@ -1,6 +1,40 @@
+
+import 'dart:core';
+import 'dart:io';
+
+
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 
 import '../providers/index.dart';
+
+
+Future<http.Response> httpPostFile(File _file, String url, String key) async {
+  loadPref();
+  Map<String, String> headers = {
+    HttpHeaders.authorizationHeader: "Bearer $prefToken",
+  };
+  final mimeTypeData =
+      lookupMimeType(_file.path, headerBytes: [0xFF, 0xD8]).split('/');
+  // Intilize the multipart request
+  final uploadRequest = http.MultipartRequest('POST', Uri.parse('$url'));
+  uploadRequest.headers.addAll(headers);
+  // Attach the file in the request
+  final file = await http.MultipartFile.fromPath('$key', _file.path,
+      contentType: MediaType(mimeTypeData[0], mimeTypeData[1]));
+  // Explicitly pass the extension of the image with request body
+  // Since image_picker has some bugs due which it mixes up
+  // image extension with file name like this filenamejpge
+  // Which creates some problem at the server side to manage
+  // or verify the file extension
+  uploadRequest.files.add(file);
+  final streamedResponse = await uploadRequest.send();
+  http.Response response = await http.Response.fromStream(streamedResponse);
+  print('Response status: ${response.statusCode}');
+  print('Response body: ${response.body}');
+  return response;
+}
 
 Future<http.Response> httpPostWithHeaders(String url, dynamic body) async {
   loadPref();
@@ -15,16 +49,6 @@ Future<http.Response> httpPostWithHeaders(String url, dynamic body) async {
   print('Response status: ${response.statusCode}');
   print('Response body: ${response.body}');
   return response;
-  /*
-  var response = await httpPostWithHeaders(
-                      '${Url.URL}/api/event/create_team',
-                      jsonEncode(<String, dynamic>{
-                        'event_id': widget.event_.id,
-                        'team_name': _nameController.text,
-                        'desc': _descriptionController.text
-                      }),
-                    );
-  */
 }
 
 Future<http.Response> httpPostWithoutHeaders(String url, dynamic body) async {
@@ -35,12 +59,6 @@ Future<http.Response> httpPostWithoutHeaders(String url, dynamic body) async {
   print('Response status: ${response.statusCode}');
   print('Response body: ${response.body}');
   return response;
-  /*
-  var response = await httpPostWithoutHeaders(
-                      '${Url.URL}/api/event/create_team',
-                      {'email': email},
-                    );
-  */
 }
 
 Future<http.Response> httpGetWithHeaders(String url) async {
@@ -52,10 +70,6 @@ Future<http.Response> httpGetWithHeaders(String url) async {
   print('Response status: ${response.statusCode}');
   print('Response body: ${response.body}');
   return response;
-  /*
-  var response = await httpGetWithHeaders(
-        "${Url.URL}/api/event/get_user_registration?id=$event_id");
-  */
 }
 
 Future<http.Response> httpGetWithoutHeaders(String url) async {
@@ -63,8 +77,4 @@ Future<http.Response> httpGetWithoutHeaders(String url) async {
   print('Response status: ${response.statusCode}');
   print('Response body: ${response.body}');
   return response;
-  /*
-  var response = await httpGetWithoutHeaders(
-        "${Url.URL}/api/event/get_user_registration?id=$event_id");
-  */
 }

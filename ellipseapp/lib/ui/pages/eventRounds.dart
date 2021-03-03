@@ -9,13 +9,21 @@ import 'package:row_collection/row_collection.dart';
 
 import '../../models/index.dart';
 import '../../providers/index.dart';
+import '../../util/index.dart';
 import '../widgets/index.dart';
 
 class EventRounds extends StatefulWidget {
-  const EventRounds({Key key, this.title, this.callBack}) : super(key: key);
+  const EventRounds(
+      {Key key,
+      @required this.type,
+      this.data,
+      @required this.title,
+      this.callBack})
+      : super(key: key);
 
-  final String title;
-  final Function(Round) callBack;
+  final String title, type;
+  final RoundModel data;
+  final Function(RoundModel, Map<String, dynamic>) callBack;
   @override
   _EventRoundsState createState() => _EventRoundsState();
 }
@@ -25,16 +33,61 @@ class _EventRoundsState extends State<EventRounds>
   List<DynamicFormWidget> listDynamic = [];
   bool hasLink = true;
   bool hasForm = true;
-  List form = [];
+  List<Map<String, dynamic>> form = [];
+  var titleController = new TextEditingController();
+  var descriptionController = new TextEditingController();
+  var linkController = new TextEditingController();
   var startDateController = new TextEditingController();
   var endDateController = new TextEditingController();
-  String title = '', description = '', link = '';
+  loadData() async {
+    setState(() {
+      titleController = new TextEditingController(text: widget.data.title);
+      descriptionController =
+          new TextEditingController(text: widget.data.description);
+      linkController = new TextEditingController(text: widget.data.link);
+      startDateController =
+          new TextEditingController(text: widget.data.startDate.toString());
+      endDateController =
+          new TextEditingController(text: widget.data.endDate.toString());
+      if (!widget.data.link.isNullOrEmpty()) {
+        hasLink = true;
+      } else {
+        hasLink = false;
+      }
+    });
+    for (final item in widget.data.fields) {
+      print(item);
+      FormFieldModel fF = item;
+      setState(() {
+        form.add(<String, dynamic>{
+          'req': fF.required,
+          "title": fF.title,
+          "field": fF.field,
+          "options": fF.options
+        });
+        listDynamic.add(new DynamicFormWidget(
+            req: fF.required,
+            data: null,
+            title: fF.title,
+            field: fF.field,
+            options: fF.options));
+      });
+      setState(() {});
+    }
+    print(form);
+    print(listDynamic);
+  }
+
   @override
   void initState() {
     loadPref();
     setState(() {
-      title = 'Round ' + widget.title;
+      titleController.text = 'Round ' + widget.title;
     });
+    if (widget.type == 'edit') {
+      loadData();
+    } else {}
+
     super.initState();
   }
 
@@ -44,17 +97,39 @@ class _EventRoundsState extends State<EventRounds>
   }
 
   addField(DynamicFormWidget dfw) async {
-    this.setState(() => listDynamic
-        .add(new DynamicFormWidget(dfw.title, dfw.field, dfw.options)));
-    setState(() {
-      form.add(<String, dynamic>{
-        "title": dfw.title,
-        "field": dfw.field,
-        "options": dfw.options
+    bool valid = true;
+    for (var i = 0; i < listDynamic.length; i++) {
+      if (listDynamic[i].title == dfw.title) {
+        setState(() {
+          valid = false;
+        });
+        break;
+      } else {
+        setState(() {
+          valid = true;
+        });
+      }
+    }
+    if (valid) {
+      this.setState(() => listDynamic.add(new DynamicFormWidget(
+          req: dfw.req,
+          data: null,
+          title: dfw.title,
+          field: dfw.field,
+          options: dfw.options)));
+      setState(() {
+        form.add(<String, dynamic>{
+          "req": dfw.req,
+          "title": dfw.title,
+          "field": dfw.field,
+          "options": dfw.options
+        });
       });
-    });
-    Navigator.pop(context);
-    Navigator.pop(context);
+      Navigator.pop(context);
+      Navigator.pop(context);
+    } else {
+      messageDialog(context, 'Form Item with same title exists');
+    }
   }
 
   @override
@@ -89,35 +164,31 @@ class _EventRoundsState extends State<EventRounds>
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
                 TextFormField(
-                  initialValue: 'Round ' + widget.title,
                   readOnly: true,
+                  controller: titleController,
                   style: TextStyle(
                     color: Theme.of(context).textTheme.caption.color,
                   ),
                   cursorColor: Theme.of(context).textTheme.caption.color,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(), labelText: "Title"),
-                  onChanged: (value) {
-                    title = value;
-                  },
                 ),
                 TextFormField(
                   style: TextStyle(
                     color: Theme.of(context).textTheme.caption.color,
                   ),
+                  controller: descriptionController,
                   cursorColor: Theme.of(context).textTheme.caption.color,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(), labelText: "Description"),
-                  onChanged: (value) {
-                    description = value;
-                  },
                 ),
                 DateTimePicker(
                   type: DateTimePickerType.dateTime,
+                  controller: startDateController,
                   decoration: InputDecoration(
-                    border: OutlineInputBorder(),
                     labelText: 'Start Date',
                     hintText: 'Start Date',
+                    border: OutlineInputBorder(),
                     hintStyle: TextStyle(
                       color: Theme.of(context).textTheme.caption.color,
                       fontSize: 18.0,
@@ -127,10 +198,13 @@ class _EventRoundsState extends State<EventRounds>
                   firstDate: DateTime(2000),
                   lastDate: DateTime(2100),
                   use24HourFormat: false,
-                  onChanged: (value) {},
+                  onChanged: (value) {
+                    print(DateTime.parse(value));
+                  },
                 ),
                 DateTimePicker(
                   type: DateTimePickerType.dateTime,
+                  controller: endDateController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'End Date',
@@ -144,7 +218,9 @@ class _EventRoundsState extends State<EventRounds>
                   firstDate: DateTime(2000),
                   lastDate: DateTime(2100),
                   use24HourFormat: false,
-                  onChanged: (value) {},
+                  onChanged: (value) {
+                    print(DateTime.parse(value));
+                  },
                 ),
                 Row(children: <Widget>[
                   Transform.scale(
@@ -185,89 +261,9 @@ class _EventRoundsState extends State<EventRounds>
                     text: "Add Field",
                     icon: Icons.playlist_add_rounded,
                     onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) => RoundDialog(
-                          title: "Fields",
-                          children: <Widget>[
-                            SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Divider(
-                                    thickness: 4,
-                                  ),
-                                  DynamicFormTile(
-                                      Icons.short_text, "Short Text", "", () {
-                                    dynamicFormItems(context, "short_text",
-                                        (DynamicFormWidget dfw) {
-                                      addField(dfw);
-                                    });
-                                  }),
-                                  DynamicFormTile(
-                                      Icons.subject, "Paragraph", "", () {
-                                    dynamicFormItems(context, "paragraph",
-                                        (DynamicFormWidget dfw) {
-                                      addField(dfw);
-                                    });
-                                  }),
-                                  Divider(
-                                    thickness: 1,
-                                  ),
-                                  DynamicFormTile(Icons.arrow_drop_down_circle,
-                                      "Dropdown", "", () {
-                                    dynamicFormItems(context, "dropdown",
-                                        (DynamicFormWidget dfw) {
-                                      addField(dfw);
-                                    });
-                                  }),
-                                  DynamicFormTile(
-                                      Icons.check_box, "Checkboxes", "", () {
-                                    dynamicFormItems(context, "checkboxes",
-                                        (DynamicFormWidget dfw) {
-                                      addField(dfw);
-                                    });
-                                  }),
-                                  DynamicFormTile(Icons.radio_button_checked,
-                                      "Radio Buttons", "", () {
-                                    dynamicFormItems(context, "radiobuttons",
-                                        (DynamicFormWidget dfw) {
-                                      addField(dfw);
-                                    });
-                                  }),
-                                  Divider(
-                                    thickness: 1,
-                                  ),
-                                  DynamicFormTile(
-                                      Icons.calendar_today, "DateTime", "", () {
-                                    dynamicFormItems(context, "date",
-                                        (DynamicFormWidget dfw) {
-                                      addField(dfw);
-                                    });
-                                  }),
-                                  Divider(
-                                    thickness: 1,
-                                  ),
-                                  DynamicFormTile(Icons.link, "Link", "", () {
-                                    dynamicFormItems(context, "link",
-                                        (DynamicFormWidget dfw) {
-                                      addField(dfw);
-                                    });
-                                  }),
-                                  DynamicFormTile(
-                                      Icons.file_copy_rounded, "File", "", () {
-                                    dynamicFormItems(context, "file",
-                                        (DynamicFormWidget dfw) {
-                                      //addField(dfw);
-                                    });
-                                  }),
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
-                      );
+                      dynamicFormItems(context, (DynamicFormWidget dfw) {
+                        addField(dfw);
+                      });
                     },
                   ),
                   Center(child: Text('Form Fields')),
@@ -285,6 +281,7 @@ class _EventRoundsState extends State<EventRounds>
                                   onTap: () {
                                     setState(() {
                                       listDynamic.removeAt(index);
+                                      form.removeAt(index);
                                     });
                                   },
                                   child: Icon(Icons.delete, size: 25)),
@@ -310,7 +307,7 @@ class _EventRoundsState extends State<EventRounds>
                       onChanged: (value) {
                         setState(() {
                           hasLink = !hasLink;
-                          link = '';
+                          linkController.clear();
                         });
                       },
                       activeColor: Theme.of(context)
@@ -339,24 +336,44 @@ class _EventRoundsState extends State<EventRounds>
                     style: TextStyle(
                       color: Theme.of(context).textTheme.caption.color,
                     ),
+                    controller: linkController,
                     cursorColor: Theme.of(context).textTheme.caption.color,
                     decoration: InputDecoration(
                         border: OutlineInputBorder(), labelText: "Link"),
                     maxLines: 3,
-                    onChanged: (value) {
-                      link = value;
-                    },
                   ),
                 ],
                 RButton('Save Round ' + widget.title, 10, () {
-                  widget.callBack(Round(
-                      title: title,
-                      description: description,
-                      startDate: DateTime.parse(startDateController.text),
-                      endDate: DateTime.parse(endDateController.text),
-                      link: link,
-                      fields: form));
-                  Navigator.of(context).pop(true);
+                  if (titleController.text.isNullOrEmpty() ||
+                      descriptionController.text.isNullOrEmpty() ||
+                      (hasLink && linkController.text.isNullOrEmpty()) ||
+                      (hasForm && form.isEmpty) ||
+                      startDateController.text.isNullOrEmpty() ||
+                      endDateController.text.isNullOrEmpty()) {
+                    messageDialog(context, 'All fields should be filled');
+                  } else {
+                    Object data = <String, dynamic>{
+                      'title': titleController.text,
+                      'description': descriptionController.text,
+                      'start_date': DateTime.parse(startDateController.text).toUtc().toIso8601String().toString(),
+                      'end_date': DateTime.parse(endDateController.text).toUtc().toIso8601String().toString(),
+                      'link': linkController.text,
+                      'fields': form
+                    };
+                    widget.callBack(
+                        RoundModel.fromJson(<String, dynamic>{
+                          'title': titleController.text,
+                          'description': descriptionController.text,
+                          'start_date':
+                              DateTime.parse(startDateController.text),
+                          'end_date': DateTime.parse(endDateController.text),
+                          'link': linkController.text,
+                          'fields': []
+                        }),
+                       data);
+                    print(form);
+                    Navigator.of(context).pop(true);
+                  }
                 }),
                 SizedBox(
                   height: 5,

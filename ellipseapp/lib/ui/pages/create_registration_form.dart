@@ -3,6 +3,7 @@ import 'dart:core';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:row_collection/row_collection.dart';
 
 import '../../models/index.dart';
@@ -31,19 +32,43 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
   List<Field> reg_form = [];
   List form = [];
   addField(DynamicFormWidget dfw) async {
-    this.setState(() => form.add((json.encode(<String, dynamic>{
-          "title": dfw.title,
-          "field": dfw.field,
-          "options": dfw.options
-        })).toString()));
-    print(form);
-    this.setState(() => listDynamic
-        .add(new DynamicFormWidget(dfw.title, dfw.field, dfw.options)));
-    setState(() {
-      data = [];
-    });
-    Navigator.pop(context);
-    Navigator.pop(context);
+    bool valid = true;
+    for (var i = 0; i < listDynamic.length; i++) {
+      if (listDynamic[i].title == dfw.title) {
+        setState(() {
+          valid = false;
+        });
+        break;
+      } else {
+        setState(() {
+          valid = true;
+        });
+      }
+    }
+    if (valid) {
+      this.setState(() => form.add((json.encode(<String, dynamic>{
+            'req': dfw.req,
+            "title": dfw.title,
+            "field": dfw.field,
+            "options": dfw.options
+          })).toString()));
+      //print(form);
+      this.setState(() => listDynamic.add(new DynamicFormWidget(
+            req: dfw.req,
+            data: null,
+            title: dfw.title,
+            field: dfw.field,
+            options: dfw.options,
+          )));
+      setState(() {
+        data = [];
+      });
+      Navigator.pop(context);
+      Navigator.pop(context);
+    }
+    else{
+      messageDialog(context, 'Form Item with same title exists');
+    }
   }
 
   @override
@@ -54,24 +79,34 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
     if (widget.get_form.isEmpty) {
       setState(() {
         form.add((json.encode(<String, dynamic>{
+          'req': true,
           "title": "Email",
           "field": "short_text",
           "options": data
         })).toString());
-        this.setState(() =>
-            listDynamic.add(new DynamicFormWidget("Email", "short_text", [])));
+        this.setState(() => listDynamic.add(new DynamicFormWidget(
+            req: true,
+            data: null,
+            title: "Email",
+            field: "short_text",
+            options: [])));
         setState(() {
           data = [];
         });
       });
       setState(() {
         form.add((json.encode(<String, dynamic>{
+          'req': true,
           "title": "Name",
           "field": "short_text",
           "options": data
         })).toString());
-        this.setState(() =>
-            listDynamic.add(new DynamicFormWidget("Name", "short_text", [])));
+        this.setState(() => listDynamic.add(new DynamicFormWidget(
+            req: true,
+            data: null,
+            title: "Name",
+            field: "short_text",
+            options: [])));
         setState(() {
           data = [];
         });
@@ -84,6 +119,7 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
 
     for (final item in widget.get_form) {
       this.setState(() => form.add((json.encode(<String, dynamic>{
+            'req': item['req'],
             "title": item['title'],
             "field": item['field'],
             "options": item['options']
@@ -91,6 +127,7 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
 
       this.setState(() => reg_form.add(
             Field(
+              req: item['req'],
               title: item['title'],
               field: item['field'],
               options: item['options'],
@@ -98,13 +135,12 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
           ));
     }
     for (final item in reg_form) {
-      print(item);
-      print(item.title);
+      bool req = item.req;
       String title = item.title;
       String field = item.field;
       List options = item.options;
-      this.setState(
-          () => listDynamic.add(new DynamicFormWidget(title, field, options)));
+      this.setState(() => listDynamic.add(new DynamicFormWidget(
+          req: req, data: null, title: title, field: field, options: options)));
     }
     super.initState();
   }
@@ -128,79 +164,11 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15.0),
           ),
-          onPressed: () => showDialog(
-            context: context,
-            builder: (_) => RoundDialog(
-              title: "Fields",
-              children: <Widget>[
-                SingleChildScrollView(
-                  controller: scrollController,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Divider(
-                        thickness: 4,
-                      ),
-                      DynamicFormTile(Icons.short_text, "Short Text", "", () {
-                        dynamicFormItems(context, "short_text",
-                            (DynamicFormWidget dfw) {
-                          addField(dfw);
-                        });
-                      }),
-                      DynamicFormTile(Icons.subject, "Paragraph", "", () {
-                        dynamicFormItems(context, "paragraph",
-                            (DynamicFormWidget dfw) {
-                          addField(dfw);
-                        });
-                      }),
-                      Divider(
-                        thickness: 1,
-                      ),
-                      DynamicFormTile(
-                          Icons.arrow_drop_down_circle, "Dropdown", "", () {
-                        dynamicFormItems(context, "dropdown",
-                            (DynamicFormWidget dfw) {
-                          addField(dfw);
-                        });
-                      }),
-                      DynamicFormTile(Icons.check_box, "Checkboxes", "", () {
-                        dynamicFormItems(context, "checkboxes",
-                            (DynamicFormWidget dfw) {
-                          addField(dfw);
-                        });
-                      }),
-                      DynamicFormTile(
-                          Icons.radio_button_checked, "Radio Buttons", "", () {
-                        dynamicFormItems(context, "radiobuttons",
-                            (DynamicFormWidget dfw) {
-                          addField(dfw);
-                        });
-                      }),
-                      Divider(
-                        thickness: 1,
-                      ),
-                      DynamicFormTile(Icons.calendar_today, "DateTime", "", () {
-                        dynamicFormItems(context, "date",
-                            (DynamicFormWidget dfw) {
-                          addField(dfw);
-                        });
-                      }),
-                      Divider(
-                        thickness: 1,
-                      ),
-                      DynamicFormTile(Icons.link, "Link", "", () {
-                        dynamicFormItems(context, "link",
-                            (DynamicFormWidget dfw) {
-                          addField(dfw);
-                        });
-                      }),
-                    ],
-                  ),
-                )
-              ],
-            ),
-          ),
+          onPressed: () {
+            dynamicFormItems(context, (DynamicFormWidget dfw) {
+              addField(dfw);
+            });
+          },
           icon: Icon(Icons.playlist_add_outlined),
           label: Text("Add Field"),
         ),
@@ -222,13 +190,18 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
                             onPressed: () {
                               setState(() {
                                 form.add((json.encode(<String, dynamic>{
+                                  "req": true,
                                   "title": "College",
                                   "field": "short_text",
                                   "options": data
                                 })).toString());
                                 this.setState(() => listDynamic.add(
                                     new DynamicFormWidget(
-                                        "College", "short_text", [])));
+                                        req: true,
+                                        data: null,
+                                        title: "College",
+                                        field: "short_text",
+                                        options: [])));
                                 setState(() {
                                   data = [];
                                 });
@@ -240,13 +213,18 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
                             onPressed: () {
                               setState(() {
                                 form.add((json.encode(<String, dynamic>{
+                                  'req': true,
                                   "title": "Year of Study",
                                   "field": "short_text",
                                   "options": data
                                 })).toString());
                                 this.setState(() => listDynamic.add(
                                     new DynamicFormWidget(
-                                        "Year of Study", "short_text", [])));
+                                        req: true,
+                                        data: null,
+                                        title: "Year of Study",
+                                        field: "short_text",
+                                        options: [])));
                                 setState(() {
                                   data = [];
                                 });
@@ -312,15 +290,12 @@ class _CreateRegistrationFormState extends State<CreateRegistrationForm>
                               ),
                               onPressed: () {
                                 widget.form_fields(form);
+                                //print(form);
                                 Navigator.of(context).pop(true);
                               },
                               icon: Icon(Icons.save),
                               label: Text("Save Form"),
                             ),
-                      /* RButton('Save Form', 10, () {
-                              widget.form_fields(form);
-                              Navigator.of(context).pop(true);
-                            }),*/
                     ],
                   ),
                 ),

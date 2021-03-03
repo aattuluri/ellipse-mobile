@@ -164,7 +164,7 @@ class _AboutState extends State<About> {
                       Navigator.pushNamed(context, Routes.mdDecode, arguments: {
                         'title': 'Terms and Conditions',
                         'url':
-                            'https://gunasekhar0027.github.io/ellipsedata/terms_and_conditions.md'
+                            'https://gunasekhar0027.github.io/AppDocs/EllipseApp/terms_and_conditions.md'
                       });
                     },
                     child: Text("Terms And Conditions",

@@ -97,21 +97,6 @@ class _MoreTabState extends State<Settings> with TickerProviderStateMixin {
           physics: ClampingScrollPhysics(),
           children: <Widget>[
             HeaderText("Preferences"),
-
-            /* ListCell.icon(
-                icon: Icons.autorenew,
-                title: "Refresh",
-                subtitle: "refresh data",
-                //trailing: Icon(Icons.chevron_right),
-                onTap: () {
-                  context.read<UserDetailsRepository>().refreshData();
-                  context.read<EventsRepository>().refreshData();
-                  context.read<NotificationsRepository>().refreshData();
-                  context.read<DataRepository>().refreshData();
-
-                  //alertDialog(context, "Refresh", "Data Refreshed");
-                }),
-            Separator.divider(indent: 72),*/
             ListCell.icon(
               icon: Icons.palette,
               title: "Theme",

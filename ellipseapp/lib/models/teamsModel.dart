@@ -1,7 +1,9 @@
+import 'index.dart';
 class Teams {
   final String teamId, name, userId, eventId, description;
   final DateTime time;
   final List members, receivedRequests, sentRequests;
+  final List<SubmissionModel> submissions;
   const Teams({
     this.teamId,
     this.name,
@@ -11,6 +13,7 @@ class Teams {
     this.members,
     this.receivedRequests,
     this.sentRequests,
+    this.submissions,
     this.time,
   });
 
@@ -25,6 +28,9 @@ class Teams {
         members: json['members'],
         receivedRequests: json['received_requests'],
         sentRequests: json['sent_requests'],
+        submissions: [
+          for (final item in json['submissions']) SubmissionModel.fromJson(item)
+        ],
         time: DateTime.parse(t).toLocal());
   }
 }

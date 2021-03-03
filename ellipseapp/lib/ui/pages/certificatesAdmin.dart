@@ -36,7 +36,12 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
   List<dynamic> pending = [];
   List<dynamic> published = [];
   List<String> selectedParticipants = [];
-
+  List<List<String>> pendingKeys = [];
+  List<List<dynamic>> pendingValues = [];
+  List<List<String>> publishedKeys = [];
+  List<List<dynamic>> publishedValues = [];
+  List<List<FilledData>> pendingFilledData = [];
+  List<List<FilledData>> publishedFilledData = [];
   publish() async {
     String event_id = widget.event_id.trim().toString();
 
@@ -60,6 +65,8 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
   }
 
   loadRegisteredEvents() async {
+    final Events _event =
+        context.read<EventsRepository>().event(widget.event_id);
     setState(() {
       isloading = true;
     });
@@ -74,12 +81,38 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
       setState(() {
         participants = json.decode(response.body);
       });
+      List<Registrations> registrations = (json.decode(response.body) as List)
+          .map((data) => Registrations.fromJson(data))
+          .toList();
+      for (var i = 0; i < registrations.length; i++) {
+        if (registrations[i].certificateStatus == "not_generated") {
+          this.setState(() => pendingFilledData
+              .add(registrations[i].parseFilledData(_event.parseRegFields())));
+        } else if (registrations[i].certificateStatus == "generated") {
+          this.setState(() => publishedFilledData
+              .add(registrations[i].parseFilledData(_event.parseRegFields())));
+        } else {}
+      }
       for (var i = 0; i < participants.length; i++) {
         if (participants[i]['certificate_status'] == "not_generated") {
           this.setState(() => pending.add(participants[i]));
         } else if (participants[i]['certificate_status'] == "generated") {
           this.setState(() => published.add(participants[i]));
         } else {}
+      }
+      for (var i = 0; i < pending.length; i++) {
+        Map<String, dynamic> data = pending[i]['data'];
+        setState(() {
+          pendingKeys.add(data.keys.toList());
+          pendingValues.add(data.values.toList());
+        });
+      }
+      for (var i = 0; i < published.length; i++) {
+        Map<String, dynamic> data = published[i]['data'];
+        setState(() {
+          publishedKeys.add(data.keys.toList());
+          publishedValues.add(data.values.toList());
+        });
       }
     } else {
       throw Exception('Failed to load data');
@@ -278,96 +311,133 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                               SizedBox(
                                 height: 5,
                               ),
-                              ListView.builder(
-                                  physics: NeverScrollableScrollPhysics(),
-                                  padding:
-                                      EdgeInsets.symmetric(horizontal: 0.0),
-                                  scrollDirection: Axis.vertical,
-                                  shrinkWrap: true,
-                                  itemCount: pending.length,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    Map<String, dynamic> data =
-                                        pending[index]['data'];
-                                    List<String> keys = data.keys.toList();
-                                    List<dynamic> values = data.values.toList();
-                                    return ExpansionTile(
-                                      initiallyExpanded:
-                                          expanded ? true : false,
-                                      leading: InkWell(
-                                        onTap: () {
-                                          String id = pending[index]['user_id'];
-                                          String email =
-                                              data["Email"].toString().trim();
-                                          if (selectedParticipants
-                                              .contains(email)) {
-                                            this.setState(() =>
-                                                selectedParticipants
-                                                    .remove(email));
-                                          } else {
-                                            this.setState(() =>
-                                                selectedParticipants
-                                                    .add(email));
-                                          }
-                                          print(selectedParticipants);
-                                        },
-                                        child: selectedParticipants.contains(
-                                                data["Email"].toString())
-                                            ? Icon(
-                                                Icons.check_box,
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .caption
-                                                    .color,
-                                              )
-                                            : Icon(
-                                                Icons.check_box_outline_blank,
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .caption
-                                                    .color,
-                                              ),
+                              /////////////////////////////////////////////////////////////////////////
+
+                              SingleChildScrollView(
+                                scrollDirection: Axis.vertical,
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: DataTable(
+                                    columnSpacing: 20.0,
+                                    horizontalMargin: 15.0,
+                                    columns: <DataColumn>[
+                                      DataColumn(
+                                        label: Text(
+                                          'Select',
+                                          maxLines: 2,
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
                                       ),
-                                      title: Text(
-                                        data["Name"],
-                                      ),
-                                      subtitle: Text('***************@gmail.com'
-                                          // data["Email"],
+                                      for (var i = 0;
+                                          i < pendingFilledData[0].length;
+                                          i++) ...[
+                                        DataColumn(
+                                          label: Text(
+                                            pendingFilledData[0][i]
+                                                .key
+                                                .toString(),
+                                            maxLines: 2,
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
                                           ),
-                                      children: <Widget>[
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        Column(
-                                          children: <Widget>[
-                                            for (var i = 0;
-                                                i < keys.length;
-                                                i++) ...[
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 15),
-                                                child: RowText(
-                                                  keys[i].toString(),
-                                                  keys[i].toString() == "Email"
-                                                      ? '***************@gmail.com'
-                                                      : values[i].toString(),
-                                                ),
-                                              ),
-                                            ]
-                                          ],
-                                        ),
-                                        SizedBox(
-                                          height: 15,
                                         ),
                                       ],
-                                    );
-                                  }),
+                                    ],
+                                    rows: <DataRow>[
+                                      for (var i = 0;
+                                          i < pendingFilledData.length;
+                                          i++) ...[
+                                        DataRow(
+                                          cells: <DataCell>[
+                                            DataCell(
+                                              InkWell(
+                                                onTap: () {
+                                                  Map<String, dynamic> data =
+                                                      pending[i]['data'];
+                                                  String email = data["Email"]
+                                                      .toString()
+                                                      .trim();
+                                                  if (selectedParticipants
+                                                      .contains(email)) {
+                                                    this.setState(() =>
+                                                        selectedParticipants
+                                                            .remove(email));
+                                                  } else {
+                                                    this.setState(() =>
+                                                        selectedParticipants
+                                                            .add(email));
+                                                  }
+                                                  print(selectedParticipants);
+                                                },
+                                                child: selectedParticipants
+                                                        .contains(pending[i]
+                                                                    ["data"]
+                                                                ["Email"]
+                                                            .toString())
+                                                    ? Icon(
+                                                        Icons.check_box,
+                                                        color: Theme.of(context)
+                                                            .textTheme
+                                                            .caption
+                                                            .color,
+                                                      )
+                                                    : Icon(
+                                                        Icons
+                                                            .check_box_outline_blank,
+                                                        color: Theme.of(context)
+                                                            .textTheme
+                                                            .caption
+                                                            .color,
+                                                      ),
+                                              ),
+                                            ),
+                                            for (var j = 0;
+                                                j < pendingFilledData[i].length;
+                                                j++) ...[
+                                              if (pendingFilledData[i][j]
+                                                          .field ==
+                                                      'file' &&
+                                                  !pendingFilledData[i][j]
+                                                      .value
+                                                      .toString()
+                                                      .isNullOrEmpty()) ...[
+                                                DataCell(
+                                                  RButton("open file", 10, () {
+                                                    print(pendingFilledData[i]
+                                                            [j]
+                                                        .value
+                                                        .toString());
+                                                    "${Url.URL}/api/event/registration/get_file?id=${pendingFilledData[i][j].value.toString()}"
+                                                        .launchUrl;
+                                                  }),
+                                                ),
+                                              ] else ...[
+                                                DataCell(
+                                                  Text(
+                                                    pendingFilledData[i][j].key=='Email'?"****************@gmail.com":pendingFilledData[i][j]
+                                                            .value
+                                                            .toString() ??
+                                                        " ",
+                                                    maxLines: 2,
+                                                  ),
+                                                ),
+                                              ]
+                                            ],
+                                          ],
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ),
+
                               SizedBox(
                                 height: 20,
                               )
                             ],
                           ),
+
                     ////////////////////////////////Tab 2//////////////////////////////////////
                     published.isEmpty
                         ? Container(
@@ -379,50 +449,79 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                 "No published certificates",
                                 LineIcons.certificate),
                           )
-                        : ListView.builder(
-                            physics: NeverScrollableScrollPhysics(),
-                            padding: EdgeInsets.symmetric(horizontal: 0.0),
+                        : SingleChildScrollView(
                             scrollDirection: Axis.vertical,
-                            shrinkWrap: true,
-                            itemCount: published.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              Map<String, dynamic> data =
-                                  published[index]['data'];
-                              String certUrl = published[index]
-                                      ['certificate_url']
-                                  .toString();
-                              List<String> keys = data.keys.toList();
-                              List<dynamic> values = data.values.toList();
-                              return ExpansionTile(
-                                initiallyExpanded: expanded ? true : false,
-                                title: Text(
-                                  data["Name"],
-                                ),
-                                subtitle: Text('***************@gmail.com'
-                                    // data["Email"],
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: DataTable(
+                                columnSpacing: 20.0,
+                                horizontalMargin: 15.0,
+                                columns: <DataColumn>[
+                                  for (var i = 0;
+                                      i < publishedFilledData[0].length;
+                                      i++) ...[
+                                    DataColumn(
+                                      label: Text(
+                                        publishedFilledData[0][i]
+                                            .key
+                                            .toString(),
+                                        maxLines: 2,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
                                     ),
-                                children: <Widget>[
-                                  SizedBox(
-                                    height: 10,
+                                  ],
+                                  DataColumn(
+                                    label: Text(
+                                      'View\nCertificate',
+                                      maxLines: 2,
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
                                   ),
-                                  Column(
-                                    children: <Widget>[
-                                      for (var i = 0; i < keys.length; i++) ...[
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 15),
-                                          child: RowText(
-                                            keys[i].toString(),
-                                            keys[i].toString() == "Email"
-                                                ? '***************@gmail.com'
-                                                : values[i].toString(),
-                                          ),
-                                        ),
-                                      ],
-                                      Row(
-                                        children: [
+                                ],
+                                rows: <DataRow>[
+                                  for (var i = 0;
+                                      i < publishedFilledData.length;
+                                      i++) ...[
+                                    DataRow(
+                                      cells: <DataCell>[
+                                        for (var j = 0;
+                                            j < publishedFilledData[i].length;
+                                            j++) ...[
+                                          if (publishedFilledData[i][j].field ==
+                                              'file' &&
+                                              !publishedFilledData[i][j]
+                                                  .value
+                                                  .toString()
+                                                  .isNullOrEmpty()) ...[
+                                            DataCell(
+                                              RButton("open file", 10, () {
+                                                print(publishedFilledData[i][j]
+                                                    .value
+                                                    .toString());
+                                                "${Url.URL}/api/event/registration/get_file?id=${publishedFilledData[i][j].value.toString()}"
+                                                    .launchUrl;
+                                              }),
+                                            ),
+                                          ] else ...[
+                                            DataCell(
+                                              Text(
+                                                publishedFilledData[i][j].key=='Email'?"****************@gmail.com":publishedFilledData[i][j]
+                                                        .value
+                                                        .toString() ??
+                                                    " ",
+                                                maxLines: 2,
+                                              ),
+                                            ),
+                                          ]
+                                        ],
+                                        DataCell(
                                           RaisedButton.icon(
                                             onPressed: () {
+                                              String certUrl = published[i]
+                                                      ['certificate_url']
+                                                  .toString();
                                               Navigator.pushNamed(
                                                   context, Routes.pdfView,
                                                   arguments: {
@@ -447,40 +546,15 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                                       .scaffoldBackgroundColor),
                                             ),
                                           ),
-                                          SizedBox(
-                                            width: 5,
-                                          ),
-                                          RaisedButton.icon(
-                                            onPressed: () {
-                                              "${Url.URL}/api/user/certificate?id=$certUrl"
-                                                  .launchUrl;
-                                            },
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color,
-                                            icon: Icon(
-                                              LineIcons.download,
-                                              color: Theme.of(context)
-                                                  .scaffoldBackgroundColor,
-                                            ),
-                                            label: Text(
-                                              "Download",
-                                              style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .scaffoldBackgroundColor),
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: 15,
-                                  ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ],
-                              );
-                            }),
+                              ),
+                            ),
+                          ),
+
                     ////////////////////////////////Tab 3//////////////////////////////////////
 
                     Padding(
@@ -524,7 +598,7 @@ class _CertificatesAdminState extends State<CertificatesAdmin>
                                   fit: BoxFit.cover,
                                   fadeInDuration: Duration(milliseconds: 1000),
                                   image: NetworkImage(
-                                      "https://gunasekhar0027.github.io/ellipsedata/certificate.png"
+                                      "https://gunasekhar0027.github.io/AppDocs/EllipseApp/certificate.png"
                                       //"https://staging.ellipseapp.com/static/media/certificate_sample.987b5a91.png"
                                       ),
                                   placeholder:

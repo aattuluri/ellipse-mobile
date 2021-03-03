@@ -3,3 +3,4 @@ export 'localNotificationsProvider.dart';
 export 'prefsProvider.dart';
 export 'searchProvider.dart';
 export 'themeProvider.dart';
+export 'webSocketProvider.dart';

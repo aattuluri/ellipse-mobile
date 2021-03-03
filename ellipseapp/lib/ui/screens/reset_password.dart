@@ -136,11 +136,6 @@ class _ResetPasswordState extends State<ResetPassword> {
                           child: Text(
                             "Ellipse",
                             style: TextStyle(
-                                //color: Theme.of(context)
-                                //     .textTheme
-                                //  .caption
-                                //  .color
-                                //.withOpacity(0.8),
                                 color: Theme.of(context).accentColor,
                                 fontSize: 45,
                                 fontFamily: 'Gugi',
@@ -522,20 +517,23 @@ class _ResetPasswordState extends State<ResetPassword> {
                                                   ),
                                                 ),
                                                 onPressed: () async {
-                                                  if (password != cpassword) {
-                                                    Fluttertoast.showToast(
-                                                        msg:
-                                                            "Both password should be same",
-                                                        toastLength:
-                                                            Toast.LENGTH_SHORT,
-                                                        gravity:
-                                                            ToastGravity.CENTER,
-                                                        textColor: Colors.white,
-                                                        timeInSecForIosWeb: 2,
-                                                        backgroundColor:
-                                                            Colors.black);
+                                                  if (password.trim() ==
+                                                      cpassword.trim()) {
+                                                    if (password.length >= 6) {
+                                                      reset_password();
+                                                    } else {
+                                                      flutterToast(
+                                                          context,
+                                                          "Password length should be more than 6 characters",
+                                                          2,
+                                                          ToastGravity.CENTER);
+                                                    }
                                                   } else {
-                                                    reset_password();
+                                                    flutterToast(
+                                                        context,
+                                                        "Both password should be same",
+                                                        2,
+                                                        ToastGravity.CENTER);
                                                   }
                                                 },
                                               ),

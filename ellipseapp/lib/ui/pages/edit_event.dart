@@ -17,6 +17,7 @@ import '../../providers/index.dart';
 import '../../repositories/index.dart';
 import '../../util/index.dart';
 import '../widgets/index.dart';
+import 'index.dart';
 
 class EditEvent extends StatefulWidget {
   final String id;
@@ -28,13 +29,10 @@ class EditEvent extends StatefulWidget {
 
 class _EditEventState extends State<EditEvent> {
   final _key = new GlobalKey<FormState>();
-  final List<String> _eventtypes = ["Technical", "Cultural"];
-  List colleges = List();
-  final List<String> _requirements = ["Laptop", "Internet"];
-  final List<String> _themes = ["Coding", "Writing"];
   final List<String> _venueTypes = ["College", "Other"];
   List<dynamic> selected_requirements = [];
-  List<dynamic> selected_themes = [];
+  List<dynamic> selected_tags = [];
+  List<Map<String, dynamic>> prizes = [];
   bool o_allowed = null;
   String event_mode = "";
   String payment_type = "";
@@ -43,7 +41,8 @@ class _EditEventState extends State<EditEvent> {
   String theme;
   String requirement;
   String reg_mode;
-  String selected = "";
+  List<Map<String, dynamic>> rounds = [];
+  List<RoundModel> roundsUi = [];
   final _picker = ImagePicker();
 
   @override
@@ -75,6 +74,8 @@ class _EditEventState extends State<EditEvent> {
   var _registration_feeController = new TextEditingController();
   var _venueController = new TextEditingController();
   var _platform_detailsController = new TextEditingController();
+  var _rulesController = new TextEditingController();
+  var _themesController = new TextEditingController();
   void _openImagePickerModal(BuildContext context) {
     final flatButtonColor = Theme.of(context).primaryColor;
     print('Image Picker Modal Called');
@@ -125,13 +126,12 @@ class _EditEventState extends State<EditEvent> {
         });
   }
 
-  edit_event(String id, bool o_allowed_, venue_type) async {
+  editEvent(String id, bool o_allowed_, venue_type) async {
+    final Events _event = context.read<EventsRepository>().event(widget.id);
     if (_nameController.text.isNullOrEmpty() ||
         _descriptionController.text.isNullOrEmpty() ||
         _aboutController.text.isNullOrEmpty() ||
         _eventTypeController.text.isNullOrEmpty() ||
-        //isEmptyList(selected_requirements) ||
-        //isEmptyList(selected_themes) ||
         _start_timeController.text.isNullOrEmpty() ||
         _finish_timeController.text.isNullOrEmpty() ||
         _reg_last_dateController.text.isNullOrEmpty()) {
@@ -185,10 +185,14 @@ class _EditEventState extends State<EditEvent> {
           "fee_type": "$p_t",
           "o_allowed": o_a,
           "requirements": selected_requirements,
-          "tags": selected_themes,
+          "tags": selected_tags,
+          "themes": _themesController.text,
           'venue_type': _venueType.isNullOrEmpty() ? venue_type : _venueType,
           'venue_college': "",
           "venue": _venueController.text,
+          "rounds": rounds,
+          "prizes": prizes,
+          "rules": _rulesController.text,
         }),
       );
       print('Response status: ${response.statusCode}');
@@ -222,13 +226,7 @@ class _EditEventState extends State<EditEvent> {
             final streamedResponse = await imageUploadRequest.send();
             final response1 = await http.Response.fromStream(streamedResponse);
             if (response1.statusCode == 200) {
-              Navigator.of(context).pop(true);
-              setState(() {
-                _imageFile = null;
-              });
-              setState(() {
-                _isUploading = false;
-              });
+              done();
               print("Image Uploaded");
             }
           } catch (e) {
@@ -256,6 +254,74 @@ class _EditEventState extends State<EditEvent> {
     messageDialog(context, 'Event Updated successfully');
   }
 
+  addPrize() async {
+    String title, price, description;
+    showDialog(
+      context: context,
+      builder: (context) => RoundDialog(
+        title: "Add Prize",
+        children: <Widget>[
+          RowLayout(
+            padding: EdgeInsets.all(10),
+            children: <Widget>[
+              TextFormField(
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.caption.color,
+                ),
+                cursorColor: Theme.of(context).textTheme.caption.color,
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(), labelText: "Title"),
+                onChanged: (value) {
+                  title = value;
+                },
+                maxLines: 1,
+              ),
+              TextFormField(
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.caption.color,
+                ),
+                cursorColor: Theme.of(context).textTheme.caption.color,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(), labelText: "Price"),
+                onChanged: (value) {
+                  price = value;
+                },
+                maxLines: 1,
+              ),
+              TextFormField(
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.caption.color,
+                ),
+                cursorColor: Theme.of(context).textTheme.caption.color,
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(), labelText: "Description"),
+                onChanged: (value) {
+                  description = value;
+                },
+                maxLines: 2,
+              ),
+              OutlinedIconButton(
+                text: 'Add',
+                icon: Icons.save,
+                onTap: () {
+                  setState(() {
+                    prizes.add(<String, dynamic>{
+                      'title': title,
+                      'prize': price,
+                      'desc': description
+                    });
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   loadFields() async {
     final Events _event = context.read<EventsRepository>().event(widget.id);
     _nameController = TextEditingController(text: _event.name);
@@ -279,8 +345,43 @@ class _EditEventState extends State<EditEvent> {
     _event_modeController = new TextEditingController(text: _event.eventMode);
     _payment_typeController =
         new TextEditingController(text: _event.paymentType);
+    _rulesController = new TextEditingController(text: _event.rules);
+    _themesController = new TextEditingController(text: _event.themes);
     this.setState(() => selected_requirements = _event.requirements);
-    this.setState(() => selected_themes = _event.tags);
+    this.setState(() => selected_tags = _event.tags);
+    for (var i = 0; i < _event.prizes.length; i++) {
+      setState(() {
+        Map<String, dynamic> d = _event.prizes[i];
+        prizes.add(d);
+      });
+    }
+    _event.rounds.forEach((i) {
+      List<Map<String, dynamic>> fi = [];
+      for (var j = 0; j < i.fields.length; j++) {
+        setState(() {
+          fi.add(<String, dynamic>{
+            'req': i.fields[j].required,
+            "title": i.fields[j].title,
+            "field": i.fields[j].field,
+            "options": i.fields[j].options
+          });
+        });
+      }
+      Object f = fi;
+      setState(() {
+        rounds.add(<String, dynamic>{
+          "title": i.title,
+          "description": i.description,
+          "start_date": i.startDate.toString(),
+          "end_date": i.endDate.toString(),
+          "link": i.link,
+          "fields": f
+        });
+      });
+      setState(() {
+        roundsUi.add(i);
+      });
+    });
   }
 
   @override
@@ -682,7 +783,7 @@ class _EditEventState extends State<EditEvent> {
                               ListView.builder(
                                 shrinkWrap: true,
                                 physics: NeverScrollableScrollPhysics(),
-                                itemCount: selected_themes.length,
+                                itemCount: selected_tags.length,
                                 itemBuilder: (context, index) {
                                   return Column(
                                     children: [
@@ -705,7 +806,7 @@ class _EditEventState extends State<EditEvent> {
                                             child: Row(
                                               children: [
                                                 Text(
-                                                  selected_themes[index],
+                                                  selected_tags[index],
                                                   style:
                                                       TextStyle(fontSize: 20),
                                                 ),
@@ -713,7 +814,7 @@ class _EditEventState extends State<EditEvent> {
                                                 InkWell(
                                                   onTap: () {
                                                     this.setState(() =>
-                                                        selected_themes
+                                                        selected_tags
                                                             .removeAt(index));
                                                   },
                                                   child: Container(
@@ -752,7 +853,7 @@ class _EditEventState extends State<EditEvent> {
                                         items: data.tagsData,
                                         addEnabled: true,
                                         onChanged: (String key, String value) {
-                                          this.setState(() => selected_themes
+                                          this.setState(() => selected_tags
                                               .add(value.toString()));
                                         });
                                   },
@@ -1070,6 +1171,189 @@ class _EditEventState extends State<EditEvent> {
                           ]),
                         ),
                         CardPage.body(
+                          title: "Rounds",
+                          body: RowLayout(
+                            children: <Widget>[
+                              SizedBox(
+                                width: double.infinity,
+                              ),
+                              for (var i = 0; i < roundsUi.length; i++) ...[
+                                ListTile(
+                                  onTap: () async {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => EventRounds(
+                                                type: 'edit',
+                                                data: roundsUi[i],
+                                                title: roundsUi[i]
+                                                    .title
+                                                    .toString(),
+                                                callBack: (RoundModel round,
+                                                    Map<String, dynamic> data) {
+                                                  setState(() {
+                                                    rounds[i] = data;
+                                                  });
+                                                  setState(() {
+                                                    roundsUi[i] = round;
+                                                  });
+                                                },
+                                              )),
+                                    );
+                                  },
+                                  title: Text(roundsUi[i].title),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(roundsUi[i].description),
+                                      Text('StartTime : ' +
+                                          DateTime.parse(roundsUi[i]
+                                                  .startDate
+                                                  .toString())
+                                              .toLocal()
+                                              .toString()),
+                                      Text('EndTime : ' +
+                                          roundsUi[i].endDate.toString()),
+                                    ],
+                                  ),
+                                  isThreeLine: true,
+                                  trailing: IconButton(
+                                    icon: Icon(Icons.close),
+                                    onPressed: () {
+                                      setState(() {
+                                        roundsUi.remove(roundsUi[i]);
+                                        rounds.removeAt(i);
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                              OutlinedIconButton(
+                                text: 'Add Round ' +
+                                    ((rounds.length) + 1).toString(),
+                                icon: Icons.add,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => EventRounds(
+                                              type: 'new',
+                                              title: ((rounds.length) + 1)
+                                                  .toString(),
+                                              callBack: (RoundModel round,
+                                                  Map<String, dynamic> data) {
+                                                setState(() {
+                                                  rounds.add(data);
+                                                });
+                                                setState(() {
+                                                  roundsUi.add(round);
+                                                });
+                                              },
+                                            )),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        CardPage.body(
+                          title: "Themes",
+                          body: RowLayout(
+                            children: <Widget>[
+                              SizedBox(
+                                width: double.infinity,
+                              ),
+                              TextFormField(
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).textTheme.caption.color,
+                                ),
+                                controller: _themesController,
+                                cursorColor:
+                                    Theme.of(context).textTheme.caption.color,
+                                decoration: InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: "Themes"),
+                                maxLines: 5,
+                              ),
+                            ],
+                          ),
+                        ),
+                        CardPage.body(
+                          title: "Rules and regulations",
+                          body: RowLayout(
+                            children: <Widget>[
+                              SizedBox(
+                                width: double.infinity,
+                              ),
+                              TextFormField(
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).textTheme.caption.color,
+                                ),
+                                controller: _rulesController,
+                                cursorColor:
+                                    Theme.of(context).textTheme.caption.color,
+                                decoration: InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: "Rules"),
+                                maxLines: 5,
+                              ),
+                            ],
+                          ),
+                        ),
+                        CardPage.body(
+                          title: "Prizes",
+                          body: RowLayout(
+                            children: <Widget>[
+                              SizedBox(
+                                width: double.infinity,
+                              ),
+                              for (var i = 0; i < prizes.length; i++) ...[
+                                ListTile(
+                                  title: Text(prizes[i]['title']),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text("Amount : " + prizes[i]['prize']),
+                                      Text(prizes[i]['desc']),
+                                    ],
+                                  ),
+                                  trailing: IconButton(
+                                    icon: Icon(Icons.close),
+                                    onPressed: () {
+                                      setState(() {
+                                        prizes.removeAt(i);
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                              InkWell(
+                                  onTap: () {
+                                    addPrize();
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .caption
+                                              .color,
+                                        ),
+                                        borderRadius:
+                                            BorderRadius.circular(10.0)),
+                                    child: Icon(
+                                      Icons.add,
+                                      size: 30,
+                                    ),
+                                  )),
+                            ],
+                          ),
+                        ),
+                        CardPage.body(
                           title: "Date and Time Details",
                           body: RowLayout(
                             children: <Widget>[
@@ -1199,7 +1483,7 @@ class _EditEventState extends State<EditEvent> {
                           "Save",
                           15,
                           () {
-                            edit_event(_event.eventId, _event.oAllowed,
+                            editEvent(_event.eventId, _event.oAllowed,
                                 _event.venueType);
                           },
                         ),

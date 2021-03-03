@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -13,7 +12,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:provider/provider.dart';
 import 'package:row_collection/row_collection.dart';
-import 'package:rxdart/subjects.dart';
 
 import '../../models/index.dart';
 import '../../providers/index.dart';
@@ -23,10 +21,6 @@ import '../../util/routes.dart';
 import '../pages/index.dart';
 import '../widgets/index.dart';
 
-double ourMap(v, start1, stop1, start2, stop2) {
-  return (v - start1) / (stop1 - start1) * (stop2 - start2) + start2;
-}
-
 class PostEvent extends StatefulWidget {
   @override
   _PostEventState createState() => _PostEventState();
@@ -34,18 +28,17 @@ class PostEvent extends StatefulWidget {
 
 class _PostEventState extends State<PostEvent>
     with SingleTickerProviderStateMixin {
+  TabController tabController;
   bool isLoading = false;
   List reg_form = [];
-  final List<String> _eventtypes = ["Technical", "Cultural"];
-  final List<String> _requirements = ["Laptop", "Internet"];
-  final List<String> _themes = ["Coding", "Writing"];
   final List<String> _venueTypes = ["College", "Other"];
   List fetched_form;
   bool hasRounds = false;
   List rounds = [];
-  List<Round> roundsUi = [];
+  List<RoundModel> roundsUi = [];
   Map<String, dynamic> colleges = {};
   List<String> selected_requirements = [];
+  List<Map<String, dynamic>> prizes = [];
   List<String> selected_themes = [];
   bool isUploading = false;
   bool offline = false;
@@ -62,68 +55,28 @@ class _PostEventState extends State<PostEvent>
   String _venueType;
   String theme;
   String reg_mode = "";
-  String requirement;
-  String selected = "";
+
   final _picker = ImagePicker();
-  final int initPage = 0;
-  PageController _pageController;
-  List<String> tabs = ['Step-1', 'Step-2', 'Step-3', 'Step-4'];
-
-  Stream<int> get currentPage$ => _currentPageSubject.stream;
-  Sink<int> get currentPageSink => _currentPageSubject.sink;
-  BehaviorSubject<int> _currentPageSubject;
-
-  Alignment _dragAlignment;
-  AnimationController _controller;
-  Animation<Alignment> _animation;
 
   @override
   void initState() {
+    loadPref();
     setState(() {
       _college = prefCollegeId;
       _collegeNameController.text = prefCollegeName;
     });
-    loadPref();
-
-    super.initState();
-    _currentPageSubject = BehaviorSubject<int>.seeded(initPage);
-    _pageController = PageController(initialPage: initPage);
-    _dragAlignment = Alignment(ourMap(initPage, 0, tabs.length - 1, -1, 1), 0);
-
-    _controller = AnimationController(
+    print('_college');
+    print(_college);
+    tabController = new TabController(
+      length: 5,
       vsync: this,
-      duration: kThemeAnimationDuration,
-    )..addListener(() {
-        setState(() {
-          _dragAlignment = _animation.value;
-        });
-      });
-
-    currentPage$.listen((int page) {
-      _runAnimation(
-        _dragAlignment,
-        Alignment(ourMap(page, 0, tabs.length - 1, -1, 1), 0),
-      );
-    });
+    );
+    super.initState();
   }
 
   @override
   void dispose() {
-    _currentPageSubject.close();
-    _pageController.dispose();
-    _controller.dispose();
     super.dispose();
-  }
-
-  void _runAnimation(Alignment oldA, Alignment newA) {
-    _animation = _controller.drive(
-      AlignmentTween(
-        begin: oldA,
-        end: newA,
-      ),
-    );
-    _controller.reset();
-    _controller.forward();
   }
 
   // To store the file provided by the image_picker
@@ -140,6 +93,7 @@ class _PostEventState extends State<PostEvent>
   }
 
   var _nameController = new TextEditingController();
+
   var _aboutController = new TextEditingController();
   var _descriptionController = new TextEditingController();
   var _eventTypeController = new TextEditingController();
@@ -153,6 +107,8 @@ class _PostEventState extends State<PostEvent>
   var _platform_detailsController = new TextEditingController();
   var _minTeamSizeController = new TextEditingController();
   var _maxTeamSizeController = new TextEditingController();
+  var _rulesController = new TextEditingController();
+  var _themesController = new TextEditingController();
 
   void _openImagePickerModal(BuildContext context) {
     final flatButtonColor = Theme.of(context).primaryColor;
@@ -282,7 +238,9 @@ class _PostEventState extends State<PostEvent>
           "o_allowed": o_allowed,
           "isTeamed": team,
           "rounds": rounds,
-          "team_size": <dynamic, dynamic>{
+          "prizes": prizes,
+          "themes": _themesController.text,
+          "team_size": <String, dynamic>{
             'min_team_size': _minTeamSizeController.text,
             'max_team_size': _maxTeamSizeController.text
           },
@@ -293,6 +251,7 @@ class _PostEventState extends State<PostEvent>
           "registration_end_time":
               DateTime.parse(_reg_last_dateController.text).toUtc().toString(),
           "reg_link": _reg_linkController.text,
+          "rules": _rulesController.text,
           "reg_mode": reg_mode,
           "reg_fields": reg_form
         }),
@@ -350,6 +309,74 @@ class _PostEventState extends State<PostEvent>
     }
   }
 
+  addPrize() async {
+    String title, price, description;
+    showDialog(
+      context: context,
+      builder: (context) => RoundDialog(
+        title: "Add Prize",
+        children: <Widget>[
+          RowLayout(
+            padding: EdgeInsets.all(10),
+            children: <Widget>[
+              TextFormField(
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.caption.color,
+                ),
+                cursorColor: Theme.of(context).textTheme.caption.color,
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(), labelText: "Title"),
+                onChanged: (value) {
+                  title = value;
+                },
+                maxLines: 1,
+              ),
+              TextFormField(
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.caption.color,
+                ),
+                cursorColor: Theme.of(context).textTheme.caption.color,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(), labelText: "Price"),
+                onChanged: (value) {
+                  price = value;
+                },
+                maxLines: 1,
+              ),
+              TextFormField(
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.caption.color,
+                ),
+                cursorColor: Theme.of(context).textTheme.caption.color,
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(), labelText: "Description"),
+                onChanged: (value) {
+                  description = value;
+                },
+                maxLines: 2,
+              ),
+              OutlinedIconButton(
+                text: 'Add',
+                icon: Icons.save,
+                onTap: () {
+                  setState(() {
+                    prizes.add(<String, dynamic>{
+                      'title': title,
+                      'prize': price,
+                      'desc': description
+                    });
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isUploading) {
@@ -405,1321 +432,1162 @@ class _PostEventState extends State<PostEvent>
                 },
               ),
             ],
+            bottom: TabBar(
+                controller: tabController,
+                isScrollable: true,
+                tabs: <Widget>[
+                  Tab(
+                    text: 'Step-1',
+                  ),
+                  Tab(
+                    text: 'Step-2',
+                  ),
+                  Tab(
+                    text: 'Step-3',
+                  ),
+                  Tab(
+                    text: 'Step-4',
+                  ),
+                  Tab(
+                    text: 'Step-5',
+                  )
+                ]),
             centerTitle: true,
           ),
-          body: Column(
+          body: TabBarView(
+            controller: tabController,
+            // scrollDirection: Axis.horizontal,
+            //onPageChanged: (page) => currentPageSink.add(page),
             children: <Widget>[
-              SizedBox(height: 2),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                child: Container(
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.black38,
-                    borderRadius: BorderRadius.circular(35),
-                  ),
-                  child: Stack(
+              /////////////////////////////////////////////////////////////////////////////////////////////
+              SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Column(
                     children: <Widget>[
-                      Align(
-                        alignment: _dragAlignment,
-                        child: LayoutBuilder(
-                          builder: (BuildContext context,
-                              BoxConstraints constraints) {
-                            double width = constraints.maxWidth;
-                            return Padding(
-                              padding: const EdgeInsets.all(2.0),
-                              child: Container(
-                                height: double.infinity,
-                                width: width / tabs.length,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(35),
+                      CardPage.body(
+                        title: "Event Poster",
+                        body: RowLayout(
+                          children: <Widget>[
+                            _imageFile == null
+                                ? Column(
+                                    children: [
+                                      Icon(
+                                        Icons.photo,
+                                        size: 165,
+                                      ),
+                                      SizedBox(
+                                        height: 15,
+                                      ),
+                                      Text(
+                                        'Please select an image',
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .caption
+                                                .color),
+                                      ),
+                                    ],
+                                  )
+                                : Image.file(
+                                    _imageFile,
+                                    fit: BoxFit.cover,
+                                    height: 300.0,
+                                    alignment: Alignment.topCenter,
+                                    width: MediaQuery.of(context).size.width,
+                                  ),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  top: 20.0, left: 10.0, right: 10.0),
+                              child: OutlineButton(
+                                onPressed: () => _openImagePickerModal(context),
+                                borderSide: BorderSide(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    width: 1.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    Icon(
+                                      Icons.add_a_photo,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color,
+                                    ),
+                                    SizedBox(
+                                      width: 5.0,
+                                    ),
+                                    Text(
+                                      _imageFile == null
+                                          ? 'Select Image'
+                                          : 'Change Image',
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .caption
+                                              .color),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            );
-                          },
+                            ),
+                          ],
                         ),
                       ),
-
-                      // use animated widget
-                      StreamBuilder(
-                        stream: currentPage$,
-                        builder: (context, AsyncSnapshot<int> snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.active) {
-                            return AnimatedAlign(
-                              duration: kThemeAnimationDuration,
-                              alignment: Alignment(
-                                  ourMap(
-                                      snapshot.data, 0, tabs.length - 1, -1, 1),
-                                  0),
-                              child: LayoutBuilder(
-                                builder: (BuildContext context,
-                                    BoxConstraints constraints) {
-                                  double width = constraints.maxWidth;
-                                  return Padding(
-                                    padding: const EdgeInsets.all(2.0),
-                                    child: Container(
-                                      height: double.infinity,
-                                      width: width / tabs.length,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(35),
-                                      ),
-                                    ),
-                                  );
-                                },
+                      CardPage.body(
+                        title: "Event",
+                        body: RowLayout(
+                          children: <Widget>[
+                            TextFormField(
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
                               ),
-                            );
-                          }
-                          return SizedBox();
-                        },
-                      ),
-                      Align(
-                        alignment: Alignment.center,
-                        child: Row(
-                          children: tabs.map((t) {
-                            int index = tabs.indexOf(t);
-                            return Expanded(
-                              child: MaterialButton(
-                                splashColor: Colors.transparent,
-                                focusColor: Colors.transparent,
-                                color: Colors.transparent,
-                                highlightColor: Colors.transparent,
-                                hoverColor: Colors.transparent,
-                                focusElevation: 0.0,
-                                hoverElevation: 0.0,
-                                elevation: 0.0,
-                                highlightElevation: 0.0,
-                                child: StreamBuilder(
-                                    stream: currentPage$,
-                                    builder:
-                                        (context, AsyncSnapshot<int> snapshot) {
-                                      return AnimatedDefaultTextStyle(
-                                        duration: kThemeAnimationDuration,
-                                        style: TextStyle(
-                                          inherit: true,
-                                          color: snapshot.data == index
-                                              ? Colors.black
-                                              : Colors.white,
-                                        ),
-                                        child: Text(t),
-                                      );
-                                    }),
-                                onPressed: () {
-                                  currentPageSink.add(index);
-                                  _pageController.jumpToPage(index);
-                                },
+                              controller: _nameController,
+                              cursorColor:
+                                  Theme.of(context).textTheme.caption.color,
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: "Name"),
+                              maxLines: 1,
+                            ),
+                            TextFormField(
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
                               ),
-                            );
-                          }).toList(),
+                              controller: _descriptionController,
+                              cursorColor:
+                                  Theme.of(context).textTheme.caption.color,
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: "Description"),
+                              maxLines: 6,
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  onPageChanged: (page) => currentPageSink.add(page),
-                  children: <Widget>[
-                    /////////////////////////////////////////////////////////////////////////////////////////////
-                    SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Column(
-                          children: <Widget>[
-                            CardPage.body(
-                              title: "Event Poster",
-                              body: RowLayout(
-                                children: <Widget>[
-                                  _imageFile == null
-                                      ? Column(
-                                          children: [
-                                            Icon(
-                                              Icons.photo,
-                                              size: 165,
-                                            ),
-                                            SizedBox(
-                                              height: 15,
-                                            ),
-                                            Text(
-                                              'Please select an image',
-                                              style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .textTheme
-                                                      .caption
-                                                      .color),
-                                            ),
-                                          ],
-                                        )
-                                      : Image.file(
-                                          _imageFile,
-                                          fit: BoxFit.cover,
-                                          height: 300.0,
-                                          alignment: Alignment.topCenter,
-                                          width:
-                                              MediaQuery.of(context).size.width,
-                                        ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                        top: 20.0, left: 10.0, right: 10.0),
-                                    child: OutlineButton(
-                                      onPressed: () =>
-                                          _openImagePickerModal(context),
-                                      borderSide: BorderSide(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                          width: 1.0),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: <Widget>[
-                                          Icon(
-                                            Icons.add_a_photo,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color,
-                                          ),
-                                          SizedBox(
-                                            width: 5.0,
-                                          ),
-                                          Text(
-                                            _imageFile == null
-                                                ? 'Select Image'
-                                                : 'Change Image',
-                                            style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .caption
-                                                    .color),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+              ////////////////////////////////////////////////////////////////////////////////////////////
+              SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Column(
+                    children: <Widget>[
+                      CardPage.body(
+                        title: "Event Details",
+                        body: RowLayout(children: <Widget>[
+                          TextFormField(
+                            style: TextStyle(
+                              color: Theme.of(context).textTheme.caption.color,
                             ),
-                          ],
-                        ),
+                            controller: _aboutController,
+                            cursorColor:
+                                Theme.of(context).textTheme.caption.color,
+                            decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: "About"),
+                            maxLines: 6,
+                          ),
+                          TextFormField(
+                              controller: _eventTypeController,
+                              readOnly: true,
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
+                              ),
+                              decoration: InputDecoration(
+                                  suffixIcon: Icon(Icons.arrow_drop_down_sharp),
+                                  border: OutlineInputBorder(),
+                                  labelText: "Event Type",
+                                  hintText: 'Select Event Type'),
+                              onTap: () {
+                                showDropdownSearchDialog(
+                                    context: context,
+                                    items: model.eventTypesData,
+                                    addEnabled: false,
+                                    onChanged: (String key, String value) {
+                                      setState(() {
+                                        _eventTypeController =
+                                            TextEditingController(text: value);
+                                      });
+                                    });
+                              }),
+                          TextFormField(
+                              controller: _collegeNameController,
+                              readOnly: true,
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
+                              ),
+                              decoration: InputDecoration(
+                                  suffixIcon: Icon(Icons.arrow_drop_down_sharp),
+                                  border: OutlineInputBorder(),
+                                  labelText: "College",
+                                  hintText: 'Select College'),
+                              onTap: () {
+                                showDropdownSearchDialog(
+                                    context: context,
+                                    items: model.collegesData,
+                                    addEnabled: false,
+                                    onChanged: (String key, String value) {
+                                      setState(() {
+                                        _college = key.toString();
+                                        _collegeNameController =
+                                            TextEditingController(text: value);
+                                      });
+                                    });
+                              }),
+                        ]),
                       ),
-                    ),
-                    ////////////////////////////////////////////////////////////////////////////////////////////
-                    SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Column(
-                          children: <Widget>[
-                            CardPage.body(
-                              title: "Event Details",
-                              body: RowLayout(children: <Widget>[
+                      CardPage.body(
+                        body: RowLayout(children: <Widget>[
+                          Text(
+                            'Participation',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 15,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .caption
+                                    .color
+                                    .withOpacity(0.9)),
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Row(children: <Widget>[
+                                Transform.scale(
+                                  scale: 1.2,
+                                  child: Checkbox(
+                                    hoverColor: Theme.of(context).primaryColor,
+                                    focusColor: Theme.of(context).primaryColor,
+                                    value: o_allowed,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        o_allowed = true;
+                                      });
+                                    },
+                                    activeColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color
+                                        .withOpacity(0.2),
+                                    checkColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    tristate: false,
+                                  ),
+                                ),
+                                Text(
+                                  'Open for all',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 16,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color
+                                          .withOpacity(0.9)),
+                                ),
+                              ]),
+                              Row(children: <Widget>[
+                                Transform.scale(
+                                  scale: 1.2,
+                                  child: Checkbox(
+                                    hoverColor: Theme.of(context).primaryColor,
+                                    focusColor: Theme.of(context).primaryColor,
+                                    value: !o_allowed,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        o_allowed = false;
+                                      });
+                                    },
+                                    activeColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color
+                                        .withOpacity(0.2),
+                                    checkColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    tristate: false,
+                                  ),
+                                ),
+                                AutoSizeText(
+                                  'Only for \n' + prefCollegeName,
+                                  minFontSize: 5,
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 16,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color
+                                          .withOpacity(0.9)),
+                                ),
+                              ]),
+                            ],
+                          ),
+                        ]),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              ///////////////////////////////////////////////////////////////////////////////////////////
+              SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Column(
+                    children: <Widget>[
+                      CardPage.body(
+                        body: RowLayout(children: <Widget>[
+                          Text(
+                            'Participation',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 15,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .caption
+                                    .color
+                                    .withOpacity(0.9)),
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Row(children: <Widget>[
+                                Transform.scale(
+                                  scale: 1.2,
+                                  child: Checkbox(
+                                    hoverColor: Theme.of(context).primaryColor,
+                                    focusColor: Theme.of(context).primaryColor,
+                                    value: !team,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        team = false;
+                                      });
+                                    },
+                                    activeColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color
+                                        .withOpacity(0.2),
+                                    checkColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    tristate: false,
+                                  ),
+                                ),
+                                Text(
+                                  'Individual',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 16,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color
+                                          .withOpacity(0.9)),
+                                ),
+                              ]),
+                              Row(children: <Widget>[
+                                Transform.scale(
+                                  scale: 1.2,
+                                  child: Checkbox(
+                                    hoverColor: Theme.of(context).primaryColor,
+                                    focusColor: Theme.of(context).primaryColor,
+                                    value: team,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        team = true;
+                                      });
+                                    },
+                                    activeColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color
+                                        .withOpacity(0.2),
+                                    checkColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    tristate: false,
+                                  ),
+                                ),
+                                Text(
+                                  'Team',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 16,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color
+                                          .withOpacity(0.9)),
+                                ),
+                              ]),
+                            ],
+                          ),
+                          if (team) ...[
+                            RowLayout(
+                              children: <Widget>[
                                 TextFormField(
+                                  keyboardType: TextInputType.number,
                                   style: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
                                         .caption
                                         .color,
                                   ),
-                                  controller: _nameController,
+                                  controller: _minTeamSizeController,
                                   cursorColor:
                                       Theme.of(context).textTheme.caption.color,
                                   decoration: InputDecoration(
                                       border: OutlineInputBorder(),
-                                      labelText: "Name"),
+                                      labelText: "Minimum team size"),
                                   maxLines: 1,
                                 ),
                                 TextFormField(
+                                  keyboardType: TextInputType.number,
                                   style: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
                                         .caption
                                         .color,
                                   ),
-                                  controller: _descriptionController,
+                                  controller: _maxTeamSizeController,
                                   cursorColor:
                                       Theme.of(context).textTheme.caption.color,
                                   decoration: InputDecoration(
                                       border: OutlineInputBorder(),
-                                      labelText: "Description"),
-                                  maxLines: 6,
+                                      labelText: "Maximum team size"),
+                                  maxLines: 1,
                                 ),
-                                TextFormField(
-                                  style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .caption
-                                        .color,
-                                  ),
-                                  controller: _aboutController,
-                                  cursorColor:
-                                      Theme.of(context).textTheme.caption.color,
-                                  decoration: InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      labelText: "About"),
-                                  maxLines: 6,
-                                ),
-                                TextFormField(
-                                    controller: _eventTypeController,
-                                    readOnly: true,
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .caption
-                                          .color,
-                                    ),
-                                    decoration: InputDecoration(
-                                        suffixIcon:
-                                            Icon(Icons.arrow_drop_down_sharp),
-                                        border: OutlineInputBorder(),
-                                        labelText: "Event Type",
-                                        hintText: 'Select Event Type'),
-                                    onTap: () {
-                                      showDropdownSearchDialog(
-                                          context: context,
-                                          items: model.eventTypesData,
-                                          addEnabled: false,
-                                          onChanged:
-                                              (String key, String value) {
-                                            setState(() {
-                                              _eventTypeController =
-                                                  TextEditingController(
-                                                      text: value);
-                                            });
-                                          });
-                                    }),
-                                TextFormField(
-                                    controller: _collegeNameController,
-                                    readOnly: true,
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .caption
-                                          .color,
-                                    ),
-                                    decoration: InputDecoration(
-                                        suffixIcon:
-                                            Icon(Icons.arrow_drop_down_sharp),
-                                        border: OutlineInputBorder(),
-                                        labelText: "College",
-                                        hintText: 'Select College'),
-                                    onTap: () {
-                                      showDropdownSearchDialog(
-                                          context: context,
-                                          items: model.collegesData,
-                                          addEnabled: false,
-                                          onChanged:
-                                              (String key, String value) {
-                                            setState(() {
-                                              _college = key.toString();
-                                              _collegeNameController =
-                                                  TextEditingController(
-                                                      text: value);
-                                            });
-                                          });
-                                    }),
-                              ]),
-                            ),
-                            CardPage.body(
-                              body: RowLayout(children: <Widget>[
-                                Text(
-                                  'Participation',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: 15,
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .caption
-                                          .color
-                                          .withOpacity(0.9)),
-                                ),
-                                Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Row(children: <Widget>[
-                                      Transform.scale(
-                                        scale: 1.2,
-                                        child: Checkbox(
-                                          hoverColor:
-                                              Theme.of(context).primaryColor,
-                                          focusColor:
-                                              Theme.of(context).primaryColor,
-                                          value: o_allowed,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              o_allowed = true;
-                                            });
-                                          },
-                                          activeColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color
-                                              .withOpacity(0.2),
-                                          checkColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                          tristate: false,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Open for all',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 16,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                                .withOpacity(0.9)),
-                                      ),
-                                    ]),
-                                    Row(children: <Widget>[
-                                      Transform.scale(
-                                        scale: 1.2,
-                                        child: Checkbox(
-                                          hoverColor:
-                                              Theme.of(context).primaryColor,
-                                          focusColor:
-                                              Theme.of(context).primaryColor,
-                                          value: !o_allowed,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              o_allowed = false;
-                                            });
-                                          },
-                                          activeColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color
-                                              .withOpacity(0.2),
-                                          checkColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                          tristate: false,
-                                        ),
-                                      ),
-                                      AutoSizeText(
-                                        'Only for \n' + prefCollegeName,
-                                        minFontSize: 5,
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 16,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                                .withOpacity(0.9)),
-                                      ),
-                                    ]),
-                                  ],
-                                ),
-                              ]),
-                            ),
-                            CardPage.body(
-                              body: RowLayout(children: <Widget>[
-                                Text(
-                                  'Participation Type',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: 15,
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .caption
-                                          .color
-                                          .withOpacity(0.9)),
-                                ),
-                                Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Row(children: <Widget>[
-                                      Transform.scale(
-                                        scale: 1.2,
-                                        child: Checkbox(
-                                          hoverColor:
-                                              Theme.of(context).primaryColor,
-                                          focusColor:
-                                              Theme.of(context).primaryColor,
-                                          value: !team,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              team = false;
-                                            });
-                                          },
-                                          activeColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color
-                                              .withOpacity(0.2),
-                                          checkColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                          tristate: false,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Individual',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 16,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                                .withOpacity(0.9)),
-                                      ),
-                                    ]),
-                                    Row(children: <Widget>[
-                                      Transform.scale(
-                                        scale: 1.2,
-                                        child: Checkbox(
-                                          hoverColor:
-                                              Theme.of(context).primaryColor,
-                                          focusColor:
-                                              Theme.of(context).primaryColor,
-                                          value: team,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              team = true;
-                                            });
-                                          },
-                                          activeColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color
-                                              .withOpacity(0.2),
-                                          checkColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                          tristate: false,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Team',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 16,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                                .withOpacity(0.9)),
-                                      ),
-                                    ]),
-                                  ],
-                                ),
-                                if (team) ...[
-                                  RowLayout(
-                                    children: <Widget>[
-                                      TextFormField(
-                                        keyboardType: TextInputType.number,
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                        ),
-                                        controller: _minTeamSizeController,
-                                        cursorColor: Theme.of(context)
-                                            .textTheme
-                                            .caption
-                                            .color,
-                                        decoration: InputDecoration(
-                                            border: OutlineInputBorder(),
-                                            labelText: "Minimum team size"),
-                                        maxLines: 1,
-                                      ),
-                                      TextFormField(
-                                        keyboardType: TextInputType.number,
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                        ),
-                                        controller: _maxTeamSizeController,
-                                        cursorColor: Theme.of(context)
-                                            .textTheme
-                                            .caption
-                                            .color,
-                                        decoration: InputDecoration(
-                                            border: OutlineInputBorder(),
-                                            labelText: "Maximum team size"),
-                                        maxLines: 1,
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ]),
+                              ],
                             ),
                           ],
-                        ),
+                        ]),
                       ),
-                    ),
-                    ///////////////////////////////////////////////////////////////////////////////////////////
-                    SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Column(
+                      CardPage.body(
+                        title: "Prerequisites",
+                        body: RowLayout(
                           children: <Widget>[
-                            CardPage.body(
-                              title: "Prerequisites",
-                              body: RowLayout(
-                                children: <Widget>[
-                                  Container(
-                                    width: double.infinity,
-                                  ),
-                                  ListView.builder(
-                                    shrinkWrap: true,
-                                    physics: NeverScrollableScrollPhysics(),
-                                    itemCount: selected_requirements.length,
-                                    itemBuilder: (context, index) {
-                                      return Column(
-                                        children: [
-                                          Container(
-                                            decoration: BoxDecoration(
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .caption
-                                                    .color
-                                                    .withOpacity(0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        15.0)),
-                                            child: Center(
-                                              child: Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 15,
-                                                    top: 5,
-                                                    bottom: 5,
-                                                    right: 5),
-                                                child: Row(
-                                                  children: [
-                                                    Text(
-                                                      selected_requirements[
-                                                          index],
-                                                      style: TextStyle(
-                                                          fontSize: 20),
-                                                    ),
-                                                    Spacer(),
-                                                    InkWell(
-                                                      onTap: () {
-                                                        this.setState(() =>
-                                                            selected_requirements
-                                                                .removeAt(
-                                                                    index));
-                                                      },
-                                                      child: Container(
-                                                        decoration: BoxDecoration(
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .caption
-                                                                .color
-                                                                .withOpacity(
-                                                                    0.3),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        15.0)),
-                                                        child:
-                                                            Icon(Icons.close),
-                                                      ),
-                                                    ),
-                                                    SizedBox(
-                                                      width: 5,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  ),
-                                  InkWell(
-                                      onTap: () {
-                                        showDropdownSearchDialog(
-                                            context: context,
-                                            items: model.requirementsData,
-                                            addEnabled: true,
-                                            onChanged:
-                                                (String key, String value) {
-                                              this.setState(() =>
-                                                  selected_requirements
-                                                      .add(value.toString()));
-                                            });
-                                      },
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .caption
-                                                  .color,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(10.0)),
-                                        child: Icon(
-                                          Icons.add,
-                                          size: 30,
-                                        ),
-                                      )),
-                                ],
-                              ),
+                            Container(
+                              width: double.infinity,
                             ),
-                            CardPage.body(
-                              title: "Tags",
-                              body: RowLayout(
-                                children: <Widget>[
-                                  Container(
-                                    width: double.infinity,
-                                  ),
-                                  ListView.builder(
-                                    shrinkWrap: true,
-                                    physics: NeverScrollableScrollPhysics(),
-                                    itemCount: selected_themes.length,
-                                    itemBuilder: (context, index) {
-                                      return Column(
-                                        children: [
-                                          Container(
-                                            decoration: BoxDecoration(
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .caption
-                                                    .color
-                                                    .withOpacity(0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        15.0)),
-                                            child: Center(
-                                              child: Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 15,
-                                                    top: 5,
-                                                    bottom: 5,
-                                                    right: 5),
-                                                child: Row(
-                                                  children: [
-                                                    Text(
-                                                      selected_themes[index],
-                                                      style: TextStyle(
-                                                          fontSize: 20),
-                                                    ),
-                                                    Spacer(),
-                                                    InkWell(
-                                                      onTap: () {
-                                                        this.setState(() =>
-                                                            selected_themes
-                                                                .removeAt(
-                                                                    index));
-                                                      },
-                                                      child: Container(
-                                                        decoration: BoxDecoration(
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .caption
-                                                                .color
-                                                                .withOpacity(
-                                                                    0.3),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        15.0)),
-                                                        child:
-                                                            Icon(Icons.close),
-                                                      ),
-                                                    ),
-                                                    SizedBox(
-                                                      width: 5,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  ),
-                                  InkWell(
-                                      onTap: () {
-                                        showDropdownSearchDialog(
-                                            context: context,
-                                            items: model.tagsData,
-                                            addEnabled: true,
-                                            onChanged:
-                                                (String key, String value) {
-                                              this.setState(() =>
-                                                  selected_themes
-                                                      .add(value.toString()));
-                                            });
-                                      },
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .caption
-                                                  .color,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(10.0)),
-                                        child: Icon(
-                                          Icons.add,
-                                          size: 30,
-                                        ),
-                                      )),
-                                ],
-                              ),
-                            ),
-                            CardPage.body(
-                              title: "Mode",
-                              body: RowLayout(children: <Widget>[
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemCount: selected_requirements.length,
+                              itemBuilder: (context, index) {
+                                return Column(
                                   children: [
-                                    Row(children: <Widget>[
-                                      Transform.scale(
-                                        scale: 1.2,
-                                        child: Checkbox(
-                                          hoverColor:
-                                              Theme.of(context).primaryColor,
-                                          focusColor:
-                                              Theme.of(context).primaryColor,
-                                          value: offline,
-                                          onChanged: (value) {
-                                            if (offline == false) {
-                                              setState(() {
-                                                offline = true;
-                                                online = false;
-                                                event_mode = "Offline";
-                                              });
-                                            }
-                                            //toggleCheckbox(value);
-                                          },
-                                          activeColor: Theme.of(context)
+                                    Container(
+                                      decoration: BoxDecoration(
+                                          color: Theme.of(context)
                                               .textTheme
                                               .caption
                                               .color
-                                              .withOpacity(0.2),
-                                          checkColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                          tristate: false,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Offline',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 16,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                                .withOpacity(0.9)),
-                                      ),
-                                    ]),
-                                    Row(children: <Widget>[
-                                      Transform.scale(
-                                        scale: 1.2,
-                                        child: Checkbox(
-                                          hoverColor:
-                                              Theme.of(context).primaryColor,
-                                          focusColor:
-                                              Theme.of(context).primaryColor,
-                                          value: online,
-                                          onChanged: (value) {
-                                            if (online == false) {
-                                              setState(() {
-                                                online = true;
-                                                offline = false;
-                                                event_mode = "Online";
-                                              });
-                                            }
-                                          },
-                                          activeColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color
-                                              .withOpacity(0.2),
-                                          checkColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                          tristate: false,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Online',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 16,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                                .withOpacity(0.9)),
-                                      ),
-                                    ]),
-                                  ],
-                                ),
-                              ]),
-                            ),
-                            offline
-                                ? CardPage.body(
-                                    title: "Venue",
-                                    body: RowLayout(children: <Widget>[
-                                      FormField(
-                                        builder: (FormFieldState state) {
-                                          return InputDecorator(
-                                            decoration: InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: "Venue Type"),
-                                            child:
-                                                new DropdownButtonHideUnderline(
-                                              child: new DropdownButton(
-                                                hint: Text("Select Venue Type"),
-                                                isExpanded: true,
-                                                value: _venueType,
-                                                isDense: true,
-                                                items: _venueTypes.map((item) {
-                                                  return new DropdownMenuItem(
-                                                    child: new Text(
-                                                      item,
-                                                    ),
-                                                    value: item.toString(),
-                                                  );
-                                                }).toList(),
-                                                onChanged: (newValue) {
-                                                  setState(() {
-                                                    _venueType = newValue;
-                                                    state.didChange(newValue);
-                                                  });
+                                              .withOpacity(0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(15.0)),
+                                      child: Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: 15,
+                                              top: 5,
+                                              bottom: 5,
+                                              right: 5),
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                selected_requirements[index],
+                                                style: TextStyle(fontSize: 20),
+                                              ),
+                                              Spacer(),
+                                              InkWell(
+                                                onTap: () {
+                                                  this.setState(() =>
+                                                      selected_requirements
+                                                          .removeAt(index));
                                                 },
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                      color: Theme.of(context)
+                                                          .textTheme
+                                                          .caption
+                                                          .color
+                                                          .withOpacity(0.3),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              15.0)),
+                                                  child: Icon(Icons.close),
+                                                ),
                                               ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                      if (!_venueType.isNullOrEmpty()) ...[
-                                        TextFormField(
-                                          controller: _venueController,
-                                          style: TextStyle(
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color,
+                                              SizedBox(
+                                                width: 5,
+                                              ),
+                                            ],
                                           ),
-                                          cursorColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                          decoration: InputDecoration(
-                                              hintText: _venueType == "College"
-                                                  ? "Room No,Building,College Name"
-                                                  : "Room No,Building,Address",
-                                              border: OutlineInputBorder(),
-                                              labelText: "Venue"),
-                                          maxLines: 5,
                                         ),
-                                      ],
-                                    ]),
-                                  )
-                                : online
-                                    ? CardPage.body(
-                                        title: "Platform",
-                                        body: RowLayout(children: <Widget>[
-                                          TextFormField(
-                                            onSaved: (e) => e,
-                                            controller:
-                                                _platform_detailsController,
-                                            style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .caption
-                                                  .color,
-                                            ),
-                                            cursorColor: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color,
-                                            decoration: InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: "Details"),
-                                            maxLines: 3,
-                                          ),
-                                        ]),
-                                      )
-                                    : Container(),
-                            CardPage.body(
-                              title: "Rounds",
-                              body: RowLayout(children: <Widget>[
-                                Row(children: <Widget>[
-                                  Transform.scale(
-                                    scale: 1.2,
-                                    child: Checkbox(
-                                      hoverColor:
-                                          Theme.of(context).primaryColor,
-                                      focusColor:
-                                          Theme.of(context).primaryColor,
-                                      value: hasRounds,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          hasRounds = value;
-                                        });
-                                      },
-                                      activeColor: Theme.of(context)
-                                          .textTheme
-                                          .caption
-                                          .color
-                                          .withOpacity(0.2),
-                                      checkColor: Theme.of(context)
-                                          .textTheme
-                                          .caption
-                                          .color,
-                                      tristate: false,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    'Event has Rounds',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 16,
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                            InkWell(
+                                onTap: () {
+                                  showDropdownSearchDialog(
+                                      context: context,
+                                      items: model.requirementsData,
+                                      addEnabled: true,
+                                      onChanged: (String key, String value) {
+                                        this.setState(() =>
+                                            selected_requirements
+                                                .add(value.toString()));
+                                      });
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      border: Border.all(
                                         color: Theme.of(context)
                                             .textTheme
                                             .caption
-                                            .color
-                                            .withOpacity(0.9)),
+                                            .color,
+                                      ),
+                                      borderRadius:
+                                          BorderRadius.circular(10.0)),
+                                  child: Icon(
+                                    Icons.add,
+                                    size: 30,
                                   ),
-                                ]),
-                                for (var i = 0; i < roundsUi.length; i++) ...[
-                                  ListTile(
-                                    title: Text(roundsUi[i].title),
-                                    subtitle: Text(roundsUi[i].description),
-                                    trailing: IconButton(
-                                      icon: Icon(Icons.close),
-                                      onPressed: () {
-                                        setState(() {
-                                          roundsUi.remove(roundsUi[i]);
-                                          rounds.removeAt(i);
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ],
-                                if (hasRounds) ...[
-                                  OutlinedIconButton(
-                                    text: 'Add Round ' +
-                                        ((rounds.length) + 1).toString(),
-                                    icon: Icons.add,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => EventRounds(
-                                                  title: ((rounds.length) + 1)
-                                                      .toString(),
-                                                  callBack: (Round round) {
-                                                    setState(() {
-                                                      rounds.add(<String,
-                                                          dynamic>{
-                                                        "title": round.title,
-                                                        "description":
-                                                            round.description,
-                                                        "start_date":
-                                                            round.startDate,
-                                                        "end_date":
-                                                            round.endDate,
-                                                        "link": round.link,
-                                                        "fields": round.fields
-                                                      });
-                                                    });
-                                                    setState(() {
-                                                      roundsUi.add(Round(
-                                                          title: round.title,
-                                                          description:
-                                                              round.description,
-                                                          startDate:
-                                                              round.startDate,
-                                                          endDate:
-                                                              round.endDate,
-                                                          link: round.link,
-                                                          fields:
-                                                              round.fields));
-                                                    });
-                                                  },
-                                                )),
-                                      );
-                                    },
-                                  ),
-                                ]
-                              ]),
+                                )),
+                          ],
+                        ),
+                      ),
+                      CardPage.body(
+                        title: "Tags",
+                        body: RowLayout(
+                          children: <Widget>[
+                            Container(
+                              width: double.infinity,
                             ),
-                            CardPage.body(
-                              title: "Payment",
-                              body: RowLayout(children: <Widget>[
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemCount: selected_themes.length,
+                              itemBuilder: (context, index) {
+                                return Column(
                                   children: [
-                                    Row(children: <Widget>[
-                                      Transform.scale(
-                                        scale: 1.2,
-                                        child: Checkbox(
-                                          hoverColor:
-                                              Theme.of(context).primaryColor,
-                                          focusColor:
-                                              Theme.of(context).primaryColor,
-                                          value: free,
-                                          onChanged: (value) {
-                                            if (free == false) {
-                                              setState(() {
-                                                free = true;
-                                                paid = false;
-                                                payment_type = "Free";
-                                              });
-                                            }
-                                            //toggleCheckbox(value);
-                                          },
-                                          activeColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color
-                                              .withOpacity(0.2),
-                                          checkColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                          tristate: false,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Free',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 16,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                                .withOpacity(0.9)),
-                                      ),
-                                    ]),
-                                    Row(children: <Widget>[
-                                      Transform.scale(
-                                        scale: 1.2,
-                                        child: Checkbox(
-                                          hoverColor:
-                                              Theme.of(context).primaryColor,
-                                          focusColor:
-                                              Theme.of(context).primaryColor,
-                                          value: paid,
-                                          onChanged: (value) {
-                                            if (paid == false) {
-                                              setState(() {
-                                                paid = true;
-                                                free = false;
-                                                payment_type = "Paid";
-                                              });
-                                            }
-                                            //toggleCheckbox(value);
-                                          },
-                                          activeColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color
-                                              .withOpacity(0.2),
-                                          checkColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                          tristate: false,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Paid',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 16,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                                .withOpacity(0.9)),
-                                      ),
-                                    ]),
-                                  ],
-                                ),
-                                paid
-                                    ? TextFormField(
-                                        onSaved: (e) => e,
-                                        controller: _registration_feeController,
-                                        style: TextStyle(
+                                    Container(
+                                      decoration: BoxDecoration(
                                           color: Theme.of(context)
                                               .textTheme
                                               .caption
-                                              .color,
+                                              .color
+                                              .withOpacity(0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(15.0)),
+                                      child: Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: 15,
+                                              top: 5,
+                                              bottom: 5,
+                                              right: 5),
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                selected_themes[index],
+                                                style: TextStyle(fontSize: 20),
+                                              ),
+                                              Spacer(),
+                                              InkWell(
+                                                onTap: () {
+                                                  this.setState(() =>
+                                                      selected_themes
+                                                          .removeAt(index));
+                                                },
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                      color: Theme.of(context)
+                                                          .textTheme
+                                                          .caption
+                                                          .color
+                                                          .withOpacity(0.3),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              15.0)),
+                                                  child: Icon(Icons.close),
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                width: 5,
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                        cursorColor: Theme.of(context)
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                            InkWell(
+                                onTap: () {
+                                  showDropdownSearchDialog(
+                                      context: context,
+                                      items: model.tagsData,
+                                      addEnabled: true,
+                                      onChanged: (String key, String value) {
+                                        this.setState(() => selected_themes
+                                            .add(value.toString()));
+                                      });
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Theme.of(context)
                                             .textTheme
                                             .caption
                                             .color,
-                                        decoration: InputDecoration(
-                                            border: OutlineInputBorder(),
-                                            labelText:
-                                                "Registration Fee(in Rs)"),
-                                        maxLines: 1,
-                                      )
-                                    : Container(),
-                              ]),
+                                      ),
+                                      borderRadius:
+                                          BorderRadius.circular(10.0)),
+                                  child: Icon(
+                                    Icons.add,
+                                    size: 30,
+                                  ),
+                                )),
+                          ],
+                        ),
+                      ),
+                      CardPage.body(
+                        title: "Prizes",
+                        body: RowLayout(
+                          children: <Widget>[
+                            SizedBox(
+                              width: double.infinity,
+                            ),
+                            for (var i = 0; i < prizes.length; i++) ...[
+                              ListTile(
+                                title: Text(prizes[i]['title']),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("Amount : " + prizes[i]['prize']),
+                                    Text(prizes[i]['desc']),
+                                  ],
+                                ),
+                                trailing: IconButton(
+                                  icon: Icon(Icons.close),
+                                  onPressed: () {
+                                    setState(() {
+                                      prizes.removeAt(i);
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                            InkWell(
+                                onTap: () {
+                                  addPrize();
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .caption
+                                            .color,
+                                      ),
+                                      borderRadius:
+                                          BorderRadius.circular(10.0)),
+                                  child: Icon(
+                                    Icons.add,
+                                    size: 30,
+                                  ),
+                                )),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              ////////////////////////////////////////////////////////////////////////////////////////////
+              SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Column(
+                    children: <Widget>[
+                      CardPage.body(
+                        title: "Themes",
+                        body: RowLayout(
+                          children: <Widget>[
+                            SizedBox(
+                              width: double.infinity,
+                            ),
+                            TextFormField(
+                              style: TextStyle(
+                                color:
+                                Theme.of(context).textTheme.caption.color,
+                              ),
+                              controller: _themesController,
+                              cursorColor:
+                              Theme.of(context).textTheme.caption.color,
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: "Themes"),
+                              maxLines: 5,
                             ),
                           ],
                         ),
                       ),
-                    ),
-                    ////////////////////////////////////////////////////////////////////////////////////////////
-                    SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Column(
-                          children: <Widget>[
-                            CardPage.body(
-                              title: "Date and Time Details",
-                              body: RowLayout(
-                                children: <Widget>[
-                                  DateTimePicker(
-                                    type: DateTimePickerType.dateTime,
-                                    decoration: InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      labelText: "Registration Ends At",
-                                      hintText: 'Registration Ends At',
-                                      hintStyle: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .caption
-                                            .color,
-                                        fontSize: 18.0,
-                                      ),
-                                    ),
-                                    dateMask: 'd MMMM, yyyy - hh:mm a',
-                                    controller: _reg_last_dateController,
-                                    //initialValue: DateTime.now().toString(),
-                                    firstDate: DateTime(2000),
-                                    lastDate: DateTime(2100),
-                                    use24HourFormat: false,
+                      CardPage.body(
+                        title: "Payment",
+                        body: RowLayout(children: <Widget>[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Row(children: <Widget>[
+                                Transform.scale(
+                                  scale: 1.2,
+                                  child: Checkbox(
+                                    hoverColor: Theme.of(context).primaryColor,
+                                    focusColor: Theme.of(context).primaryColor,
+                                    value: free,
                                     onChanged: (value) {
-                                      if (DateTime.parse(value).isAfter(
-                                          DateTime.parse(
-                                              _finish_timeController.text))) {
+                                      if (free == false) {
                                         setState(() {
-                                          // _reg_last_dateController.clear();
+                                          free = true;
+                                          paid = false;
+                                          payment_type = "Free";
                                         });
-                                        messageDialog(context,
-                                            'Registration end time should be before end time');
                                       }
+                                      //toggleCheckbox(value);
                                     },
+                                    activeColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color
+                                        .withOpacity(0.2),
+                                    checkColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    tristate: false,
                                   ),
-                                  DateTimePicker(
-                                    type: DateTimePickerType.dateTime,
-                                    decoration: InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      labelText: 'Starts At',
-                                      hintText: 'Starts At',
-                                      hintStyle: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .caption
-                                            .color,
-                                        fontSize: 18.0,
-                                      ),
-                                    ),
-                                    dateMask: 'd MMMM, yyyy - hh:mm a',
-                                    controller: _start_timeController,
-                                    //initialValue: DateTime.now().toString(),
-                                    firstDate: DateTime(2000),
-                                    lastDate: DateTime(2100),
-                                    use24HourFormat: false,
+                                ),
+                                Text(
+                                  'Free',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 16,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color
+                                          .withOpacity(0.9)),
+                                ),
+                              ]),
+                              Row(children: <Widget>[
+                                Transform.scale(
+                                  scale: 1.2,
+                                  child: Checkbox(
+                                    hoverColor: Theme.of(context).primaryColor,
+                                    focusColor: Theme.of(context).primaryColor,
+                                    value: paid,
                                     onChanged: (value) {
-                                      if (DateTime.parse(value).isAfter(
-                                          DateTime.parse(
-                                              _finish_timeController.text))) {
+                                      if (paid == false) {
                                         setState(() {
-                                          //_start_timeController.clear();
+                                          paid = true;
+                                          free = false;
+                                          payment_type = "Paid";
                                         });
-                                        messageDialog(context,
-                                            "Start time should be before end time ");
                                       }
+                                      //toggleCheckbox(value);
                                     },
+                                    activeColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color
+                                        .withOpacity(0.2),
+                                    checkColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    tristate: false,
                                   ),
-                                  DateTimePicker(
-                                    type: DateTimePickerType.dateTime,
-                                    decoration: InputDecoration(
+                                ),
+                                Text(
+                                  'Paid',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 16,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color
+                                          .withOpacity(0.9)),
+                                ),
+                              ]),
+                            ],
+                          ),
+                          paid
+                              ? TextFormField(
+                                  onSaved: (e) => e,
+                                  controller: _registration_feeController,
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                  ),
+                                  cursorColor:
+                                      Theme.of(context).textTheme.caption.color,
+                                  decoration: InputDecoration(
                                       border: OutlineInputBorder(),
-                                      labelText: 'Ends At',
-                                      hintText: 'Ends At',
-                                      hintStyle: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .caption
-                                            .color,
-                                        fontSize: 18.0,
-                                      ),
-                                    ),
-                                    dateMask: 'd MMMM, yyyy - hh:mm a',
-                                    controller: _finish_timeController,
-                                    //initialValue: DateTime.now().toString(),
-                                    firstDate: DateTime(2000),
-                                    lastDate: DateTime(2100),
-                                    use24HourFormat: false,
+                                      labelText: "Registration Fee(in Rs)"),
+                                  maxLines: 1,
+                                )
+                              : Container(),
+                        ]),
+                      ),
+                      CardPage.body(
+                        title: "Mode",
+                        body: RowLayout(children: <Widget>[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Row(children: <Widget>[
+                                Transform.scale(
+                                  scale: 1.2,
+                                  child: Checkbox(
+                                    hoverColor: Theme.of(context).primaryColor,
+                                    focusColor: Theme.of(context).primaryColor,
+                                    value: offline,
                                     onChanged: (value) {
-                                      if ((DateTime.parse(value).isBefore(
-                                              DateTime.parse(
-                                                  _start_timeController
-                                                      .text))) ||
-                                          (DateTime.parse(value).isBefore(
-                                              DateTime.parse(
-                                                  _reg_last_dateController
-                                                      .text)))) {
+                                      if (offline == false) {
                                         setState(() {
-                                          //_finish_timeController.clear();
+                                          offline = true;
+                                          online = false;
+                                          event_mode = "Offline";
                                         });
-                                        messageDialog(context,
-                                            "End time should be after start time and registration end time");
+                                      }
+                                      //toggleCheckbox(value);
+                                    },
+                                    activeColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color
+                                        .withOpacity(0.2),
+                                    checkColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    tristate: false,
+                                  ),
+                                ),
+                                Text(
+                                  'Offline',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 16,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color
+                                          .withOpacity(0.9)),
+                                ),
+                              ]),
+                              Row(children: <Widget>[
+                                Transform.scale(
+                                  scale: 1.2,
+                                  child: Checkbox(
+                                    hoverColor: Theme.of(context).primaryColor,
+                                    focusColor: Theme.of(context).primaryColor,
+                                    value: online,
+                                    onChanged: (value) {
+                                      if (online == false) {
+                                        setState(() {
+                                          online = true;
+                                          offline = false;
+                                          event_mode = "Online";
+                                        });
                                       }
                                     },
+                                    activeColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color
+                                        .withOpacity(0.2),
+                                    checkColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    tristate: false,
+                                  ),
+                                ),
+                                Text(
+                                  'Online',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 16,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color
+                                          .withOpacity(0.9)),
+                                ),
+                              ]),
+                            ],
+                          ),
+                        ]),
+                      ),
+                      offline
+                          ? CardPage.body(
+                              title: "Venue",
+                              body: RowLayout(children: <Widget>[
+                                FormField(
+                                  builder: (FormFieldState state) {
+                                    return InputDecorator(
+                                      decoration: InputDecoration(
+                                          border: OutlineInputBorder(),
+                                          labelText: "Venue Type"),
+                                      child: new DropdownButtonHideUnderline(
+                                        child: new DropdownButton(
+                                          hint: Text("Select Venue Type"),
+                                          isExpanded: true,
+                                          value: _venueType,
+                                          isDense: true,
+                                          items: _venueTypes.map((item) {
+                                            return new DropdownMenuItem(
+                                              child: new Text(
+                                                item,
+                                              ),
+                                              value: item.toString(),
+                                            );
+                                          }).toList(),
+                                          onChanged: (newValue) {
+                                            setState(() {
+                                              _venueType = newValue;
+                                              state.didChange(newValue);
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                if (!_venueType.isNullOrEmpty()) ...[
+                                  TextFormField(
+                                    controller: _venueController,
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color,
+                                    ),
+                                    cursorColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    decoration: InputDecoration(
+                                        hintText: _venueType == "College"
+                                            ? "Room No,Building,College Name"
+                                            : "Room No,Building,Address",
+                                        border: OutlineInputBorder(),
+                                        labelText: "Venue"),
+                                    maxLines: 5,
                                   ),
                                 ],
-                              ),
-                            ),
-                            CardPage.body(
-                              body: RowLayout(children: <Widget>[
+                              ]),
+                            )
+                          : online
+                              ? CardPage.body(
+                                  title: "Platform",
+                                  body: RowLayout(children: <Widget>[
+                                    TextFormField(
+                                      onSaved: (e) => e,
+                                      controller: _platform_detailsController,
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .caption
+                                            .color,
+                                      ),
+                                      cursorColor: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color,
+                                      decoration: InputDecoration(
+                                          border: OutlineInputBorder(),
+                                          labelText: "Details"),
+                                      maxLines: 3,
+                                    ),
+                                  ]),
+                                )
+                              : Container(),
+                      CardPage.body(
+                        body: RowLayout(children: <Widget>[
+                          Text(
+                            'Event Registration Mode',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 15,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .caption
+                                    .color
+                                    .withOpacity(0.9)),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Row(children: <Widget>[
+                                Transform.scale(
+                                  scale: 1.2,
+                                  child: Checkbox(
+                                    hoverColor: Theme.of(context).primaryColor,
+                                    focusColor: Theme.of(context).primaryColor,
+                                    value: link,
+                                    onChanged: (value) {
+                                      if (link == false) {
+                                        setState(() {
+                                          this.setState(
+                                              () => reg_mode = "link");
+                                          link = true;
+                                          form = false;
+                                        });
+                                      }
+                                    },
+                                    activeColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color
+                                        .withOpacity(0.2),
+                                    checkColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    tristate: false,
+                                  ),
+                                ),
                                 Text(
-                                  'Event Registration Mode',
+                                  'Link',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 16,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color
+                                          .withOpacity(0.9)),
+                                ),
+                              ]),
+                              Row(children: <Widget>[
+                                Transform.scale(
+                                  scale: 1.2,
+                                  child: Checkbox(
+                                    hoverColor: Theme.of(context).primaryColor,
+                                    focusColor: Theme.of(context).primaryColor,
+                                    value: form,
+                                    onChanged: (value) {
+                                      if (form == false) {
+                                        setState(() {
+                                          this.setState(
+                                              () => reg_mode = "form");
+                                          form = true;
+                                          link = false;
+                                        });
+                                      }
+                                    },
+                                    activeColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color
+                                        .withOpacity(0.2),
+                                    checkColor: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                    tristate: false,
+                                  ),
+                                ),
+                                Text(
+                                  'Create Form',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 16,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .caption
+                                          .color
+                                          .withOpacity(0.9)),
+                                ),
+                              ]),
+                            ],
+                          ),
+                        ]),
+                      ),
+                      link
+                          ? CardPage.body(
+                              title: "Event Registration Link",
+                              body: RowLayout(children: <Widget>[
+                                TextFormField(
+                                  onSaved: (e) => e,
+                                  controller: _reg_linkController,
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color,
+                                  ),
+                                  cursorColor:
+                                      Theme.of(context).textTheme.caption.color,
+                                  decoration: InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      labelText: "Registration Link"),
+                                  maxLines: 5,
+                                ),
+                              ]),
+                            )
+                          : Container(),
+                      form
+                          ? CardPage.body(
+                              title: "Event Registration Form",
+                              body: RowLayout(children: <Widget>[
+                                Container(
+                                  width: double.infinity,
+                                ),
+                                Text(
+                                  reg_form.isNotEmpty
+                                      ? 'Registartion Form Created'
+                                      : 'Registartion Form Not Yet Created',
                                   style: TextStyle(
                                       fontWeight: FontWeight.w400,
                                       fontSize: 15,
@@ -1729,194 +1597,312 @@ class _PostEventState extends State<PostEvent>
                                           .color
                                           .withOpacity(0.9)),
                                 ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Row(children: <Widget>[
-                                      Transform.scale(
-                                        scale: 1.2,
-                                        child: Checkbox(
-                                          hoverColor:
-                                              Theme.of(context).primaryColor,
-                                          focusColor:
-                                              Theme.of(context).primaryColor,
-                                          value: link,
-                                          onChanged: (value) {
-                                            if (link == false) {
-                                              setState(() {
-                                                this.setState(
-                                                    () => reg_mode = "link");
-                                                link = true;
-                                                form = false;
-                                              });
-                                            }
-                                            //toggleCheckbox(value);
-                                          },
-                                          activeColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color
-                                              .withOpacity(0.2),
-                                          checkColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                          tristate: false,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Link',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 16,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                                .withOpacity(0.9)),
-                                      ),
-                                    ]),
-                                    Row(children: <Widget>[
-                                      Transform.scale(
-                                        scale: 1.2,
-                                        child: Checkbox(
-                                          hoverColor:
-                                              Theme.of(context).primaryColor,
-                                          focusColor:
-                                              Theme.of(context).primaryColor,
-                                          value: form,
-                                          onChanged: (value) {
-                                            if (form == false) {
-                                              setState(() {
-                                                this.setState(
-                                                    () => reg_mode = "form");
-                                                form = true;
-                                                link = false;
-                                              });
-                                            }
-                                            //toggleCheckbox(value);
-                                          },
-                                          activeColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color
-                                              .withOpacity(0.2),
-                                          checkColor: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                          tristate: false,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Create Form',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 16,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                                .withOpacity(0.9)),
-                                      ),
-                                    ]),
-                                  ],
-                                ),
-                              ]),
-                            ),
-                            link
-                                ? CardPage.body(
-                                    title: "Event Registration Link",
-                                    body: RowLayout(children: <Widget>[
-                                      TextFormField(
-                                        onSaved: (e) => e,
-                                        controller: _reg_linkController,
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .caption
-                                              .color,
-                                        ),
-                                        cursorColor: Theme.of(context)
-                                            .textTheme
-                                            .caption
-                                            .color,
-                                        decoration: InputDecoration(
-                                            border: OutlineInputBorder(),
-                                            labelText: "Registration Link"),
-                                        maxLines: 5,
-                                      ),
-                                    ]),
-                                  )
-                                : Container(),
-                            form
-                                ? CardPage.body(
-                                    title: "Event Registration Form",
-                                    body: RowLayout(children: <Widget>[
-                                      Container(
-                                        width: double.infinity,
-                                      ),
-                                      Text(
-                                        reg_form.isNotEmpty
-                                            ? 'Registartion Form Created'
-                                            : 'Registartion Form Not Yet Created',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 15,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .caption
-                                                .color
-                                                .withOpacity(0.9)),
-                                      ),
-                                      OutlinedIconButton(
-                                        text: reg_form.isNotEmpty
-                                            ? "Your Form"
-                                            : "Create Form",
-                                        icon: Icons.format_align_justify,
-                                        onTap: () {
-                                          var route = new MaterialPageRoute(
-                                            builder: (BuildContext context) =>
-                                                //////////////////////////////////////////////////////////////////
-                                                new CreateRegistrationForm(
-                                              get_form: reg_form,
-                                              form_fields: (List form_fields1) {
-                                                setState(() {
-                                                  reg_form.clear();
-                                                });
-                                                for (var item in form_fields1) {
-                                                  //print(item);
-
-                                                  var data = json.decode(item);
-                                                  print(data);
-                                                  print(data['title']);
-                                                  print(data['field']);
-                                                  print(data['options']);
-                                                  this.setState(
-                                                      () => reg_form.add(data));
-                                                }
-                                                print("below is your form");
-                                                print(reg_form);
-                                              },
-                                            ),
-                                            //////////////////////////////////////////////////////////////////////
-                                          );
-                                          Navigator.of(context).push(route);
+                                OutlinedIconButton(
+                                  text: reg_form.isNotEmpty
+                                      ? "Your Form"
+                                      : "Create Form",
+                                  icon: Icons.format_align_justify,
+                                  onTap: () {
+                                    var route = new MaterialPageRoute(
+                                      builder: (BuildContext context) =>
+                                          //////////////////////////////////////////////////////////////////
+                                          new CreateRegistrationForm(
+                                        get_form: reg_form,
+                                        form_fields: (List form_fields1) {
+                                          setState(() {
+                                            reg_form.clear();
+                                          });
+                                          for (var item in form_fields1) {
+                                            var data = json.decode(item);
+                                            this.setState(
+                                                () => reg_form.add(data));
+                                          }
+                                          print("below is your form");
+                                          print(reg_form);
                                         },
                                       ),
-                                    ]),
-                                  )
-                                : Container(),
-                            Acceptance(
-                                'By posting the event,I accept the ', false),
-                            // RButton('Post Event', 15, () {}),
+                                      //////////////////////////////////////////////////////////////////////
+                                    );
+                                    Navigator.of(context).push(route);
+                                  },
+                                ),
+                              ]),
+                            )
+                          : Container(),
+                      if (form) ...[
+                        CardPage.body(
+                          title: "Rounds",
+                          body: RowLayout(children: <Widget>[
+                            Row(children: <Widget>[
+                              Transform.scale(
+                                scale: 1.2,
+                                child: Checkbox(
+                                  hoverColor: Theme.of(context).primaryColor,
+                                  focusColor: Theme.of(context).primaryColor,
+                                  value: hasRounds,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      hasRounds = value;
+                                    });
+                                  },
+                                  activeColor: Theme.of(context)
+                                      .textTheme
+                                      .caption
+                                      .color
+                                      .withOpacity(0.2),
+                                  checkColor:
+                                      Theme.of(context).textTheme.caption.color,
+                                  tristate: false,
+                                ),
+                              ),
+                              Text(
+                                'Event has Rounds',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 16,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .caption
+                                        .color
+                                        .withOpacity(0.9)),
+                              ),
+                            ]),
+                            for (var i = 0; i < roundsUi.length; i++) ...[
+                              ListTile(
+                                onTap: () async {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => EventRounds(
+                                              type: 'edit',
+                                              data: roundsUi[i],
+                                              title:
+                                                  roundsUi[i].title.toString(),
+                                              callBack: (RoundModel round,
+                                                  Map<String, dynamic> data) {
+                                                setState(() {
+                                                  rounds[i] = data;
+                                                });
+                                                setState(() {
+                                                  roundsUi[i] = round;
+                                                });
+                                              },
+                                            )),
+                                  );
+                                },
+                                title: Text(roundsUi[i].title),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(roundsUi[i].description),
+                                    Text('StartTime : ' +
+                                        roundsUi[i].startDate.toString()),
+                                    Text('EndTime : ' +
+                                        roundsUi[i].endDate.toString()),
+                                  ],
+                                ),
+                                trailing: IconButton(
+                                  icon: Icon(Icons.close),
+                                  onPressed: () {
+                                    setState(() {
+                                      roundsUi.remove(roundsUi[i]);
+                                      rounds.removeAt(i);
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                            if (hasRounds) ...[
+                              OutlinedIconButton(
+                                text: 'Add Round ' +
+                                    ((rounds.length) + 1).toString(),
+                                icon: Icons.add,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => EventRounds(
+                                              type: 'new',
+                                              title: ((rounds.length) + 1)
+                                                  .toString(),
+                                              callBack: (RoundModel round,
+                                                  Map<String, dynamic> data) {
+                                                setState(() {
+                                                  rounds.add(data);
+                                                });
+                                                setState(() {
+                                                  roundsUi.add(round);
+                                                });
+                                              },
+                                            )),
+                                  );
+                                },
+                              ),
+                            ]
+                          ]),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+
+              ////////////////////////////////////////////////////////////////////////////////////////////
+              SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Column(
+                    children: <Widget>[
+                      CardPage.body(
+                        title: "Rules and regulations",
+                        body: RowLayout(
+                          children: <Widget>[
+                            SizedBox(
+                              width: double.infinity,
+                            ),
+                            TextFormField(
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.caption.color,
+                              ),
+                              controller: _rulesController,
+                              cursorColor:
+                                  Theme.of(context).textTheme.caption.color,
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: "Rules"),
+                              maxLines: 5,
+                            ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
+                      CardPage.body(
+                        title: "Date and Time Details",
+                        body: RowLayout(
+                          children: <Widget>[
+                            DateTimePicker(
+                              type: DateTimePickerType.dateTime,
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: "Registration Ends At",
+                                hintText: 'Registration Ends At',
+                                hintStyle: TextStyle(
+                                  color:
+                                      Theme.of(context).textTheme.caption.color,
+                                  fontSize: 18.0,
+                                ),
+                              ),
+                              dateMask: 'd MMMM, yyyy - hh:mm a',
+                              controller: _reg_last_dateController,
+                              //initialValue: DateTime.now().toString(),
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime(2100),
+                              use24HourFormat: false,
+                              onChanged: (value) {
+                                if (DateTime.parse(value).isAfter(
+                                    DateTime.parse(
+                                        _finish_timeController.text))) {
+                                  setState(() {
+                                    // _reg_last_dateController.clear();
+                                  });
+                                  messageDialog(context,
+                                      'Registration end time should be before end time');
+                                }
+                              },
+                            ),
+                            DateTimePicker(
+                              type: DateTimePickerType.dateTime,
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Starts At',
+                                hintText: 'Starts At',
+                                hintStyle: TextStyle(
+                                  color:
+                                      Theme.of(context).textTheme.caption.color,
+                                  fontSize: 18.0,
+                                ),
+                              ),
+                              dateMask: 'd MMMM, yyyy - hh:mm a',
+                              controller: _start_timeController,
+                              //initialValue: DateTime.now().toString(),
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime(2100),
+                              use24HourFormat: false,
+                              onChanged: (value) {
+                                if (DateTime.parse(value).isAfter(
+                                    DateTime.parse(
+                                        _finish_timeController.text))) {
+                                  setState(() {
+                                    //_start_timeController.clear();
+                                  });
+                                  messageDialog(context,
+                                      "Start time should be before end time ");
+                                }
+                              },
+                            ),
+                            DateTimePicker(
+                              type: DateTimePickerType.dateTime,
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Ends At',
+                                hintText: 'Ends At',
+                                hintStyle: TextStyle(
+                                  color:
+                                      Theme.of(context).textTheme.caption.color,
+                                  fontSize: 18.0,
+                                ),
+                              ),
+                              dateMask: 'd MMMM, yyyy - hh:mm a',
+                              controller: _finish_timeController,
+                              //initialValue: DateTime.now().toString(),
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime(2100),
+                              use24HourFormat: false,
+                              onChanged: (value) {
+                                if ((DateTime.parse(value).isBefore(
+                                        DateTime.parse(
+                                            _start_timeController.text))) ||
+                                    (DateTime.parse(value).isBefore(
+                                        DateTime.parse(
+                                            _reg_last_dateController.text)))) {
+                                  setState(() {
+                                    //_finish_timeController.clear();
+                                  });
+                                  messageDialog(context,
+                                      "End time should be after start time and registration end time");
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      Acceptance('By posting the event,I accept the ', false),
+                       RButton('Post Event', 15, () {
+                         if (_imageFile == null) {
+                           showDialog(
+                             context: context,
+                             builder: (BuildContext context) {
+                               return AlertDialog(
+                                 title: new Text("Post Event"),
+                                 content: new Text("Event Poster can not be empty"),
+                                 actions: <Widget>[
+                                   new FlatButton(
+                                     child: new Text("Ok"),
+                                     onPressed: () {
+                                       Navigator.of(context).pop();
+                                     },
+                                   ),
+                                 ],
+                               );
+                             },
+                           );
+                         } else {
+                           SystemChannels.textInput.invokeMethod('TextInput.hide');
+                           post_event();
+                         }
+                       }),
+                    ],
+                  ),
                 ),
               ),
             ],

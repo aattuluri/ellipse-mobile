@@ -77,7 +77,7 @@ class _IntroState extends State<Intro> {
                               Navigator.pushNamed(
                                 context,
                                 Routes.start,
-                                arguments: {'current_tab': 0},
+                                arguments: {'currentTab': 0},
                               );
                             } else {
                               Navigator.pushNamed(context, Routes.signin);
